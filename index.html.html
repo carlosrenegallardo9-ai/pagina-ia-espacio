@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tierra — Un atlas del cosmos cercano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  :root{
+    --void: #060810;
+    --void-2: #0a0e1a;
+    --ink: #F1EEE6;
+    --ink-dim: #A6A2B8;
+    --brass: #C9A063;
+    --brass-dim: rgba(201,160,99,0.35);
+    --teal: #5AA9A3;
+    --card: rgba(15,18,30,0.6);
+    --hair: rgba(201,160,99,0.18);
+  }
+
+  *{ box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background: var(--void);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-weight:300;
+    overflow-x:hidden;
+  }
+
+  ::selection{ background: var(--brass); color:var(--void); }
+
+  #globe-stage{
+    position:fixed;
+    top:0; left:0;
+    width:100vw; height:100vh;
+    z-index:0;
+    transition: none;
+    pointer-events:none;
+  }
+  #globe-stage canvas{ display:block; width:100%; height:100%; }
+
+  .instrument-ring{
+    position:fixed;
+    z-index:2;
+    pointer-events:none;
+    border:1px solid var(--brass-dim);
+    border-radius:50%;
+    transition: opacity 0.4s ease;
+  }
+
+  .readout{
+    position:fixed;
+    z-index:3;
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.04em;
+    color: var(--brass);
+    text-transform:uppercase;
+    opacity:0;
+    transition: opacity 0.5s ease;
+    pointer-events:none;
+    line-height:1.8;
+  }
+  .readout span{ color: var(--ink-dim); }
+
+  main{ position:relative; z-index:1; }
+
+  .veil{
+    position:relative;
+    background: linear-gradient(180deg, transparent 0%, var(--void) 12%);
+  }
+
+  section{
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 6vw;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    height:100vh;
+    max-width:none;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    padding-bottom: 8vh;
+    position:relative;
+  }
+  .hero-eyebrow{
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color: var(--brass);
+    margin: 0 6vw 1.2rem;
+  }
+  .hero-title{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size: clamp(4.5rem, 13vw, 10.5rem);
+    line-height:0.88;
+    margin: 0 6vw;
+    color: var(--ink);
+    letter-spacing:-0.01em;
+  }
+  .hero-title em{
+    font-style:italic;
+    font-weight:400;
+    color: var(--teal);
+  }
+  .hero-sub{
+    font-size: clamp(1rem, 1.6vw, 1.2rem);
+    font-weight:300;
+    color: var(--ink-dim);
+    max-width:36ch;
+    margin: 1.6rem 6vw 0;
+    line-height:1.6;
+  }
+  .scroll-cue{
+    position:absolute;
+    bottom: 2.4rem;
+    left: 6vw;
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    color: var(--ink-dim);
+    display:flex;
+    align-items:center;
+    gap:0.7rem;
+  }
+  .scroll-cue::after{
+    content:'';
+    width:1px; height:34px;
+    background: linear-gradient(var(--brass), transparent);
+  }
+
+  /* ---------- SECTION SCAFFOLD ---------- */
+  .band{
+    padding: 9rem 6vw;
+    border-top: 1px solid var(--hair);
+  }
+  .band-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:2rem;
+    margin-bottom:4rem;
+    flex-wrap:wrap;
+  }
+  .band-scale{
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color: var(--brass);
+    white-space:nowrap;
+  }
+  .band-title{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size: clamp(2rem, 4vw, 3rem);
+    margin:0.4rem 0 0;
+  }
+  .band-lede{
+    max-width:58ch;
+    color: var(--ink-dim);
+    font-size:1.05rem;
+    line-height:1.75;
+  }
+
+  /* ---------- VITALS GRID ---------- */
+  .vitals-grid{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:1px;
+    background: var(--hair);
+    border:1px solid var(--hair);
+  }
+  .vital{
+    background: var(--void);
+    padding:2rem 1.6rem;
+  }
+  .vital-num{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:400;
+    font-size:2.1rem;
+    color: var(--ink);
+  }
+  .vital-unit{ font-size:1rem; color:var(--teal); font-style:normal; }
+  .vital-label{
+    margin-top:0.6rem;
+    font-family:'Space Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color: var(--ink-dim);
+    line-height:1.5;
+  }
+
+  /* ---------- ATMOSPHERE LAYERS ---------- */
+  .layers{
+    display:flex;
+    flex-direction:column-reverse;
+    gap:1px;
+    margin-top: 1rem;
+  }
+  .layer{
+    display:grid;
+    grid-template-columns: 130px 1fr 160px;
+    align-items:center;
+    gap:2rem;
+    padding: 1.5rem 0;
+    border-top:1px solid var(--hair);
+  }
+  .layer:first-child{ border-top:none; }
+  .layer-name{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-size:1.3rem;
+    color: var(--ink);
+  }
+  .layer-desc{
+    font-size:0.92rem;
+    color: var(--ink-dim);
+    line-height:1.65;
+  }
+  .layer-alt{
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    color: var(--brass);
+    text-align:right;
+    letter-spacing:0.04em;
+  }
+
+  /* ---------- PLANETS ---------- */
+  .planets{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2.5rem 2rem;
+  }
+  @media (max-width: 860px){ .planets{ grid-template-columns: repeat(2,1fr); } }
+  .planet{
+    padding-top:1.6rem;
+    border-top:1px solid var(--hair);
+  }
+  .planet-orb{
+    width:46px; height:46px;
+    border-radius:50%;
+    margin-bottom:1.2rem;
+    box-shadow: inset -8px -8px 16px rgba(0,0,0,0.5), 0 0 22px -4px currentColor;
+  }
+  .planet-name{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:1.25rem;
+    margin:0 0 0.4rem;
+  }
+  .planet-fact{
+    font-size:0.88rem;
+    color: var(--ink-dim);
+    line-height:1.6;
+  }
+
+  /* ---------- SCALE STRIP ---------- */
+  .scale-strip{
+    position:relative;
+    height:3px;
+    background: var(--hair);
+    margin: 3.5rem 0 2.5rem;
+    border-radius:2px;
+  }
+  .scale-dot{
+    position:absolute;
+    top:50%;
+    width:8px; height:8px;
+    border-radius:50%;
+    background: var(--brass);
+    transform: translate(-50%,-50%);
+  }
+  .scale-dot .tag{
+    position:absolute;
+    top: 14px; left:50%;
+    transform: translateX(-50%);
+    font-family:'Space Mono', monospace;
+    font-size:10px;
+    color: var(--ink-dim);
+    white-space:nowrap;
+  }
+  .scale-dot .tag b{ color:var(--ink); display:block; font-size:11px; }
+
+  /* ---------- FOOTER ---------- */
+  .foot{
+    padding: 6rem 6vw 4rem;
+    border-top:1px solid var(--hair);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:1.5rem;
+  }
+  .foot-mark{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-size:1.1rem;
+    color:var(--ink-dim);
+  }
+  .foot-note{
+    font-family:'Space Mono', monospace;
+    font-size:10.5px;
+    color: var(--ink-dim);
+    letter-spacing:0.04em;
+  }
+
+  @media (max-width: 760px){
+    .vitals-grid{ grid-template-columns: repeat(2,1fr); }
+    .layer{ grid-template-columns:1fr; gap:0.4rem; }
+    .layer-alt{ text-align:left; }
+    .planets{ grid-template-columns: repeat(2,1fr); }
+    .band{ padding: 6rem 6vw; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+  }
+</style>
+</head>
+<body>
+
+<div id="globe-stage"></div>
+<div class="instrument-ring" id="ring"></div>
+<div class="readout" id="readout">
+  UTC <span id="utc-time">--:--:--</span><br>
+  ROT <span id="rot-speed">1 674 km/h</span><br>
+  ORB <span id="orb-speed">107 226 km/h</span><br>
+  INCL <span>23.44°</span>
+</div>
+
+<main>
+
+  <section class="hero">
+    <p class="hero-eyebrow">Atlas del cosmos cercano — distancia 0 km</p>
+    <h1 class="hero-title">La Tierra,<br>un <em>punto azul</em><br>en la oscuridad</h1>
+    <p class="hero-sub">Un recorrido breve por el planeta que habitamos, su atmósfera, sus vecinos y la escala real del vacío que nos rodea.</p>
+    <div class="scroll-cue">DESCENDER</div>
+  </section>
+
+  <div class="veil">
+
+  <section class="band" id="vitals">
+    <div class="band-head">
+      <div>
+        <p class="band-scale">Ficha técnica</p>
+        <h2 class="band-title">Datos vitales</h2>
+      </div>
+      <p class="band-lede">El tercer planeta desde el Sol es, hasta donde sabemos, el único mundo con vida del universo observable.</p>
+    </div>
+    <div class="vitals-grid">
+      <div class="vital"><div class="vital-num">12 742<span class="vital-unit"> km</span></div><div class="vital-label">Diámetro ecuatorial</div></div>
+      <div class="vital"><div class="vital-num">149.6<span class="vital-unit"> M km</span></div><div class="vital-label">Distancia media al Sol</div></div>
+      <div class="vital"><div class="vital-num">23 h 56 m</div><div class="vital-label">Duración real de un día</div></div>
+      <div class="vital"><div class="vital-num">365.25<span class="vital-unit"> d</span></div><div class="vital-label">Año orbital</div></div>
+      <div class="vital"><div class="vital-num">1<span class="vital-unit"> luna</span></div><div class="vital-label">Satélite natural</div></div>
+      <div class="vital"><div class="vital-num">23.4<span class="vital-unit">°</span></div><div class="vital-label">Inclinación axial</div></div>
+      <div class="vital"><div class="vital-num">71<span class="vital-unit">%</span></div><div class="vital-label">Superficie cubierta de agua</div></div>
+      <div class="vital"><div class="vital-num">4.54<span class="vital-unit"> Ga</span></div><div class="vital-label">Edad estimada</div></div>
+    </div>
+  </section>
+
+  <section class="band" id="atmosphere">
+    <div class="band-head">
+      <div>
+        <p class="band-scale">0 — 700 km de altitud</p>
+        <h2 class="band-title">Capas de la atmósfera</h2>
+      </div>
+      <p class="band-lede">El aire que respiramos es apenas la primera de cinco capas, cada una gobernada por una física distinta.</p>
+    </div>
+    <div class="layers">
+      <div class="layer">
+        <div class="layer-name">Exosfera</div>
+        <div class="layer-desc">Se disuelve gradualmente en el espacio interplanetario; los átomos escapan sin apenas chocar entre sí.</div>
+        <div class="layer-alt">700 — 10 000 km</div>
+      </div>
+      <div class="layer">
+        <div class="layer-name">Termosfera</div>
+        <div class="layer-desc">Aquí orbita la Estación Espacial Internacional; las auroras encienden el cielo cuando el viento solar la golpea.</div>
+        <div class="layer-alt">85 — 700 km</div>
+      </div>
+      <div class="layer">
+        <div class="layer-name">Mesosfera</div>
+        <div class="layer-desc">La capa más fría del planeta. La mayoría de los meteoritos se desintegran aquí, dejando estelas visibles.</div>
+        <div class="layer-alt">50 — 85 km</div>
+      </div>
+      <div class="layer">
+        <div class="layer-name">Estratosfera</div>
+        <div class="layer-desc">Alberga la capa de ozono, un escudo delgado que filtra la radiación ultravioleta más dañina del Sol.</div>
+        <div class="layer-alt">12 — 50 km</div>
+      </div>
+      <div class="layer">
+        <div class="layer-name">Troposfera</div>
+        <div class="layer-desc">Contiene el 80% de la masa atmosférica y prácticamente todo el clima que experimentamos.</div>
+        <div class="layer-alt">0 — 12 km</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="planets">
+    <div class="band-head">
+      <div>
+        <p class="band-scale">57 M — 4 500 M km</p>
+        <h2 class="band-title">Vecinos en el sistema solar</h2>
+      </div>
+      <p class="band-lede">Ocho planetas comparten la órbita del Sol con nosotros, cada uno con una historia distinta de formación.</p>
+    </div>
+    <div class="planets">
+      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #b8ada2, #6b6259); color:#8a8078;"></div><div class="planet-name">Mercurio</div><div class="planet-fact">El más cercano al Sol; sin atmósfera que module su temperatura extrema.</div></div>
+      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #e8c48a, #a56a3a); color:#c98a4a;"></div><div class="planet-name">Venus</div><div class="planet-fact">Su atmósfera de dióxido de carbono lo convierte en el planeta más caliente.</div></div>
+      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #6fa8c9, #2c4a6b); color:#4a8ab5;"></div><div class="planet-name">Tierra</div><div class="planet-fact">El único mundo conocido con agua líquida estable y vida.</div></div>
+      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #d68a5c, #8a3f22); color:#c96a3a;"></div><div class="planet-name">Marte</div><div class="planet-fact">Casquetes polares de hielo y el volcán más grande del sistema solar.</div></div>
+      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #d9b98a, #8a6a3f); color:#c9a063;"></div><div class="planet-name">Júpiter</div><div class="planet-fact">Un gigante gaseoso con una tormenta —la Gran Mancha Roja— más ancha que la Tierra.</div></div>
+      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #e0cf9e, #a68e5a); color:#d4b876;"></div><div class="planet-name">Saturno</div><div class="planet-fact">Sus anillos son fragmentos de hielo y roca, apenas de metros de espesor.</div></div>
+      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #8fd0d6, #3a7a80); color:#5aa9a3;"></div><div class="planet-name">Urano</div><div class="planet-fact">Gira casi de lado, con un eje inclinado 98 grados sobre su órbita.</div></div>
+      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #6f8fd6, #2c3f8a); color:#4a6ac9;"></div><div class="planet-name">Neptuno</div><div class="planet-fact">Los vientos más rápidos del sistema solar, hasta 2 100 km/h.</div></div>
+    </div>
+  </section>
+
+  <section class="band" id="scale">
+    <div class="band-head">
+      <div>
+        <p class="band-scale">4.2 años luz y más allá</p>
+        <h2 class="band-title">La escala del cosmos</h2>
+      </div>
+      <p class="band-lede">Si la distancia Tierra–Sol midiera un centímetro en este trazo, así de lejos quedaría todo lo demás.</p>
+    </div>
+    <div class="scale-strip">
+      <div class="scale-dot" style="left:2%"><span class="tag"><b>Sol</b>1 UA</span></div>
+      <div class="scale-dot" style="left:10%"><span class="tag"><b>Júpiter</b>5.2 UA</span></div>
+      <div class="scale-dot" style="left:20%"><span class="tag"><b>Neptuno</b>30 UA</span></div>
+      <div class="scale-dot" style="left:38%"><span class="tag"><b>Voyager 1</b>165 UA</span></div>
+      <div class="scale-dot" style="left:100%"><span class="tag"><b>Próxima Centauri</b>268 000 UA</span></div>
+    </div>
+    <p class="band-lede" style="max-width:70ch">La luz del Sol tarda ocho minutos en llegar a la Tierra. Esa misma luz, viajando a 300 000 km por segundo, tardaría más de cuatro años en alcanzar la estrella más próxima. El punto azul del que partimos es, en ese mapa, prácticamente invisible.</p>
+  </section>
+
+  <footer class="foot">
+    <span class="foot-mark">Atlas del cosmos cercano</span>
+    <span class="foot-note">DATOS OSTENSIBLEMENTE APROXIMADOS · NASA / IAU</span>
+  </footer>
+
+  </div>
+
+</main>
+
+<script>
+(function(){
+  const stage = document.getElementById('globe-stage');
+  const ring = document.getElementById('ring');
+  const readout = document.getElementById('readout');
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(38, window.innerWidth/window.innerHeight, 0.1, 100);
+  camera.position.set(0,0,7.4);
+
+  const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  stage.appendChild(renderer.domElement);
+
+  // ---- procedural cartographic texture ----
+  function makeEarthTexture(){
+    const w=1024, h=512;
+    const c = document.createElement('canvas'); c.width=w; c.height=h;
+    const ctx = c.getContext('2d');
+
+    // ocean gradient — aged chart teal
+    const oceanGrad = ctx.createLinearGradient(0,0,0,h);
+    oceanGrad.addColorStop(0, '#0f2f38');
+    oceanGrad.addColorStop(0.5, '#173f47');
+    oceanGrad.addColorStop(1, '#0f2f38');
+    ctx.fillStyle = oceanGrad;
+    ctx.fillRect(0,0,w,h);
+
+    // continents — ink-wash blobs
+    function blob(cx, cy, r, col){
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.beginPath();
+      const pts = 10;
+      for(let i=0;i<=pts;i++){
+        const a = (i/pts)*Math.PI*2;
+        const rad = r * (0.7 + Math.random()*0.55);
+        const x = Math.cos(a)*rad, y = Math.sin(a)*rad*0.62;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = col;
+      ctx.filter = 'blur(3px)';
+      ctx.fill();
+      ctx.restore();
+    }
+    const landCol = '#8a7550';
+    const landCol2 = '#9c8760';
+    const clusters = [
+      [150,150,70],[190,190,50],[130,210,40],
+      [430,120,55],[470,160,42],[420,190,38],
+      [520,260,60],[560,300,44],[500,320,50],
+      [720,140,60],[770,120,45],[800,190,55],
+      [860,300,50],[900,260,38],
+      [260,330,45],[300,300,40],
+      [620,360,42],[660,340,36]
+    ];
+    clusters.forEach((p,i)=> blob(p[0],p[1],p[2], i%2? landCol: landCol2));
+
+    // polar ice
+    const iceTop = ctx.createLinearGradient(0,0,0,70);
+    iceTop.addColorStop(0,'rgba(230,228,220,0.85)');
+    iceTop.addColorStop(1,'rgba(230,228,220,0)');
+    ctx.filter='none';
+    ctx.fillStyle = iceTop; ctx.fillRect(0,0,w,70);
+    const iceBot = ctx.createLinearGradient(0,h-70,0,h);
+    iceBot.addColorStop(0,'rgba(230,228,220,0)');
+    iceBot.addColorStop(1,'rgba(230,228,220,0.85)');
+    ctx.fillStyle = iceBot; ctx.fillRect(0,h-70,w,70);
+
+    // graticule — brass cartographic lines
+    ctx.strokeStyle = 'rgba(201,160,99,0.35)';
+    ctx.lineWidth = 1;
+    for(let x=0;x<=w;x+=w/12){
+      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke();
+    }
+    for(let y=0;y<=h;y+=h/6){
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(201,160,99,0.6)';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(0,h/2); ctx.lineTo(w,h/2); ctx.stroke();
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.needsUpdate = true;
+    return tex;
+  }
+
+  const earthTex = makeEarthTexture();
+  const earthGeo = new THREE.SphereGeometry(2, 64, 64);
+  const earthMat = new THREE.MeshPhongMaterial({ map: earthTex, shininess: 6, specular: 0x223333 });
+  const earth = new THREE.Mesh(earthGeo, earthMat);
+  earth.rotation.z = 23.4 * Math.PI/180;
+  scene.add(earth);
+
+  // atmosphere glow — fresnel-ish rim shader
+  const atmoGeo = new THREE.SphereGeometry(2.09, 64, 64);
+  const atmoMat = new THREE.ShaderMaterial({
+    uniforms:{ glowColor:{ value: new THREE.Color(0x5aa9a3) } },
+    vertexShader: `
+      varying float intensity;
+      void main(){
+        vec3 vNormal = normalize( normalMatrix * normal );
+        vec3 vNormel = normalize( normalMatrix * vec3(0.0,0.0,1.0) );
+        intensity = pow( 0.68 - dot(vNormal, vNormel), 2.4 );
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+      }`,
+    fragmentShader: `
+      varying float intensity;
+      uniform vec3 glowColor;
+      void main(){
+        gl_FragColor = vec4( glowColor, intensity );
+      }`,
+    side: THREE.BackSide,
+    blending: THREE.AdditiveBlending,
+    transparent:true
+  });
+  const atmo = new THREE.Mesh(atmoGeo, atmoMat);
+  scene.add(atmo);
+
+  // brass instrument ring
+  const ringGeo = new THREE.TorusGeometry(2.55, 0.012, 8, 128);
+  const ringMat = new THREE.MeshBasicMaterial({ color:0xc9a063, transparent:true, opacity:0.55 });
+  const brassRing = new THREE.Mesh(ringGeo, ringMat);
+  brassRing.rotation.x = Math.PI/2.3;
+  scene.add(brassRing);
+
+  // starfield
+  const starGeo = new THREE.BufferGeometry();
+  const starCount = 900;
+  const positions = new Float32Array(starCount*3);
+  for(let i=0;i<starCount;i++){
+    const r = 20 + Math.random()*30;
+    const theta = Math.random()*Math.PI*2;
+    const phi = Math.acos((Math.random()*2)-1);
+    positions[i*3] = r*Math.sin(phi)*Math.cos(theta);
+    positions[i*3+1] = r*Math.sin(phi)*Math.sin(theta);
+    positions[i*3+2] = r*Math.cos(phi);
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+  const starMat = new THREE.PointsMaterial({ color:0xf1eee6, size:0.045, transparent:true, opacity:0.7 });
+  const stars = new THREE.Points(starGeo, starMat);
+  scene.add(stars);
+
+  // light — the sun
+  const sun = new THREE.DirectionalLight(0xfff2d9, 1.55);
+  sun.position.set(5,2,4);
+  scene.add(sun);
+  scene.add(new THREE.AmbientLight(0x1a2030, 1.3));
+
+  let mouseX = 0, mouseY = 0;
+  window.addEventListener('mousemove', (e)=>{
+    mouseX = (e.clientX/window.innerWidth - 0.5);
+    mouseY = (e.clientY/window.innerHeight - 0.5);
+  });
+
+  function resize(){
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+  window.addEventListener('resize', resize);
+
+  function animate(){
+    requestAnimationFrame(animate);
+    earth.rotation.y += 0.0016;
+    brassRing.rotation.z += 0.0006;
+    camera.position.x += (mouseX*1.1 - camera.position.x)*0.02;
+    camera.position.y += (-mouseY*0.7 - camera.position.y)*0.02;
+    camera.lookAt(0,0,0);
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // ---- scroll-driven instrument transformation ----
+  const heroH = window.innerHeight;
+  function onScroll(){
+    const y = window.scrollY;
+    const t = Math.min(Math.max(y/heroH, 0), 1);
+
+    const scale = 1 - t*0.78;
+    const tx = t * (window.innerWidth*0.5 - 92);
+    const ty = -t * (window.innerHeight*0.5 - 92);
+    stage.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    stage.style.transformOrigin = 'center center';
+
+    const ringSize = 118;
+    ring.style.width = ringSize+'px';
+    ring.style.height = ringSize+'px';
+    ring.style.left = (window.innerWidth - ringSize - 44) + 'px';
+    ring.style.top = (44) + 'px';
+    ring.style.opacity = t > 0.82 ? String((t-0.82)/0.18) : '0';
+
+    readout.style.opacity = t > 0.82 ? String((t-0.82)/0.18) : '0';
+    readout.style.left = (window.innerWidth - 210) + 'px';
+    readout.style.top = (170) + 'px';
+  }
+  window.addEventListener('scroll', onScroll, { passive:true });
+  onScroll();
+
+  function tickClock(){
+    const d = new Date();
+    document.getElementById('utc-time').textContent = d.toISOString().substr(11,8);
+  }
+  setInterval(tickClock, 1000);
+  tickClock();
+})();
+</script>
+
+</body>
+</html>
