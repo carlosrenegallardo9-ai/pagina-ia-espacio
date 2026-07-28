@@ -1,0 +1,378 @@
+/* =========================================================
+   Planeta Tierra — hoja de estilos
+   Paleta: espacio profundo + grises neutros + acentos de arma
+   ========================================================= */
+
+:root{
+  --bg: #0B0C10;
+  --bg-void: #000000;
+  --white: #FFFFFF;
+  --card: #1F2833;
+  --gray-light: #C5C6C7;
+  --gray-blue: #8892B0;
+
+  --danger: #E63946;
+  --warning: #FF6B35;
+  --toxic: #7CFF5E;
+  --smoke: #6b6f76;
+
+  --radius: 14px;
+  --border: 1px solid rgba(197,198,199,0.12);
+}
+
+*{ box-sizing: border-box; }
+
+html{ scroll-behavior: smooth; }
+
+body{
+  margin: 0;
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+}
+
+a{ color: inherit; }
+
+h1, h2, h3{ margin: 0 0 0.5em; font-weight: 700; letter-spacing: -0.01em; }
+
+img{ max-width: 100%; display: block; }
+
+/* ---------- Header ---------- */
+.site-header{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 5vw;
+  background: rgba(11,12,16,0.75);
+  backdrop-filter: blur(10px);
+  border-bottom: var(--border);
+}
+.brand{
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--white);
+}
+.site-nav{
+  display: flex;
+  gap: 1.75rem;
+}
+.site-nav a{
+  text-decoration: none;
+  color: var(--gray-blue);
+  font-size: 0.92rem;
+  transition: color 0.2s ease;
+}
+.site-nav a:hover{ color: var(--white); }
+.logo{
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+/* ---------- Layout helpers ---------- */
+main{ position: relative; }
+
+.section-head{
+  max-width: 640px;
+  margin: 0 auto 3rem;
+  text-align: center;
+}
+.eyebrow{
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.75rem;
+  color: var(--gray-blue);
+  margin: 0 0 0.6rem;
+}
+.lede{ color: var(--gray-light); }
+
+.canvas-frame{
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius);
+  border: var(--border);
+  background: radial-gradient(circle at 50% 40%, #10131c 0%, #000000 100%);
+  overflow: hidden;
+  position: relative;
+  touch-action: none;
+}
+.canvas-frame canvas{ display: block; width: 100% !important; height: 100% !important; }
+
+.btn{
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 0.7rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+}
+.btn:active{ transform: scale(0.97); }
+.btn-primary{
+  background: var(--white);
+  color: var(--bg-void);
+}
+.btn-primary:hover{ background: var(--gray-light); }
+.btn-ghost{
+  background: transparent;
+  color: var(--white);
+  border-color: rgba(255,255,255,0.25);
+}
+.btn-ghost:hover{ border-color: var(--white); }
+
+/* ---------- Hero ---------- */
+.hero{
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 4vw;
+  align-items: center;
+  padding: 5vh 5vw 8vh;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 88vh;
+}
+.hero-text h1{
+  font-size: clamp(2.2rem, 4.4vw, 3.6rem);
+  line-height: 1.08;
+}
+.accent{ color: var(--toxic); }
+
+.fact-cards{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.9rem;
+  margin-top: 2rem;
+}
+.fact-card{
+  background: var(--card);
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.fact-icon{ font-size: 1.3rem; }
+.fact-value{
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--white);
+}
+.fact-value small{
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--gray-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.fact-label{
+  font-size: 0.78rem;
+  color: var(--gray-light);
+}
+
+.hero-stage{ display: flex; flex-direction: column; gap: 1rem; }
+.stage-controls{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem;
+}
+.stage-hint{
+  font-size: 0.78rem;
+  color: var(--gray-blue);
+  margin: 0;
+}
+.stage-status{
+  font-size: 0.78rem;
+  color: var(--toxic);
+  margin: 0;
+  width: 100%;
+  min-height: 1em;
+}
+
+/* ---------- Minijuego ---------- */
+.minigame{
+  padding: 8vh 5vw;
+  max-width: 1400px;
+  margin: 0 auto;
+  border-top: var(--border);
+}
+.minigame-layout{
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+.canvas-frame--game{ cursor: crosshair; }
+
+.weapon-panel{
+  background: var(--card);
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  position: sticky;
+  top: 6rem;
+}
+.weapon-panel h3{ font-size: 1rem; color: var(--gray-light); }
+
+.weapon-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+  margin-bottom: 1.2rem;
+}
+.weapon-btn{
+  cursor: pointer;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(197,198,199,0.18);
+  border-radius: 10px;
+  padding: 0.8rem 0.6rem;
+  color: var(--white);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  text-align: center;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+}
+.weapon-btn:hover{ border-color: var(--gray-blue); transform: translateY(-2px); }
+.weapon-btn[aria-pressed="true"]{
+  border-color: var(--toxic);
+  background: rgba(124,255,94,0.08);
+  box-shadow: 0 0 0 1px rgba(124,255,94,0.35) inset;
+}
+.weapon-icon{ font-size: 1.5rem; }
+.weapon-name{ font-size: 0.82rem; font-weight: 600; }
+.weapon-desc{ font-size: 0.68rem; color: var(--gray-blue); }
+
+.weapon-status{
+  font-size: 0.82rem;
+  color: var(--gray-light);
+  min-height: 2.4em;
+}
+.damage-counter{
+  font-size: 0.78rem;
+  color: var(--gray-blue);
+  margin-bottom: 1rem;
+}
+#restore-btn{ width: 100%; }
+
+/* ---------- Modal educativo ---------- */
+dialog.edu-modal{
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: 0;
+  background: var(--card);
+  color: var(--white);
+  max-width: 460px;
+  width: 90vw;
+}
+dialog.edu-modal::backdrop{
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(2px);
+}
+.edu-modal-inner{
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+.edu-modal-icon{ font-size: 2rem; }
+.edu-modal-tip{
+  background: rgba(255,255,255,0.04);
+  border-left: 3px solid var(--toxic);
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--gray-light);
+}
+.edu-modal-tip strong{ color: var(--white); }
+.restore-list{
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--gray-light);
+  font-size: 0.92rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.edu-modal .btn{ align-self: flex-end; margin-top: 0.5rem; }
+
+/* ---------- Footer / noticias ---------- */
+.news-footer{
+  padding: 8vh 5vw 4vh;
+  max-width: 1400px;
+  margin: 0 auto;
+  border-top: var(--border);
+}
+.news-grid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.4rem;
+}
+.news-card{
+  background: var(--card);
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.news-tag{
+  align-self: flex-start;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--toxic);
+  background: rgba(124,255,94,0.08);
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+}
+.news-card h3{ font-size: 1.02rem; }
+.news-card p{ font-size: 0.86rem; color: var(--gray-light); flex: 1; }
+.news-source{ font-size: 0.7rem; color: var(--gray-blue); }
+
+.news-actions{
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+
+.foot-bottom{
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+.foot-note{ font-size: 0.78rem; color: var(--gray-blue); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 980px){
+  .hero{ grid-template-columns: 1fr; padding-top: 2rem; min-height: auto; }
+  .hero-stage{ order: -1; }
+  .minigame-layout{ grid-template-columns: 1fr; }
+  .weapon-panel{ position: static; }
+  .news-grid{ grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px){
+  .site-header{ padding: 1rem 6vw; }
+  .site-nav{ display: none; }
+  .fact-cards{ grid-template-columns: 1fr; }
+  .weapon-grid{ grid-template-columns: 1fr 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior: auto; }
+}
