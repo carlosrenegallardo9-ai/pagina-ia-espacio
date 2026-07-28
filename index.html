@@ -3,667 +3,1720 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tierra — Un atlas del cosmos cercano</title>
+<title>Planeta Tierra — Exploración 3D &amp; Simulador Educativo</title>
+<meta name="description" content="Experiencia 3D hiperrealista del planeta Tierra con simulador educativo de impacto ambiental, construida con Three.js.">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+     THREE.JS — núcleo + OrbitControls (CDN, versión r128 fijada
+     para evitar incompatibilidades entre el core y los addons).
+     ============================================================ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
 <style>
   :root{
-    --void: #060810;
-    --void-2: #0a0e1a;
-    --ink: #F1EEE6;
-    --ink-dim: #A6A2B8;
-    --brass: #C9A063;
-    --brass-dim: rgba(201,160,99,0.35);
-    --teal: #5AA9A3;
-    --card: rgba(15,18,30,0.6);
-    --hair: rgba(201,160,99,0.18);
+    --bg:#05060a;
+    --bg-soft:#0a0d16;
+    --ink:#f4f6fb;
+    --ink-dim:#9aa3ba;
+    --ink-faint:#616b82;
+    --cyan:#5ce1e6;
+    --cyan-soft:rgba(92,225,230,0.4);
+    --violet:#8b7cf6;
+    --green:#6bffb0;
+    --amber:#ffb454;
+    --red:#ff5c6c;
+    --border:rgba(255,255,255,0.09);
+    --card:rgba(255,255,255,0.035);
+    --card-hover:rgba(255,255,255,0.06);
+    --font-head:'Space Grotesk', sans-serif;
+    --font-body:'Inter', sans-serif;
   }
 
-  *{ box-sizing:border-box; }
-
+  *{ box-sizing:border-box; margin:0; padding:0; }
   html{ scroll-behavior:smooth; }
-
   body{
-    margin:0;
-    background: var(--void);
+    background: var(--bg);
     color: var(--ink);
-    font-family: 'Inter', sans-serif;
-    font-weight:300;
+    font-family: var(--font-body);
+    font-weight:400;
+    line-height:1.5;
     overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
   }
+  ::selection{ background: var(--cyan); color:#03181a; }
+  a{ color:inherit; text-decoration:none; }
+  ul{ list-style:none; }
+  img{ max-width:100%; display:block; }
+  button{ font-family:inherit; cursor:pointer; }
 
-  ::selection{ background: var(--brass); color:var(--void); }
-
-  #globe-stage{
-    position:fixed;
-    top:0; left:0;
+  /* ---------------------------------------------------------------
+     FONDO ESTELAR GLOBAL — canvas 2D fijo detrás de todo el sitio.
+     Independiente de los canvases WebGL de las Tierras 3D.
+     --------------------------------------------------------------- */
+  #starfield-bg{
+    position:fixed; inset:0;
     width:100vw; height:100vh;
     z-index:0;
-    transition: none;
-    pointer-events:none;
+    background:
+      radial-gradient(ellipse at 20% 15%, rgba(92,225,230,0.05), transparent 55%),
+      radial-gradient(ellipse at 82% 70%, rgba(139,124,246,0.06), transparent 55%),
+      var(--bg);
   }
-  #globe-stage canvas{ display:block; width:100%; height:100%; }
-
-  .instrument-ring{
-    position:fixed;
-    z-index:2;
-    pointer-events:none;
-    border:1px solid var(--brass-dim);
-    border-radius:50%;
-    transition: opacity 0.4s ease;
-  }
-
-  .readout{
-    position:fixed;
-    z-index:3;
-    font-family:'Space Mono', monospace;
-    font-size:11px;
-    letter-spacing:0.04em;
-    color: var(--brass);
-    text-transform:uppercase;
-    opacity:0;
-    transition: opacity 0.5s ease;
-    pointer-events:none;
-    line-height:1.8;
-  }
-  .readout span{ color: var(--ink-dim); }
 
   main{ position:relative; z-index:1; }
 
-  .veil{
+  .container{
+    max-width:1280px;
+    margin:0 auto;
+    padding:0 6vw;
+  }
+
+  /* ---------------------------------------------------------------
+     HEADER
+     --------------------------------------------------------------- */
+  .site-header{
+    position:fixed; top:0; left:0; right:0;
+    z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1.1rem 6vw;
+    background:linear-gradient(180deg, rgba(5,6,10,0.85), rgba(5,6,10,0.35) 80%, transparent);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+  }
+  .brand{ display:flex; align-items:center; gap:0.9rem; }
+  .brand-text{ display:flex; flex-direction:column; gap:0.1rem; }
+  .brand-eyebrow{
+    font-family:var(--font-body);
+    font-size:0.62rem;
+    letter-spacing:0.24em;
+    text-transform:uppercase;
+    color:var(--cyan);
+    opacity:0.85;
+  }
+  .brand-title{
+    font-family:var(--font-head);
+    font-weight:600;
+    font-size:1.15rem;
+    letter-spacing:0.01em;
+  }
+  .site-nav{ display:flex; gap:2.2rem; }
+  .site-nav a{
+    font-family:var(--font-head);
+    font-size:0.82rem;
+    letter-spacing:0.03em;
+    color:var(--ink-dim);
+    transition:color 0.25s ease;
     position:relative;
-    background: linear-gradient(180deg, transparent 0%, var(--void) 12%);
+    padding-bottom:2px;
   }
-
-  section{
-    max-width: 1120px;
-    margin: 0 auto;
-    padding: 0 6vw;
+  .site-nav a::after{
+    content:'';
+    position:absolute; left:0; right:100%; bottom:0;
+    height:1px; background:var(--cyan);
+    transition:right 0.3s ease;
   }
+  .site-nav a:hover{ color:var(--ink); }
+  .site-nav a:hover::after{ right:0; }
 
-  /* ---------- HERO ---------- */
+  /* logo abstracto — anillos orbitales animados, esquina superior derecha */
+  .brand-logo{
+    position:relative;
+    width:38px; height:38px;
+    flex-shrink:0;
+    order:2;
+  }
+  .brand-logo span{
+    position:absolute; inset:0;
+    border-radius:50%;
+    border:1px solid var(--cyan-soft);
+  }
+  .brand-logo span:first-child{
+    border-color:rgba(139,124,246,0.55);
+    animation:spin-cw 7s linear infinite;
+  }
+  .brand-logo span:first-child::before{
+    content:'';
+    position:absolute; top:-2px; left:50%;
+    width:5px; height:5px; margin-left:-2.5px;
+    background:var(--violet);
+    border-radius:50%;
+    box-shadow:0 0 8px 1px var(--violet);
+  }
+  .brand-logo span:last-child{
+    inset:8px;
+    animation:spin-ccw 4.5s linear infinite;
+  }
+  .brand-logo span:last-child::before{
+    content:'';
+    position:absolute; bottom:-2px; left:50%;
+    width:4px; height:4px; margin-left:-2px;
+    background:var(--cyan);
+    border-radius:50%;
+    box-shadow:0 0 8px 1px var(--cyan);
+  }
+  @keyframes spin-cw{ to{ transform:rotate(360deg); } }
+  @keyframes spin-ccw{ to{ transform:rotate(-360deg); } }
+
+  .brand{ flex-direction:row-reverse; }
+  @media (max-width:760px){ .site-nav{ display:none; } }
+
+  /* ---------------------------------------------------------------
+     HERO
+     --------------------------------------------------------------- */
   .hero{
-    height:100vh;
-    max-width:none;
+    min-height:100vh;
     display:flex;
-    flex-direction:column;
-    justify-content:flex-end;
-    padding-bottom: 8vh;
-    position:relative;
+    align-items:center;
+    padding:9rem 6vw 4rem;
+  }
+  .hero-grid{
+    width:100%;
+    display:grid;
+    grid-template-columns: 0.95fr 1.15fr;
+    gap:4vw;
+    align-items:center;
   }
   .hero-eyebrow{
-    font-family:'Space Mono', monospace;
-    font-size:12px;
-    letter-spacing:0.18em;
+    display:inline-flex; align-items:center; gap:0.6rem;
+    font-family:var(--font-head);
+    font-size:0.72rem;
+    letter-spacing:0.22em;
     text-transform:uppercase;
-    color: var(--brass);
-    margin: 0 6vw 1.2rem;
+    color:var(--cyan);
+    margin-bottom:1.4rem;
+  }
+  .hero-eyebrow::before{
+    content:''; width:22px; height:1px; background:var(--cyan);
   }
   .hero-title{
-    font-family:'Fraunces', serif;
-    font-weight:500;
-    font-size: clamp(4.5rem, 13vw, 10.5rem);
-    line-height:0.88;
-    margin: 0 6vw;
-    color: var(--ink);
+    font-family:var(--font-head);
+    font-weight:700;
+    font-size:clamp(2.6rem, 4.6vw, 4rem);
+    line-height:1.06;
     letter-spacing:-0.01em;
+    margin-bottom:1.5rem;
   }
-  .hero-title em{
-    font-style:italic;
-    font-weight:400;
-    color: var(--teal);
+  .hero-title .accent{
+    background:linear-gradient(100deg, var(--cyan), var(--violet) 70%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
   }
   .hero-sub{
-    font-size: clamp(1rem, 1.6vw, 1.2rem);
-    font-weight:300;
-    color: var(--ink-dim);
-    max-width:36ch;
-    margin: 1.6rem 6vw 0;
-    line-height:1.6;
-  }
-  .scroll-cue{
-    position:absolute;
-    bottom: 2.4rem;
-    left: 6vw;
-    font-family:'Space Mono', monospace;
-    font-size:11px;
-    letter-spacing:0.14em;
-    color: var(--ink-dim);
-    display:flex;
-    align-items:center;
-    gap:0.7rem;
-  }
-  .scroll-cue::after{
-    content:'';
-    width:1px; height:34px;
-    background: linear-gradient(var(--brass), transparent);
-  }
-
-  /* ---------- SECTION SCAFFOLD ---------- */
-  .band{
-    padding: 9rem 6vw;
-    border-top: 1px solid var(--hair);
-  }
-  .band-head{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-end;
-    gap:2rem;
-    margin-bottom:4rem;
-    flex-wrap:wrap;
-  }
-  .band-scale{
-    font-family:'Space Mono', monospace;
-    font-size:11px;
-    letter-spacing:0.1em;
-    text-transform:uppercase;
-    color: var(--brass);
-    white-space:nowrap;
-  }
-  .band-title{
-    font-family:'Fraunces', serif;
-    font-weight:500;
-    font-size: clamp(2rem, 4vw, 3rem);
-    margin:0.4rem 0 0;
-  }
-  .band-lede{
-    max-width:58ch;
-    color: var(--ink-dim);
-    font-size:1.05rem;
+    font-size:1.02rem;
+    color:var(--ink-dim);
+    max-width:48ch;
     line-height:1.75;
+    margin-bottom:2.2rem;
+    font-weight:300;
   }
 
-  /* ---------- VITALS GRID ---------- */
-  .vitals-grid{
-    display:grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap:1px;
-    background: var(--hair);
-    border:1px solid var(--hair);
+  .facts-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:1.5rem 1.6rem;
+    margin-bottom:2.2rem;
+    backdrop-filter:blur(6px);
   }
-  .vital{
-    background: var(--void);
-    padding:2rem 1.6rem;
+  .facts-card h3{
+    font-family:var(--font-head);
+    font-size:0.72rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:1.1rem;
   }
-  .vital-num{
-    font-family:'Fraunces', serif;
-    font-style:italic;
-    font-weight:400;
-    font-size:2.1rem;
-    color: var(--ink);
+  .facts-list{ display:grid; gap:0.95rem; }
+  .fact{ display:flex; align-items:flex-start; gap:0.85rem; }
+  .fact svg{ flex-shrink:0; width:19px; height:19px; margin-top:1px; color:var(--cyan); }
+  .fact-text b{ display:block; font-family:var(--font-head); font-size:0.92rem; font-weight:600; color:var(--ink); }
+  .fact-text span{ font-size:0.8rem; color:var(--ink-dim); }
+
+  .hero-actions{ display:flex; gap:1rem; flex-wrap:wrap; }
+  .btn{
+    font-family:var(--font-head);
+    font-size:0.82rem;
+    font-weight:500;
+    letter-spacing:0.02em;
+    padding:0.85rem 1.5rem;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:transparent;
+    color:var(--ink);
+    display:inline-flex; align-items:center; gap:0.6rem;
+    transition:transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
   }
-  .vital-unit{ font-size:1rem; color:var(--teal); font-style:normal; }
-  .vital-label{
-    margin-top:0.6rem;
-    font-family:'Space Mono', monospace;
-    font-size:10.5px;
+  .btn:hover{ transform:translateY(-2px); border-color:var(--cyan-soft); box-shadow:0 8px 24px -12px rgba(92,225,230,0.4); }
+  .btn:active{ transform:translateY(0); }
+  .btn.primary{ background:linear-gradient(100deg, var(--cyan), #4fb8e0); color:#03181a; border-color:transparent; font-weight:600; }
+  .btn.primary:hover{ box-shadow:0 10px 28px -10px rgba(92,225,230,0.55); }
+
+  /* --- escenario 3D del héroe --- */
+  .hero-stage{ position:relative; display:flex; align-items:center; justify-content:center; }
+  .earth-halo{
+    position:absolute;
+    width:min(72vw, 560px); height:min(72vw, 560px);
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(92,225,230,0.16), rgba(92,225,230,0.03) 55%, transparent 72%);
+    filter:blur(2px);
+    animation:halo-breathe 6s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes halo-breathe{
+    0%,100%{ transform:scale(1); opacity:0.85; }
+    50%{ transform:scale(1.05); opacity:1; }
+  }
+  .canvas-wrap{
+    position:relative;
+    width:min(64vw, 500px); height:min(64vw, 500px);
+    border-radius:50%;
+  }
+  .canvas-wrap canvas{ width:100%; height:100%; display:block; cursor:grab; }
+  .canvas-wrap canvas:active{ cursor:grabbing; }
+  .stage-loader{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:0.9rem;
+    font-family:var(--font-head);
+    font-size:0.72rem;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+    text-transform:uppercase;
+    background:radial-gradient(circle, rgba(10,13,22,0.4), transparent 70%);
+    transition:opacity 0.6s ease;
+    pointer-events:none;
+  }
+  .stage-loader.hidden{ opacity:0; }
+  .spinner{
+    width:30px; height:30px;
+    border-radius:50%;
+    border:2px solid rgba(92,225,230,0.18);
+    border-top-color:var(--cyan);
+    animation:spin-cw 0.9s linear infinite;
+  }
+  .stage-hint{
+    position:absolute; bottom:-2.2rem; left:50%; transform:translateX(-50%);
+    font-family:var(--font-head);
+    font-size:0.68rem;
     letter-spacing:0.08em;
     text-transform:uppercase;
-    color: var(--ink-dim);
-    line-height:1.5;
-  }
-
-  /* ---------- ATMOSPHERE LAYERS ---------- */
-  .layers{
-    display:flex;
-    flex-direction:column-reverse;
-    gap:1px;
-    margin-top: 1rem;
-  }
-  .layer{
-    display:grid;
-    grid-template-columns: 130px 1fr 160px;
-    align-items:center;
-    gap:2rem;
-    padding: 1.5rem 0;
-    border-top:1px solid var(--hair);
-  }
-  .layer:first-child{ border-top:none; }
-  .layer-name{
-    font-family:'Fraunces', serif;
-    font-style:italic;
-    font-size:1.3rem;
-    color: var(--ink);
-  }
-  .layer-desc{
-    font-size:0.92rem;
-    color: var(--ink-dim);
-    line-height:1.65;
-  }
-  .layer-alt{
-    font-family:'Space Mono', monospace;
-    font-size:11px;
-    color: var(--brass);
-    text-align:right;
-    letter-spacing:0.04em;
-  }
-
-  /* ---------- PLANETS ---------- */
-  .planets{
-    display:grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2.5rem 2rem;
-  }
-  @media (max-width: 860px){ .planets{ grid-template-columns: repeat(2,1fr); } }
-  .planet{
-    padding-top:1.6rem;
-    border-top:1px solid var(--hair);
-  }
-  .planet-orb{
-    width:46px; height:46px;
-    border-radius:50%;
-    margin-bottom:1.2rem;
-    box-shadow: inset -8px -8px 16px rgba(0,0,0,0.5), 0 0 22px -4px currentColor;
-  }
-  .planet-name{
-    font-family:'Fraunces', serif;
-    font-weight:500;
-    font-size:1.25rem;
-    margin:0 0 0.4rem;
-  }
-  .planet-fact{
-    font-size:0.88rem;
-    color: var(--ink-dim);
-    line-height:1.6;
-  }
-
-  /* ---------- SCALE STRIP ---------- */
-  .scale-strip{
-    position:relative;
-    height:3px;
-    background: var(--hair);
-    margin: 3.5rem 0 2.5rem;
-    border-radius:2px;
-  }
-  .scale-dot{
-    position:absolute;
-    top:50%;
-    width:8px; height:8px;
-    border-radius:50%;
-    background: var(--brass);
-    transform: translate(-50%,-50%);
-  }
-  .scale-dot .tag{
-    position:absolute;
-    top: 14px; left:50%;
-    transform: translateX(-50%);
-    font-family:'Space Mono', monospace;
-    font-size:10px;
-    color: var(--ink-dim);
+    color:var(--ink-faint);
     white-space:nowrap;
   }
-  .scale-dot .tag b{ color:var(--ink); display:block; font-size:11px; }
 
-  /* ---------- FOOTER ---------- */
-  .foot{
-    padding: 6rem 6vw 4rem;
-    border-top:1px solid var(--hair);
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    flex-wrap:wrap;
-    gap:1.5rem;
+  @media (max-width:980px){
+    .hero-grid{ grid-template-columns:1fr; }
+    .hero-stage{ order:-1; margin-bottom:3.4rem; }
+    .canvas-wrap{ width:min(78vw, 380px); height:min(78vw, 380px); }
+    .earth-halo{ width:min(88vw,440px); height:min(88vw,440px); }
+    .hero{ padding-top:8rem; }
   }
-  .foot-mark{
-    font-family:'Fraunces', serif;
-    font-style:italic;
-    font-size:1.1rem;
+
+  /* ---------------------------------------------------------------
+     SECCIÓN GENÉRICA
+     --------------------------------------------------------------- */
+  .section-head{
+    max-width:640px;
+    margin:0 auto 3.2rem;
+    text-align:center;
+  }
+  .section-tag{
+    font-family:var(--font-head);
+    font-size:0.72rem;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:var(--violet);
+    margin-bottom:0.9rem;
+    display:block;
+  }
+  .section-title{
+    font-family:var(--font-head);
+    font-weight:700;
+    font-size:clamp(1.9rem, 3.4vw, 2.6rem);
+    margin-bottom:0.9rem;
+  }
+  .section-lede{ color:var(--ink-dim); font-size:1rem; line-height:1.7; font-weight:300; }
+
+  /* ---------------------------------------------------------------
+     SIMULADOR / MINI-JUEGO
+     --------------------------------------------------------------- */
+  .game-section{ padding:8rem 0 7rem; border-top:1px solid var(--border); }
+
+  .game-layout{
+    display:grid;
+    grid-template-columns: 300px 1fr 300px;
+    gap:1.6rem;
+    align-items:start;
+  }
+
+  .hud-panel{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:1.4rem;
+    backdrop-filter:blur(6px);
+  }
+  .hud-panel h3{
+    font-family:var(--font-head);
+    font-size:0.72rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:1.1rem;
+  }
+
+  /* armas */
+  .weapons-list{ display:grid; gap:0.7rem; }
+  .weapon-card{
+    display:flex; align-items:center; gap:0.85rem;
+    padding:0.8rem 0.9rem;
+    border-radius:14px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,0.02);
+    text-align:left;
+    transition:all 0.25s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .weapon-card:hover{ background:var(--card-hover); border-color:rgba(255,255,255,0.16); }
+  .weapon-card.active{
+    border-color:var(--wcolor, var(--cyan));
+    background:linear-gradient(100deg, color-mix(in srgb, var(--wcolor, var(--cyan)) 16%, transparent), transparent);
+    box-shadow:0 0 0 1px var(--wcolor, var(--cyan)) inset, 0 8px 20px -12px var(--wcolor, var(--cyan));
+  }
+  .weapon-card.active .weapon-icon{ transform:scale(1.08); }
+  .weapon-icon{
+    flex-shrink:0;
+    width:38px; height:38px;
+    border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.15rem;
+    background:rgba(255,255,255,0.05);
+    transition:transform 0.25s ease;
+  }
+  .weapon-info{ display:flex; flex-direction:column; gap:0.2rem; flex:1; min-width:0; }
+  .weapon-name{ font-family:var(--font-head); font-size:0.86rem; font-weight:600; display:block; }
+  .weapon-desc{ font-size:0.72rem; color:var(--ink-dim); line-height:1.4; display:block; }
+  .weapon-dmg{
+    margin-left:auto; flex-shrink:0;
+    font-family:var(--font-head); font-size:0.65rem; letter-spacing:0.04em;
+    color:var(--ink-faint); white-space:nowrap; align-self:flex-start; margin-top:0.2rem;
+  }
+
+  .restore-btn{
+    width:100%; margin-top:1.2rem;
+    padding:0.85rem 1rem;
+    border-radius:12px;
+    border:1px solid rgba(107,255,176,0.35);
+    background:rgba(107,255,176,0.08);
+    color:var(--green);
+    font-family:var(--font-head); font-weight:600; font-size:0.8rem; letter-spacing:0.03em;
+    display:flex; align-items:center; justify-content:center; gap:0.5rem;
+    transition:all 0.25s ease;
+  }
+  .restore-btn:hover{ background:rgba(107,255,176,0.16); transform:translateY(-1px); }
+  .restore-btn:disabled{ opacity:0.35; cursor:not-allowed; transform:none; }
+
+  /* centro: tierra + salud */
+  .game-stage-col{ display:flex; flex-direction:column; align-items:center; gap:1.3rem; }
+
+  .health-panel{ width:100%; max-width:420px; }
+  .health-top{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.5rem; }
+  .health-label{ font-family:var(--font-head); font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-faint); }
+  .health-value{ font-family:var(--font-head); font-size:1.4rem; font-weight:700; transition:color 0.4s ease; }
+  .health-track{
+    position:relative;
+    height:10px; border-radius:999px;
+    background:rgba(255,255,255,0.06);
+    border:1px solid var(--border);
+    overflow:hidden;
+  }
+  .health-fill{
+    height:100%; border-radius:999px;
+    background:linear-gradient(90deg, var(--green), #3ee6a0);
+    width:100%;
+    transition:width 0.5s cubic-bezier(.4,0,.2,1), background 0.5s ease;
+    box-shadow:0 0 12px 0 rgba(107,255,176,0.5);
+  }
+
+  .game-canvas-wrap{
+    position:relative;
+    width:min(58vw, 440px); height:min(58vw, 440px);
+  }
+  .game-canvas-wrap canvas{ width:100%; height:100%; display:block; }
+  .game-canvas-wrap canvas.armed{ cursor:crosshair; }
+  .game-canvas-wrap canvas.locked{ cursor:not-allowed; }
+  .game-halo{
+    position:absolute; inset:-14%;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(255,92,108,0.0), transparent 65%);
+    transition:background 0.6s ease;
+    pointer-events:none;
+    z-index:-1;
+  }
+  .game-halo.warn{ background:radial-gradient(circle, rgba(255,180,84,0.16), transparent 65%); }
+  .game-halo.critical{ background:radial-gradient(circle, rgba(255,92,108,0.24), transparent 65%); }
+
+  .impact-hint{
+    font-family:var(--font-head); font-size:0.68rem; letter-spacing:0.06em;
+    text-transform:uppercase; color:var(--ink-faint); text-align:center;
+    min-height:1em;
+  }
+
+  /* bitácora de impacto */
+  .log-panel{ display:flex; flex-direction:column; gap:0.6rem; max-height:260px; overflow-y:auto; }
+  .log-panel::-webkit-scrollbar{ width:4px; }
+  .log-panel::-webkit-scrollbar-thumb{ background:var(--border); border-radius:4px; }
+  .log-entry{
+    font-size:0.78rem; line-height:1.5;
     color:var(--ink-dim);
+    padding-bottom:0.6rem;
+    border-bottom:1px solid var(--border);
+    animation:log-in 0.4s ease;
   }
-  .foot-note{
-    font-family:'Space Mono', monospace;
-    font-size:10.5px;
-    color: var(--ink-dim);
-    letter-spacing:0.04em;
+  .log-entry:last-child{ border-bottom:none; padding-bottom:0; }
+  .log-entry b{ color:var(--ink); font-weight:600; }
+  @keyframes log-in{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:translateY(0); } }
+  .log-empty{ font-size:0.78rem; color:var(--ink-faint); font-style:italic; }
+
+  @media (max-width:1080px){
+    .game-layout{ grid-template-columns:1fr; }
+    .game-canvas-wrap{ width:min(78vw,380px); height:min(78vw,380px); margin:0 auto; }
+    .log-panel{ max-height:180px; }
   }
 
-  @media (max-width: 760px){
-    .vitals-grid{ grid-template-columns: repeat(2,1fr); }
-    .layer{ grid-template-columns:1fr; gap:0.4rem; }
-    .layer-alt{ text-align:left; }
-    .planets{ grid-template-columns: repeat(2,1fr); }
-    .band{ padding: 6rem 6vw; }
+  /* --- modal educativo --- */
+  dialog#game-dialog{
+    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); margin:0;
+    border:none; border-radius:20px; padding:0;
+    background:transparent; color:var(--ink);
+    max-width:520px; width:88vw;
+  }
+  dialog#game-dialog::backdrop{ background:rgba(3,4,8,0.78); backdrop-filter:blur(3px); }
+  .dialog-inner{
+    background:linear-gradient(165deg, #0d101a, #070810);
+    border:1px solid rgba(255,92,108,0.25);
+    border-radius:20px;
+    padding:2.2rem;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,0.7);
+  }
+  .dialog-tag{
+    font-family:var(--font-head); font-size:0.68rem; letter-spacing:0.2em; text-transform:uppercase;
+    color:var(--red); margin-bottom:0.8rem; display:block;
+  }
+  .dialog-inner h2{
+    font-family:var(--font-head); font-size:1.5rem; font-weight:700; margin-bottom:1rem; line-height:1.25;
+  }
+  .dialog-inner p{ color:var(--ink-dim); font-size:0.92rem; line-height:1.7; margin-bottom:1rem; }
+  .dialog-fact{
+    background:rgba(255,255,255,0.04);
+    border-left:2px solid var(--cyan);
+    padding:0.9rem 1rem;
+    font-size:0.85rem;
+    color:var(--ink);
+    border-radius:0 10px 10px 0;
+    margin-bottom:1.6rem;
+  }
+  .dialog-actions{ display:flex; gap:0.8rem; justify-content:flex-end; flex-wrap:wrap; }
+  .dialog-actions .btn{ border-color:rgba(255,255,255,0.14); }
+
+  /* ---------------------------------------------------------------
+     NOTICIAS
+     --------------------------------------------------------------- */
+  .news-section{ padding:7rem 0 8rem; border-top:1px solid var(--border); }
+  .news-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:1.4rem;
+  }
+  .news-card{
+    display:flex; flex-direction:column;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:1.6rem;
+    transition:all 0.3s ease;
+  }
+  .news-card:hover{ background:var(--card-hover); transform:translateY(-4px); border-color:rgba(255,255,255,0.16); }
+  .news-icon{
+    width:42px; height:42px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.3rem; margin-bottom:1.1rem;
+    background:rgba(92,225,230,0.1);
+  }
+  .news-org{ font-family:var(--font-head); font-size:0.65rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--cyan); margin-bottom:0.5rem; }
+  .news-card h3{ font-family:var(--font-head); font-size:1.05rem; font-weight:600; margin-bottom:0.6rem; line-height:1.35; }
+  .news-card p{ font-size:0.84rem; color:var(--ink-dim); line-height:1.65; margin-bottom:1.2rem; flex-grow:1; }
+  .news-link{
+    font-family:var(--font-head); font-size:0.76rem; font-weight:600;
+    color:var(--ink); display:inline-flex; align-items:center; gap:0.4rem;
+  }
+  .news-link svg{ width:13px; height:13px; transition:transform 0.25s ease; }
+  .news-card:hover .news-link svg{ transform:translate(2px,-2px); }
+
+  @media (max-width:980px){ .news-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:640px){ .news-grid{ grid-template-columns:1fr; } }
+
+  /* ---------------------------------------------------------------
+     FOOTER
+     --------------------------------------------------------------- */
+  .site-footer{
+    border-top:1px solid var(--border);
+    padding:3.2rem 6vw;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;
+  }
+  .footer-note{ font-size:0.76rem; color:var(--ink-faint); max-width:60ch; line-height:1.6; }
+  .footer-mark{ font-family:var(--font-head); font-size:0.85rem; color:var(--ink-dim); }
+
+  @media (max-width:760px){
+    .container, .hero, .site-header, .site-footer{ padding-left:5vw; padding-right:5vw; }
   }
 
   @media (prefers-reduced-motion: reduce){
     html{ scroll-behavior:auto; }
+    .brand-logo span, .earth-halo{ animation:none; }
   }
 </style>
 </head>
 <body>
 
-<div id="globe-stage"></div>
-<div class="instrument-ring" id="ring"></div>
-<div class="readout" id="readout">
-  UTC <span id="utc-time">--:--:--</span><br>
-  ROT <span id="rot-speed">1 674 km/h</span><br>
-  ORB <span id="orb-speed">107 226 km/h</span><br>
-  INCL <span>23.44°</span>
-</div>
+<canvas id="starfield-bg"></canvas>
+
+<header class="site-header">
+  <div class="brand">
+    <div class="brand-logo" aria-hidden="true"><span></span><span></span></div>
+    <div class="brand-text">
+      <p class="brand-eyebrow">Exploración 3D</p>
+      <h1 class="brand-title">Planeta Tierra</h1>
+    </div>
+  </div>
+  <nav class="site-nav">
+    <a href="#inicio">Inicio</a>
+    <a href="#simulador">Simulador</a>
+    <a href="#noticias">Noticias</a>
+  </nav>
+</header>
 
 <main>
 
-  <section class="hero">
-    <p class="hero-eyebrow">Atlas del cosmos cercano — distancia 0 km</p>
-    <h1 class="hero-title">La Tierra,<br>un <em>punto azul</em><br>en la oscuridad</h1>
-    <p class="hero-sub">Un recorrido breve por el planeta que habitamos, su atmósfera, sus vecinos y la escala real del vacío que nos rodea.</p>
-    <div class="scroll-cue">DESCENDER</div>
-  </section>
+  <!-- ================= SECCIÓN 1 — INTRO + MODELO 3D ================= -->
+  <section id="inicio" class="hero">
+    <div class="hero-grid">
 
-  <div class="veil">
+      <div class="hero-copy">
+        <p class="hero-eyebrow">Sistema Solar · Tercer planeta</p>
+        <h1 class="hero-title">La Tierra vista<br>como <span class="accent">un mundo vivo</span></h1>
+        <p class="hero-sub">Una esfera de roca, agua y aire suspendida en el vacío: el único lugar conocido donde la vida se sostiene a sí misma. Gira, obsérvala de cerca y descubre por qué es tan frágil como extraordinaria.</p>
 
-  <section class="band" id="vitals">
-    <div class="band-head">
-      <div>
-        <p class="band-scale">Ficha técnica</p>
-        <h2 class="band-title">Datos vitales</h2>
-      </div>
-      <p class="band-lede">El tercer planeta desde el Sol es, hasta donde sabemos, el único mundo con vida del universo observable.</p>
-    </div>
-    <div class="vitals-grid">
-      <div class="vital"><div class="vital-num">12 742<span class="vital-unit"> km</span></div><div class="vital-label">Diámetro ecuatorial</div></div>
-      <div class="vital"><div class="vital-num">149.6<span class="vital-unit"> M km</span></div><div class="vital-label">Distancia media al Sol</div></div>
-      <div class="vital"><div class="vital-num">23 h 56 m</div><div class="vital-label">Duración real de un día</div></div>
-      <div class="vital"><div class="vital-num">365.25<span class="vital-unit"> d</span></div><div class="vital-label">Año orbital</div></div>
-      <div class="vital"><div class="vital-num">1<span class="vital-unit"> luna</span></div><div class="vital-label">Satélite natural</div></div>
-      <div class="vital"><div class="vital-num">23.4<span class="vital-unit">°</span></div><div class="vital-label">Inclinación axial</div></div>
-      <div class="vital"><div class="vital-num">71<span class="vital-unit">%</span></div><div class="vital-label">Superficie cubierta de agua</div></div>
-      <div class="vital"><div class="vital-num">4.54<span class="vital-unit"> Ga</span></div><div class="vital-label">Edad estimada</div></div>
-    </div>
-  </section>
+        <div class="facts-card">
+          <h3>Datos curiosos</h3>
+          <div class="facts-list">
+            <div class="fact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 15 0 0 1 0 18a9 15 0 0 1 0-18z"/><path d="M3 12h18"/></svg>
+              <div class="fact-text"><b>71% de agua</b><span>Casi tres cuartas partes de la superficie están cubiertas por océanos.</span></div>
+            </div>
+            <div class="fact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="4"/></svg>
+              <div class="fact-text"><b>23.4° de inclinación</b><span>Este ángulo del eje terrestre es el origen de las estaciones del año.</span></div>
+            </div>
+            <div class="fact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12c2-4 5-6 9-6s7 2 9 6c-2 4-5 6-9 6s-7-2-9-6z"/><circle cx="12" cy="12" r="2.4"/></svg>
+              <div class="fact-text"><b>Única con vida conocida</b><span>De todos los mundos explorados hasta hoy, ninguno más alberga vida confirmada.</span></div>
+            </div>
+            <div class="fact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 15c3-1 4-4 4-4s1 3 4 4 4-4 4-4 1 3 4 4"/><path d="M4 10c3-1 4-4 4-4s1 3 4 4 4-4 4-4 1 3 4 4"/></svg>
+              <div class="fact-text"><b>Atmósfera protectora</b><span>Una capa de apenas 100 km nos separa del vacío absoluto del espacio.</span></div>
+            </div>
+          </div>
+        </div>
 
-  <section class="band" id="atmosphere">
-    <div class="band-head">
-      <div>
-        <p class="band-scale">0 — 700 km de altitud</p>
-        <h2 class="band-title">Capas de la atmósfera</h2>
+        <div class="hero-actions">
+          <button class="btn primary" id="btn-explore">Explorar en 3D</button>
+          <a class="btn" href="#simulador">Ir al simulador ↓</a>
+        </div>
       </div>
-      <p class="band-lede">El aire que respiramos es apenas la primera de cinco capas, cada una gobernada por una física distinta.</p>
-    </div>
-    <div class="layers">
-      <div class="layer">
-        <div class="layer-name">Exosfera</div>
-        <div class="layer-desc">Se disuelve gradualmente en el espacio interplanetario; los átomos escapan sin apenas chocar entre sí.</div>
-        <div class="layer-alt">700 — 10 000 km</div>
+
+      <div class="hero-stage">
+        <div class="earth-halo" aria-hidden="true"></div>
+        <div class="canvas-wrap" id="hero-canvas-wrap">
+          <canvas id="hero-canvas"></canvas>
+          <div class="stage-loader" id="hero-loader"><span class="spinner"></span>Cargando textura planetaria…</div>
+        </div>
+        <span class="stage-hint">Arrastra para orbitar · Desplaza para acercar</span>
       </div>
-      <div class="layer">
-        <div class="layer-name">Termosfera</div>
-        <div class="layer-desc">Aquí orbita la Estación Espacial Internacional; las auroras encienden el cielo cuando el viento solar la golpea.</div>
-        <div class="layer-alt">85 — 700 km</div>
-      </div>
-      <div class="layer">
-        <div class="layer-name">Mesosfera</div>
-        <div class="layer-desc">La capa más fría del planeta. La mayoría de los meteoritos se desintegran aquí, dejando estelas visibles.</div>
-        <div class="layer-alt">50 — 85 km</div>
-      </div>
-      <div class="layer">
-        <div class="layer-name">Estratosfera</div>
-        <div class="layer-desc">Alberga la capa de ozono, un escudo delgado que filtra la radiación ultravioleta más dañina del Sol.</div>
-        <div class="layer-alt">12 — 50 km</div>
-      </div>
-      <div class="layer">
-        <div class="layer-name">Troposfera</div>
-        <div class="layer-desc">Contiene el 80% de la masa atmosférica y prácticamente todo el clima que experimentamos.</div>
-        <div class="layer-alt">0 — 12 km</div>
-      </div>
+
     </div>
   </section>
 
-  <section class="band" id="planets">
-    <div class="band-head">
-      <div>
-        <p class="band-scale">57 M — 4 500 M km</p>
-        <h2 class="band-title">Vecinos en el sistema solar</h2>
+  <!-- ================= SECCIÓN 2 — SIMULADOR EDUCATIVO ================= -->
+  <section id="simulador" class="game-section">
+    <div class="container">
+      <div class="section-head">
+        <span class="section-tag">Concientización ambiental</span>
+        <h2 class="section-title">Simulador de impacto planetario</h2>
+        <p class="section-lede">Elige una amenaza, haz clic sobre la Tierra y observa cómo cada decisión humana deja una huella acumulativa. Al final, tú decides si restaurar el planeta.</p>
       </div>
-      <p class="band-lede">Ocho planetas comparten la órbita del Sol con nosotros, cada uno con una historia distinta de formación.</p>
+
+      <div class="game-layout">
+
+        <!-- panel de amenazas -->
+        <div class="hud-panel">
+          <h3>Amenazas disponibles</h3>
+          <div class="weapons-list" id="weapons-list">
+            <button class="weapon-card" data-weapon="laser" style="--wcolor:#ff5c6c">
+              <span class="weapon-icon">🔴</span>
+              <span class="weapon-info">
+                <span class="weapon-name">Láser térmico</span>
+                <span class="weapon-desc">Calor concentrado que quema la superficie de forma progresiva.</span>
+              </span>
+              <span class="weapon-dmg">−8%</span>
+            </button>
+            <button class="weapon-card" data-weapon="rocket" style="--wcolor:#ffb454">
+              <span class="weapon-icon">🚀</span>
+              <span class="weapon-info">
+                <span class="weapon-name">Cohete / Meteorito</span>
+                <span class="weapon-desc">Impacto de alta energía con explosión y onda expansiva.</span>
+              </span>
+              <span class="weapon-dmg">−15%</span>
+            </button>
+            <button class="weapon-card" data-weapon="bomb" style="--wcolor:#c084fc">
+              <span class="weapon-icon">💣</span>
+              <span class="weapon-info">
+                <span class="weapon-name">Bomba masiva</span>
+                <span class="weapon-desc">Onda de choque que erosiona y oscurece grandes zonas.</span>
+              </span>
+              <span class="weapon-dmg">−20%</span>
+            </button>
+            <button class="weapon-card" data-weapon="pollution" style="--wcolor:#8fd67a">
+              <span class="weapon-icon">☣️</span>
+              <span class="weapon-info">
+                <span class="weapon-name">Contaminación</span>
+                <span class="weapon-desc">Smog acumulativo que ensucia océanos y continentes.</span>
+              </span>
+              <span class="weapon-dmg">−5%</span>
+            </button>
+          </div>
+          <button class="restore-btn" id="btn-restore" disabled>🌱 Restaurar la Tierra</button>
+        </div>
+
+        <!-- tierra central + salud -->
+        <div class="game-stage-col">
+          <div class="health-panel">
+            <div class="health-top">
+              <span class="health-label">Salud del planeta</span>
+              <span class="health-value" id="health-value">100%</span>
+            </div>
+            <div class="health-track"><div class="health-fill" id="health-fill"></div></div>
+          </div>
+
+          <div class="game-canvas-wrap" id="game-canvas-wrap">
+            <div class="game-halo" id="game-halo" aria-hidden="true"></div>
+            <canvas id="game-canvas"></canvas>
+            <div class="stage-loader" id="game-loader"><span class="spinner"></span>Cargando planeta…</div>
+          </div>
+          <p class="impact-hint" id="impact-hint">Selecciona una amenaza y haz clic sobre la Tierra</p>
+        </div>
+
+        <!-- bitácora de impacto -->
+        <div class="hud-panel">
+          <h3>Bitácora de impacto</h3>
+          <div class="log-panel" id="log-panel">
+            <p class="log-empty" id="log-empty">Aún no se han registrado eventos.</p>
+          </div>
+        </div>
+
+      </div>
     </div>
-    <div class="planets">
-      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #b8ada2, #6b6259); color:#8a8078;"></div><div class="planet-name">Mercurio</div><div class="planet-fact">El más cercano al Sol; sin atmósfera que module su temperatura extrema.</div></div>
-      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #e8c48a, #a56a3a); color:#c98a4a;"></div><div class="planet-name">Venus</div><div class="planet-fact">Su atmósfera de dióxido de carbono lo convierte en el planeta más caliente.</div></div>
-      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #6fa8c9, #2c4a6b); color:#4a8ab5;"></div><div class="planet-name">Tierra</div><div class="planet-fact">El único mundo conocido con agua líquida estable y vida.</div></div>
-      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #d68a5c, #8a3f22); color:#c96a3a;"></div><div class="planet-name">Marte</div><div class="planet-fact">Casquetes polares de hielo y el volcán más grande del sistema solar.</div></div>
-      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #d9b98a, #8a6a3f); color:#c9a063;"></div><div class="planet-name">Júpiter</div><div class="planet-fact">Un gigante gaseoso con una tormenta —la Gran Mancha Roja— más ancha que la Tierra.</div></div>
-      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #e0cf9e, #a68e5a); color:#d4b876;"></div><div class="planet-name">Saturno</div><div class="planet-fact">Sus anillos son fragmentos de hielo y roca, apenas de metros de espesor.</div></div>
-      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #8fd0d6, #3a7a80); color:#5aa9a3;"></div><div class="planet-name">Urano</div><div class="planet-fact">Gira casi de lado, con un eje inclinado 98 grados sobre su órbita.</div></div>
-      <div class="planet"><div class="planet-orb" style="background:radial-gradient(circle at 35% 30%, #6f8fd6, #2c3f8a); color:#4a6ac9;"></div><div class="planet-name">Neptuno</div><div class="planet-fact">Los vientos más rápidos del sistema solar, hasta 2 100 km/h.</div></div>
-    </div>
+
+    <dialog id="game-dialog">
+      <div class="dialog-inner">
+        <span class="dialog-tag">Colapso ambiental</span>
+        <h2 id="dialog-title">El planeta ha llegado a 0% de salud</h2>
+        <p id="dialog-text">Cada impacto que elegiste —calor, explosiones, erosión y contaminación— se acumuló hasta agotar la capacidad del planeta para sostenerse. En la vida real, este deterioro no tiene botón de reinicio.</p>
+        <div class="dialog-fact" id="dialog-fact">Dato educativo</div>
+        <div class="dialog-actions">
+          <button class="btn" id="btn-dialog-close">Cerrar</button>
+          <button class="btn primary" id="btn-dialog-restore">🌱 Restaurar la Tierra</button>
+        </div>
+      </div>
+    </dialog>
   </section>
 
-  <section class="band" id="scale">
-    <div class="band-head">
-      <div>
-        <p class="band-scale">4.2 años luz y más allá</p>
-        <h2 class="band-title">La escala del cosmos</h2>
+  <!-- ================= SECCIÓN 3 — NOTICIAS Y ESTADO DEL PLANETA ================= -->
+  <section id="noticias" class="news-section">
+    <div class="container">
+      <div class="section-head">
+        <span class="section-tag">Estado del planeta</span>
+        <h2 class="section-title">Informes y noticias reales</h2>
+        <p class="section-lede">Organizaciones científicas y ambientales que documentan, en tiempo real, la salud de la Tierra.</p>
       </div>
-      <p class="band-lede">Si la distancia Tierra–Sol midiera un centímetro en este trazo, así de lejos quedaría todo lo demás.</p>
+
+      <div class="news-grid">
+        <a class="news-card" href="https://climate.nasa.gov/" target="_blank" rel="noopener noreferrer">
+          <div class="news-icon">🛰️</div>
+          <span class="news-org">NASA Climate</span>
+          <h3>Evidencia del cambio climático desde el espacio</h3>
+          <p>Datos satelitales, temperatura global y nivel del mar, actualizados por la agencia espacial estadounidense.</p>
+          <span class="news-link">Visitar climate.nasa.gov <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
+        </a>
+        <a class="news-card" href="https://www.worldwildlife.org/" target="_blank" rel="noopener noreferrer">
+          <div class="news-icon">🐼</div>
+          <span class="news-org">WWF</span>
+          <h3>Biodiversidad y especies en riesgo</h3>
+          <p>El Fondo Mundial para la Naturaleza documenta la pérdida de hábitats y las especies más amenazadas del planeta.</p>
+          <span class="news-link">Visitar worldwildlife.org <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
+        </a>
+        <a class="news-card" href="https://www.ipcc.ch/" target="_blank" rel="noopener noreferrer">
+          <div class="news-icon">📊</div>
+          <span class="news-org">IPCC</span>
+          <h3>Informes científicos del clima global</h3>
+          <p>El Panel Intergubernamental de la ONU sintetiza la ciencia climática más rigurosa disponible.</p>
+          <span class="news-link">Visitar ipcc.ch <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
+        </a>
+        <a class="news-card" href="https://www.un.org/es/climatechange" target="_blank" rel="noopener noreferrer">
+          <div class="news-icon">🌡️</div>
+          <span class="news-org">Naciones Unidas</span>
+          <h3>Acción climática global</h3>
+          <p>Seguimiento de los compromisos internacionales para limitar el calentamiento del planeta.</p>
+          <span class="news-link">Visitar un.org/es/climatechange <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
+        </a>
+        <a class="news-card" href="https://www.cbd.int/" target="_blank" rel="noopener noreferrer">
+          <div class="news-icon">🌿</div>
+          <span class="news-org">Convenio sobre Diversidad Biológica</span>
+          <h3>Metas globales de biodiversidad</h3>
+          <p>Marco internacional para frenar la pérdida de ecosistemas y especies antes de 2030.</p>
+          <span class="news-link">Visitar cbd.int <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
+        </a>
+        <a class="news-card" href="https://oceanservice.noaa.gov/" target="_blank" rel="noopener noreferrer">
+          <div class="news-icon">🌊</div>
+          <span class="news-org">NOAA Ocean Service</span>
+          <h3>Salud de los océanos</h3>
+          <p>Temperatura oceánica, acidificación y arrecifes de coral, monitoreados por la agencia oceánica de EE. UU.</p>
+          <span class="news-link">Visitar oceanservice.noaa.gov <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
+        </a>
+      </div>
     </div>
-    <div class="scale-strip">
-      <div class="scale-dot" style="left:2%"><span class="tag"><b>Sol</b>1 UA</span></div>
-      <div class="scale-dot" style="left:10%"><span class="tag"><b>Júpiter</b>5.2 UA</span></div>
-      <div class="scale-dot" style="left:20%"><span class="tag"><b>Neptuno</b>30 UA</span></div>
-      <div class="scale-dot" style="left:38%"><span class="tag"><b>Voyager 1</b>165 UA</span></div>
-      <div class="scale-dot" style="left:100%"><span class="tag"><b>Próxima Centauri</b>268 000 UA</span></div>
-    </div>
-    <p class="band-lede" style="max-width:70ch">La luz del Sol tarda ocho minutos en llegar a la Tierra. Esa misma luz, viajando a 300 000 km por segundo, tardaría más de cuatro años en alcanzar la estrella más próxima. El punto azul del que partimos es, en ese mapa, prácticamente invisible.</p>
   </section>
-
-  <footer class="foot">
-    <span class="foot-mark">Atlas del cosmos cercano</span>
-    <span class="foot-note">DATOS OSTENSIBLEMENTE APROXIMADOS · NASA / IAU</span>
-  </footer>
-
-  </div>
 
 </main>
 
+<footer class="site-footer">
+  <span class="footer-mark">Planeta Tierra · Exploración 3D</span>
+  <p class="footer-note">Texturas planetarias cortesía de NASA / three.js. Construido con Three.js y WebGL. Los datos ambientales citados provienen de fuentes públicas (NASA, IPCC, NOAA).</p>
+</footer>
+
 <script>
 (function(){
-  const stage = document.getElementById('globe-stage');
-  const ring = document.getElementById('ring');
-  const readout = document.getElementById('readout');
+  'use strict';
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(38, window.innerWidth/window.innerHeight, 0.1, 100);
-  camera.position.set(0,0,7.4);
+  THREE.Cache.enabled = true; // reutiliza texturas ya descargadas entre las dos escenas
 
-  const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  stage.appendChild(renderer.domElement);
+  /* ============================================================
+     0. FONDO ESTELAR GLOBAL (canvas 2D, independiente de WebGL)
+     ============================================================ */
+  (function starfield(){
+    const canvas = document.getElementById('starfield-bg');
+    const ctx = canvas.getContext('2d');
+    let w, h, stars, dust;
 
-  // ---- procedural cartographic texture ----
-  function makeEarthTexture(){
-    const w=1024, h=512;
-    const c = document.createElement('canvas'); c.width=w; c.height=h;
-    const ctx = c.getContext('2d');
+    function rand(min, max){ return min + Math.random() * (max - min); }
 
-    // ocean gradient — aged chart teal
-    const oceanGrad = ctx.createLinearGradient(0,0,0,h);
-    oceanGrad.addColorStop(0, '#0f2f38');
-    oceanGrad.addColorStop(0.5, '#173f47');
-    oceanGrad.addColorStop(1, '#0f2f38');
-    ctx.fillStyle = oceanGrad;
-    ctx.fillRect(0,0,w,h);
-
-    // continents — ink-wash blobs
-    function blob(cx, cy, r, col){
-      ctx.save();
-      ctx.translate(cx,cy);
-      ctx.beginPath();
-      const pts = 10;
-      for(let i=0;i<=pts;i++){
-        const a = (i/pts)*Math.PI*2;
-        const rad = r * (0.7 + Math.random()*0.55);
-        const x = Math.cos(a)*rad, y = Math.sin(a)*rad*0.62;
-        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    function build(){
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+      const count = Math.min(700, Math.floor((w * h) / 1800));
+      stars = [];
+      for(let i=0;i<count;i++){
+        const depth = Math.random(); // 0 = lejos, 1 = cerca
+        stars.push({
+          x: Math.random()*w,
+          y: Math.random()*h,
+          r: 0.4 + depth*1.3,
+          speed: 0.02 + depth*0.12,
+          phase: Math.random()*Math.PI*2,
+          twinkleSpeed: 0.6 + Math.random()*1.6,
+          baseAlpha: 0.35 + depth*0.5
+        });
       }
-      ctx.closePath();
-      ctx.fillStyle = col;
-      ctx.filter = 'blur(3px)';
-      ctx.fill();
-      ctx.restore();
+      dust = [];
+      for(let i=0;i<18;i++){
+        dust.push({
+          x: Math.random()*w,
+          y: Math.random()*h,
+          r: rand(40,110),
+          dx: rand(-0.015,0.015),
+          dy: rand(-0.01,0.01),
+          alpha: rand(0.015,0.04)
+        });
+      }
     }
-    const landCol = '#8a7550';
-    const landCol2 = '#9c8760';
-    const clusters = [
-      [150,150,70],[190,190,50],[130,210,40],
-      [430,120,55],[470,160,42],[420,190,38],
-      [520,260,60],[560,300,44],[500,320,50],
-      [720,140,60],[770,120,45],[800,190,55],
-      [860,300,50],[900,260,38],
-      [260,330,45],[300,300,40],
-      [620,360,42],[660,340,36]
-    ];
-    clusters.forEach((p,i)=> blob(p[0],p[1],p[2], i%2? landCol: landCol2));
 
-    // polar ice
-    const iceTop = ctx.createLinearGradient(0,0,0,70);
-    iceTop.addColorStop(0,'rgba(230,228,220,0.85)');
-    iceTop.addColorStop(1,'rgba(230,228,220,0)');
-    ctx.filter='none';
-    ctx.fillStyle = iceTop; ctx.fillRect(0,0,w,70);
-    const iceBot = ctx.createLinearGradient(0,h-70,0,h);
-    iceBot.addColorStop(0,'rgba(230,228,220,0)');
-    iceBot.addColorStop(1,'rgba(230,228,220,0.85)');
-    ctx.fillStyle = iceBot; ctx.fillRect(0,h-70,w,70);
+    let t = 0;
+    function frame(){
+      t += 0.016;
+      ctx.clearRect(0,0,w,h);
 
-    // graticule — brass cartographic lines
-    ctx.strokeStyle = 'rgba(201,160,99,0.35)';
-    ctx.lineWidth = 1;
-    for(let x=0;x<=w;x+=w/12){
-      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke();
+      // polvo cósmico difuso, muy sutil
+      dust.forEach(d=>{
+        d.x += d.dx; d.y += d.dy;
+        if(d.x < -150) d.x = w+150; if(d.x > w+150) d.x = -150;
+        if(d.y < -150) d.y = h+150; if(d.y > h+150) d.y = -150;
+        const g = ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,d.r);
+        g.addColorStop(0, `rgba(140,180,255,${d.alpha})`);
+        g.addColorStop(1, 'rgba(140,180,255,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(d.x-d.r, d.y-d.r, d.r*2, d.r*2);
+      });
+
+      // estrellas con parpadeo y deriva lenta según profundidad
+      stars.forEach(s=>{
+        s.y += s.speed;
+        if(s.y > h+2){ s.y = -2; s.x = Math.random()*w; }
+        const twinkle = 0.55 + 0.45*Math.sin(t*s.twinkleSpeed + s.phase);
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(244,246,251,${(s.baseAlpha*twinkle).toFixed(3)})`;
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+        ctx.fill();
+      });
+
+      requestAnimationFrame(frame);
     }
-    for(let y=0;y<=h;y+=h/6){
-      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
-    }
-    ctx.strokeStyle = 'rgba(201,160,99,0.6)';
-    ctx.lineWidth = 1.4;
-    ctx.beginPath(); ctx.moveTo(0,h/2); ctx.lineTo(w,h/2); ctx.stroke();
 
-    const tex = new THREE.CanvasTexture(c);
-    tex.needsUpdate = true;
-    return tex;
+    build();
+    window.addEventListener('resize', build);
+    frame();
+  })();
+
+  /* ============================================================
+     1. RECURSOS COMPARTIDOS — texturas de la Tierra
+     ------------------------------------------------------------
+     ⚠️ REEMPLAZO DE TEXTURAS: cambia estas URLs por las tuyas si
+     quieres usar tus propias imágenes (mismo formato equirectangular).
+     Las actuales son las texturas oficiales de ejemplo de three.js,
+     derivadas de datos públicos NASA Blue Marble / Black Marble.
+     ============================================================ */
+  const TEXTURE_BASE = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/';
+  const TEX = {
+    day:      TEXTURE_BASE + 'earth_atmos_2048.jpg',    // albedo / color diurno
+    normal:   TEXTURE_BASE + 'earth_normal_2048.jpg',   // relieve de montañas
+    specular: TEXTURE_BASE + 'earth_specular_2048.jpg', // brillo oceánico
+    clouds:   TEXTURE_BASE + 'earth_clouds_1024.png',   // nubes semitransparentes
+    night:    TEXTURE_BASE + 'earth_lights_2048.png'    // luces urbanas nocturnas
+  };
+
+  /* ------------------------------------------------------------
+     ⚠️ MODELO 3D PROPIO (OBJ/MTL o GLTF): si prefieres reemplazar
+     la esfera procedural por tu propio modelo, agrega en el <head>
+     (fuera de este bloque) dos etiquetas de script apuntando a:
+       unpkg.com/three@0.128.0/examples/js/loaders/MTLLoader.js
+       unpkg.com/three@0.128.0/examples/js/loaders/OBJLoader.js
+     y luego descomenta el siguiente bloque:
+
+     const mtlLoader = new THREE.MTLLoader();
+     mtlLoader.load('earth_obj.mtl', (materials) => {
+       materials.preload();
+       const objLoader = new THREE.OBJLoader();
+       objLoader.setMaterials(materials);
+       objLoader.load('earth_obj.obj', (object) => {
+         object.scale.setScalar(2 / object.geometry?.boundingSphere?.radius || 1);
+         heroScene.add(object);
+       });
+     });
+
+     Nota: cargar archivos .obj/.mtl locales requiere servir el sitio
+     desde un servidor (http://localhost) — abrir el HTML con doble
+     clic (protocolo file://) bloquea esas peticiones por seguridad
+     del navegador.
+     ------------------------------------------------------------ */
+
+  const textureLoader = new THREE.TextureLoader();
+  textureLoader.crossOrigin = 'anonymous';
+
+  let pendingLoads = 0;
+  const loadedTextures = {};
+  function loadTexture(key, onAllDone){
+    pendingLoads++;
+    textureLoader.load(TEX[key], (tex)=>{
+      loadedTextures[key] = tex;
+      pendingLoads--;
+      if(pendingLoads === 0) onAllDone();
+    }, undefined, ()=>{ pendingLoads--; if(pendingLoads===0) onAllDone(); });
   }
 
-  const earthTex = makeEarthTexture();
-  const earthGeo = new THREE.SphereGeometry(2, 64, 64);
-  const earthMat = new THREE.MeshPhongMaterial({ map: earthTex, shininess: 6, specular: 0x223333 });
-  const earth = new THREE.Mesh(earthGeo, earthMat);
-  earth.rotation.z = 23.4 * Math.PI/180;
-  scene.add(earth);
+  function preloadAllTextures(onDone){
+    Object.keys(TEX).forEach(key => loadTexture(key, onDone));
+  }
 
-  // atmosphere glow — fresnel-ish rim shader
-  const atmoGeo = new THREE.SphereGeometry(2.09, 64, 64);
-  const atmoMat = new THREE.ShaderMaterial({
-    uniforms:{ glowColor:{ value: new THREE.Color(0x5aa9a3) } },
-    vertexShader: `
-      varying float intensity;
+  // sprite radial suave, reutilizado por todos los sistemas de partículas
+  function makeSparkTexture(){
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const cx = c.getContext('2d');
+    const g = cx.createRadialGradient(32,32,0,32,32,32);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.4, 'rgba(255,255,255,0.7)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    cx.fillStyle = g; cx.fillRect(0,0,64,64);
+    return new THREE.CanvasTexture(c);
+  }
+  const sparkTexture = makeSparkTexture();
+
+  function createStarPoints(count, radius){
+    const geo = new THREE.BufferGeometry();
+    const positions = new Float32Array(count*3);
+    for(let i=0;i<count;i++){
+      const r = radius*(0.6 + Math.random()*0.4);
+      const theta = Math.random()*Math.PI*2;
+      const phi = Math.acos((Math.random()*2)-1);
+      positions[i*3]   = r*Math.sin(phi)*Math.cos(theta);
+      positions[i*3+1] = r*Math.sin(phi)*Math.sin(theta);
+      positions[i*3+2] = r*Math.cos(phi);
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+    const mat = new THREE.PointsMaterial({
+      map: sparkTexture, color:0xffffff, size:0.06, transparent:true,
+      opacity:0.75, depthWrite:false, blending:THREE.AdditiveBlending, sizeAttenuation:true
+    });
+    return new THREE.Points(geo, mat);
+  }
+
+  // halo atmosférico tipo fresnel, con pulso animado
+  function createAtmosphere(radius, colorHex, power){
+    const geo = new THREE.SphereGeometry(radius, 64, 64);
+    const mat = new THREE.ShaderMaterial({
+      uniforms:{ glowColor:{ value:new THREE.Color(colorHex) }, uTime:{ value:0 } },
+      vertexShader:`
+        varying float intensity;
+        void main(){
+          vec3 vNormal = normalize( normalMatrix * normal );
+          vec3 vNormel = normalize( normalMatrix * vec3(0.0,0.0,1.0) );
+          intensity = pow( 0.62 - dot(vNormal, vNormel), 2.2 );
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+        }`,
+      fragmentShader:`
+        varying float intensity;
+        uniform vec3 glowColor;
+        uniform float uTime;
+        void main(){
+          float pulse = 0.85 + 0.15*sin(uTime*1.3);
+          gl_FragColor = vec4(glowColor, intensity*pulse);
+        }`,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      transparent:true,
+      depthWrite:false
+    });
+    return new THREE.Mesh(geo, mat);
+  }
+
+  function createClouds(radius, cloudTex){
+    const geo = new THREE.SphereGeometry(radius, 64, 64);
+    const mat = new THREE.MeshStandardMaterial({
+      map: cloudTex,
+      alphaMap: cloudTex,
+      transparent:true,
+      opacity:0.85,
+      depthWrite:false,
+      roughness:1
+    });
+    return new THREE.Mesh(geo, mat);
+  }
+
+  /* ============================================================
+     2. ESCENA 1 — TIERRA HÉROE (hiperrealista, día/noche real)
+     ============================================================ */
+  const heroWrap = document.getElementById('hero-canvas-wrap');
+  const heroCanvas = document.getElementById('hero-canvas');
+  const heroLoader = document.getElementById('hero-loader');
+
+  const heroScene = new THREE.Scene();
+  const heroCamera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+  heroCamera.position.set(0, 0.15, 5.4);
+
+  const heroRenderer = new THREE.WebGLRenderer({ canvas: heroCanvas, antialias:true, alpha:true });
+  heroRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const heroControls = new THREE.OrbitControls(heroCamera, heroRenderer.domElement);
+  heroControls.enableDamping = true;
+  heroControls.dampingFactor = 0.06;
+  heroControls.enablePan = false;
+  heroControls.minDistance = 3.2;
+  heroControls.maxDistance = 9;
+  heroControls.rotateSpeed = 0.5;
+
+  // material personalizado: mezcla día/noche según el sol + brillo oceánico + relieve simulado
+  const heroEarthUniforms = {
+    dayTexture:      { value:null },
+    nightTexture:    { value:null },
+    specularTexture: { value:null },
+    normalTexture:   { value:null },
+    sunDirection:    { value:new THREE.Vector3(1,0.25,0.9).normalize() }
+  };
+  const heroEarthMaterial = new THREE.ShaderMaterial({
+    uniforms: heroEarthUniforms,
+    vertexShader:`
+      varying vec2 vUv;
+      varying vec3 vNormalWorld;
+      varying vec3 vWorldPosition;
       void main(){
-        vec3 vNormal = normalize( normalMatrix * normal );
-        vec3 vNormel = normalize( normalMatrix * vec3(0.0,0.0,1.0) );
-        intensity = pow( 0.68 - dot(vNormal, vNormel), 2.4 );
+        vUv = uv;
+        vNormalWorld = normalize( mat3(modelMatrix) * normal );
+        vWorldPosition = (modelMatrix * vec4(position,1.0)).xyz;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
       }`,
-    fragmentShader: `
-      varying float intensity;
-      uniform vec3 glowColor;
+    fragmentShader:`
+      uniform sampler2D dayTexture;
+      uniform sampler2D nightTexture;
+      uniform sampler2D specularTexture;
+      uniform sampler2D normalTexture;
+      uniform vec3 sunDirection;
+      varying vec2 vUv;
+      varying vec3 vNormalWorld;
+      varying vec3 vWorldPosition;
+
       void main(){
-        gl_FragColor = vec4( glowColor, intensity );
-      }`,
-    side: THREE.BackSide,
-    blending: THREE.AdditiveBlending,
-    transparent:true
-  });
-  const atmo = new THREE.Mesh(atmoGeo, atmoMat);
-  scene.add(atmo);
+        vec3 normal = normalize(vNormalWorld);
+        float sunOrientation = dot(normal, normalize(sunDirection));
 
-  // brass instrument ring
-  const ringGeo = new THREE.TorusGeometry(2.55, 0.012, 8, 128);
-  const ringMat = new THREE.MeshBasicMaterial({ color:0xc9a063, transparent:true, opacity:0.55 });
-  const brassRing = new THREE.Mesh(ringGeo, ringMat);
-  brassRing.rotation.x = Math.PI/2.3;
-  scene.add(brassRing);
+        vec3 dayColor = texture2D(dayTexture, vUv).rgb;
+        vec3 nightColor = texture2D(nightTexture, vUv).rgb;
+        float specMask = texture2D(specularTexture, vUv).r;
+        float relief = texture2D(normalTexture, vUv).r;
 
-  // starfield
-  const starGeo = new THREE.BufferGeometry();
-  const starCount = 900;
-  const positions = new Float32Array(starCount*3);
-  for(let i=0;i<starCount;i++){
-    const r = 20 + Math.random()*30;
-    const theta = Math.random()*Math.PI*2;
-    const phi = Math.acos((Math.random()*2)-1);
-    positions[i*3] = r*Math.sin(phi)*Math.cos(theta);
-    positions[i*3+1] = r*Math.sin(phi)*Math.sin(theta);
-    positions[i*3+2] = r*Math.cos(phi);
-  }
-  starGeo.setAttribute('position', new THREE.BufferAttribute(positions,3));
-  const starMat = new THREE.PointsMaterial({ color:0xf1eee6, size:0.045, transparent:true, opacity:0.7 });
-  const stars = new THREE.Points(starGeo, starMat);
-  scene.add(stars);
+        // relieve simulado: oscurece levemente según el mapa de normales
+        dayColor *= 0.86 + relief*0.28;
 
-  // light — the sun
-  const sun = new THREE.DirectionalLight(0xfff2d9, 1.55);
-  sun.position.set(5,2,4);
-  scene.add(sun);
-  scene.add(new THREE.AmbientLight(0x1a2030, 1.3));
+        float dayFactor = smoothstep(-0.22, 0.35, sunOrientation);
 
-  let mouseX = 0, mouseY = 0;
-  window.addEventListener('mousemove', (e)=>{
-    mouseX = (e.clientX/window.innerWidth - 0.5);
-    mouseY = (e.clientY/window.innerHeight - 0.5);
+        // brillo especular oceánico cerca del reflejo solar
+        vec3 viewDir = normalize(cameraPosition - vWorldPosition);
+        vec3 reflectDir = reflect(-normalize(sunDirection), normal);
+        float specAngle = max(dot(reflectDir, viewDir), 0.0);
+        float spec = pow(specAngle, 22.0) * specMask * dayFactor * 1.4;
+
+        vec3 nightGlow = nightColor * (1.0 - dayFactor) * 1.6;
+        vec3 color = mix(nightGlow, dayColor, dayFactor) + vec3(spec);
+
+        // leve iluminación ambiental para que el lado oscuro no sea negro absoluto
+        color += dayColor * 0.035;
+
+        gl_FragColor = vec4(color, 1.0);
+      }`
   });
 
-  function resize(){
-    camera.aspect = window.innerWidth/window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  }
-  window.addEventListener('resize', resize);
+  const heroEarthGeo = new THREE.SphereGeometry(2, 96, 96);
+  const heroEarth = new THREE.Mesh(heroEarthGeo, heroEarthMaterial);
+  heroEarth.rotation.z = 23.4 * Math.PI/180;
+  heroScene.add(heroEarth);
 
+  let heroClouds = null;
+  const heroAtmosphere = createAtmosphere(2.12, 0x5ce1e6, 2.4);
+  heroScene.add(heroAtmosphere);
+
+  const heroStars = createStarPoints(1400, 40);
+  heroScene.add(heroStars);
+
+  // luces: sol direccional + ambiente tenue + luz de relleno azulada (earthshine)
+  const heroSun = new THREE.DirectionalLight(0xfff4e0, 1.1);
+  heroSun.position.set(6, 1.5, 5.4);
+  heroScene.add(heroSun);
+  heroScene.add(new THREE.AmbientLight(0x0c1220, 0.9));
+  const heroRim = new THREE.PointLight(0x3a6bff, 0.6, 20);
+  heroRim.position.set(-6,-2,-5);
+  heroScene.add(heroRim);
+
+  function fitHeroCanvas(){
+    const size = heroWrap.clientWidth;
+    heroRenderer.setSize(size, size, false);
+    heroCamera.aspect = 1;
+    heroCamera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', fitHeroCanvas);
+
+  preloadAllTextures(()=>{
+    heroEarthUniforms.dayTexture.value = loadedTextures.day;
+    heroEarthUniforms.nightTexture.value = loadedTextures.night;
+    heroEarthUniforms.specularTexture.value = loadedTextures.specular;
+    heroEarthUniforms.normalTexture.value = loadedTextures.normal;
+
+    heroClouds = createClouds(2.045, loadedTextures.clouds);
+    heroScene.add(heroClouds);
+
+    heroLoader.classList.add('hidden');
+    fitHeroCanvas();
+    initGameEarth(); // la escena del juego reutiliza las mismas texturas ya cacheadas
+  });
+
+  document.getElementById('btn-explore').addEventListener('click', ()=>{
+    const target = heroCamera.position.clone().setLength(3.6);
+    const start = heroCamera.position.clone();
+    const t0 = performance.now();
+    function step(now){
+      const t = Math.min((now - t0)/900, 1);
+      const ease = 1 - Math.pow(1-t, 3);
+      heroCamera.position.lerpVectors(start, target, ease);
+      if(t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
+
+  /* ============================================================
+     3. ESCENA 2 — TIERRA DEL SIMULADOR (destruible / restaurable)
+     ============================================================ */
+  const gameWrap = document.getElementById('game-canvas-wrap');
+  const gameCanvas = document.getElementById('game-canvas');
+  const gameLoader = document.getElementById('game-loader');
+  const gameHalo = document.getElementById('game-halo');
+
+  const gameScene = new THREE.Scene();
+  const gameCamera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+  const gameCameraBase = new THREE.Vector3(0, 0, 5.2);
+  gameCamera.position.copy(gameCameraBase);
+
+  const gameRenderer = new THREE.WebGLRenderer({ canvas: gameCanvas, antialias:true, alpha:true });
+  gameRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  let gameEarth, gameClouds, gameAtmosphere, smogMesh;
+  let damageCanvas, damageCtx, baseImage, damageTexture;
+  const DMG_SIZE = { w: 1024, h: 512 };
+
+  function fitGameCanvas(){
+    const size = gameWrap.clientWidth;
+    gameRenderer.setSize(size, size, false);
+    gameCamera.aspect = 1;
+    gameCamera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', fitGameCanvas);
+
+  function initGameEarth(){
+    // lienzo editable para pintar daño acumulativo directamente sobre la textura
+    damageCanvas = document.createElement('canvas');
+    damageCanvas.width = DMG_SIZE.w; damageCanvas.height = DMG_SIZE.h;
+    damageCtx = damageCanvas.getContext('2d');
+    baseImage = loadedTextures.day.image;
+    damageCtx.drawImage(baseImage, 0, 0, DMG_SIZE.w, DMG_SIZE.h);
+    damageTexture = new THREE.CanvasTexture(damageCanvas);
+
+    const geo = new THREE.SphereGeometry(2, 96, 96);
+    const mat = new THREE.MeshPhongMaterial({
+      map: damageTexture,
+      specularMap: loadedTextures.specular,
+      bumpMap: loadedTextures.normal,
+      bumpScale: 0.06,
+      emissiveMap: loadedTextures.night,
+      emissive: 0xffffff,
+      emissiveIntensity: 0.35,
+      shininess: 14,
+      specular: 0x224466
+    });
+    gameEarth = new THREE.Mesh(geo, mat);
+    gameEarth.rotation.z = 23.4*Math.PI/180;
+    gameScene.add(gameEarth);
+
+    gameClouds = createClouds(2.045, loadedTextures.clouds);
+    gameScene.add(gameClouds);
+
+    gameAtmosphere = createAtmosphere(2.13, 0x5ce1e6, 2.2);
+    gameScene.add(gameAtmosphere);
+
+    // capa de contaminación: envuelve el planeta, opacidad crece con el uso del arma "pollution"
+    const smogGeo = new THREE.SphereGeometry(2.07, 64, 64);
+    const smogMat = new THREE.MeshBasicMaterial({
+      color: 0x6b8f4a, transparent:true, opacity:0, depthWrite:false
+    });
+    smogMesh = new THREE.Mesh(smogGeo, smogMat);
+    gameScene.add(smogMesh);
+
+    gameScene.add(createStarPoints(900, 36));
+
+    const gameSun = new THREE.DirectionalLight(0xfff4e0, 1.3);
+    gameSun.position.set(5, 2, 5);
+    gameScene.add(gameSun);
+    gameScene.add(new THREE.AmbientLight(0x141a2a, 1.1));
+    const gameRim = new THREE.PointLight(0x3a6bff, 0.5, 20);
+    gameRim.position.set(-5,-2,-4);
+    gameScene.add(gameRim);
+
+    gameLoader.classList.add('hidden');
+    fitGameCanvas();
+    initGameLogic();
+  }
+
+  /* ------------------------------------------------------------
+     conversión punto 3D (espacio local de la esfera) -> UV,
+     para pintar marcas de daño exactamente donde se hizo clic.
+     ------------------------------------------------------------ */
+  function pointToUV(localPoint){
+    const d = localPoint.clone().normalize();
+    let u = 0.5 + Math.atan2(d.z, d.x) / (2*Math.PI);
+    let v = 0.5 - Math.asin(d.y) / Math.PI;
+    return { u, v };
+  }
+
+  function drawDamageMark(u, v, radiusPx, draw){
+    const x = u * DMG_SIZE.w;
+    const y = v * DMG_SIZE.h;
+    draw(x, y);
+    // repite cerca de las costuras horizontales para evitar cortes visuales
+    if(x < radiusPx*1.5) draw(x + DMG_SIZE.w, y);
+    if(x > DMG_SIZE.w - radiusPx*1.5) draw(x - DMG_SIZE.w, y);
+    damageTexture.needsUpdate = true;
+  }
+
+  function burnMark(u, v){
+    drawDamageMark(u, v, 22, (x,y)=>{
+      const g = damageCtx.createRadialGradient(x,y,0,x,y,22);
+      g.addColorStop(0, 'rgba(40,10,4,0.95)');
+      g.addColorStop(0.5, 'rgba(90,28,10,0.7)');
+      g.addColorStop(1, 'rgba(90,28,10,0)');
+      damageCtx.fillStyle = g;
+      damageCtx.beginPath(); damageCtx.arc(x,y,22,0,Math.PI*2); damageCtx.fill();
+    });
+  }
+
+  function craterMark(u, v){
+    drawDamageMark(u, v, 34, (x,y)=>{
+      const g = damageCtx.createRadialGradient(x,y,0,x,y,34);
+      g.addColorStop(0, 'rgba(20,16,14,0.95)');
+      g.addColorStop(0.55, 'rgba(55,42,32,0.75)');
+      g.addColorStop(1, 'rgba(55,42,32,0)');
+      damageCtx.fillStyle = g;
+      damageCtx.beginPath();
+      const pts = 12;
+      for(let i=0;i<=pts;i++){
+        const a = (i/pts)*Math.PI*2;
+        const r = 34*(0.75+Math.random()*0.4);
+        const px = x+Math.cos(a)*r, py = y+Math.sin(a)*r*0.7;
+        i===0 ? damageCtx.moveTo(px,py) : damageCtx.lineTo(px,py);
+      }
+      damageCtx.closePath(); damageCtx.fill();
+    });
+  }
+
+  function erosionMark(u, v){
+    drawDamageMark(u, v, 52, (x,y)=>{
+      const g = damageCtx.createRadialGradient(x,y,0,x,y,52);
+      g.addColorStop(0, 'rgba(28,26,24,0.9)');
+      g.addColorStop(0.6, 'rgba(60,55,48,0.55)');
+      g.addColorStop(1, 'rgba(60,55,48,0)');
+      damageCtx.fillStyle = g;
+      damageCtx.beginPath(); damageCtx.arc(x,y,52,0,Math.PI*2); damageCtx.fill();
+    });
+  }
+
+  /* ------------------------------------------------------------
+     sistema de efectos transitorios (partículas, ondas, destellos)
+     ------------------------------------------------------------ */
+  const activeEffects = [];
+  function addEffect(e){ activeEffects.push(e); }
+  function updateEffects(dt, t){
+    for(let i=activeEffects.length-1;i>=0;i--){
+      const alive = activeEffects[i].update(dt, t);
+      if(!alive){ activeEffects[i].dispose(); activeEffects.splice(i,1); }
+    }
+  }
+
+  function spawnParticleBurst(origin, opts){
+    const count = opts.count || 24;
+    const geo = new THREE.BufferGeometry();
+    const positions = new Float32Array(count*3);
+    const velocities = [];
+    for(let i=0;i<count;i++){
+      positions[i*3]=origin.x; positions[i*3+1]=origin.y; positions[i*3+2]=origin.z;
+      const dir = origin.clone().normalize();
+      const spread = new THREE.Vector3((Math.random()-0.5), (Math.random()-0.5), (Math.random()-0.5));
+      velocities.push(dir.clone().multiplyScalar(opts.speed||1.2).add(spread.multiplyScalar(opts.spread||0.8)));
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+    const mat = new THREE.PointsMaterial({
+      map:sparkTexture, color:opts.color||0xffaa33, size:opts.size||0.09,
+      transparent:true, opacity:1, depthWrite:false, blending:THREE.AdditiveBlending
+    });
+    const points = new THREE.Points(geo, mat);
+    gameScene.add(points);
+    let life = 0;
+    const duration = opts.duration || 1.1;
+    addEffect({
+      update(dt){
+        life += dt;
+        const arr = geo.attributes.position.array;
+        for(let i=0;i<count;i++){
+          arr[i*3]   += velocities[i].x*dt;
+          arr[i*3+1] += velocities[i].y*dt;
+          arr[i*3+2] += velocities[i].z*dt;
+          velocities[i].multiplyScalar(0.94);
+        }
+        geo.attributes.position.needsUpdate = true;
+        mat.opacity = Math.max(0, 1 - life/duration);
+        return life < duration;
+      },
+      dispose(){ gameScene.remove(points); geo.dispose(); mat.dispose(); }
+    });
+  }
+
+  function spawnShockwave(origin, opts){
+    const ringGeo = new THREE.RingGeometry(0.01, 0.06, 48);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: opts.color||0xffffff, transparent:true, opacity:0.9,
+      side:THREE.DoubleSide, blending:THREE.AdditiveBlending, depthWrite:false
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.position.copy(origin);
+    ring.lookAt(0,0,0);
+    gameScene.add(ring);
+    let life = 0;
+    const duration = opts.duration || 0.8;
+    const maxScale = opts.maxScale || 5;
+    addEffect({
+      update(dt){
+        life += dt;
+        const p = Math.min(life/duration, 1);
+        const s = 1 + p*maxScale;
+        ring.scale.set(s,s,s);
+        ringMat.opacity = 0.9*(1-p);
+        return p < 1;
+      },
+      dispose(){ gameScene.remove(ring); ringGeo.dispose(); ringMat.dispose(); }
+    });
+  }
+
+  function spawnFlash(origin, opts){
+    const light = new THREE.PointLight(opts.color||0xffcc66, opts.intensity||3, 6);
+    light.position.copy(origin);
+    gameScene.add(light);
+    let life = 0;
+    const duration = opts.duration || 0.35;
+    addEffect({
+      update(dt){
+        life += dt;
+        const p = Math.min(life/duration,1);
+        light.intensity = (opts.intensity||3) * (1-p);
+        return p < 1;
+      },
+      dispose(){ gameScene.remove(light); }
+    });
+  }
+
+  function spawnRocket(hitPoint, onArrive){
+    const startDir = hitPoint.clone().normalize().multiplyScalar(6).add(
+      new THREE.Vector3(rand(-2,2), rand(-2,2), rand(1,2))
+    );
+    const geo = new THREE.ConeGeometry(0.06, 0.22, 8);
+    const mat = new THREE.MeshBasicMaterial({ color:0xffdca8 });
+    const rocket = new THREE.Mesh(geo, mat);
+    rocket.position.copy(startDir);
+    rocket.lookAt(hitPoint);
+    rocket.rotateX(Math.PI/2);
+    gameScene.add(rocket);
+    const trailGeo = new THREE.BufferGeometry();
+    const trailMat = new THREE.PointsMaterial({ map:sparkTexture, color:0xff8844, size:0.07, transparent:true, opacity:0.8, blending:THREE.AdditiveBlending, depthWrite:false });
+    const trailPositions = [];
+    const trailPoints = new THREE.Points(trailGeo, trailMat);
+    gameScene.add(trailPoints);
+
+    let life = 0;
+    const duration = 0.45;
+    addEffect({
+      update(dt){
+        life += dt;
+        const p = Math.min(life/duration, 1);
+        rocket.position.lerpVectors(startDir, hitPoint, p);
+        trailPositions.push(rocket.position.x, rocket.position.y, rocket.position.z);
+        if(trailPositions.length > 90) trailPositions.splice(0, trailPositions.length-90);
+        trailGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(trailPositions),3));
+        trailMat.opacity = 0.8*(1-p*0.5);
+        if(p >= 1 && !rocket.userData.arrived){
+          rocket.userData.arrived = true;
+          onArrive();
+        }
+        return p < 1 || trailMat.opacity > 0.02;
+      },
+      dispose(){
+        gameScene.remove(rocket); geo.dispose(); mat.dispose();
+        gameScene.remove(trailPoints); trailGeo.dispose(); trailMat.dispose();
+      }
+    });
+  }
+
+  function rand(min,max){ return min + Math.random()*(max-min); }
+
+  function spawnLaserBeam(hitPoint){
+    const from = hitPoint.clone().normalize().multiplyScalar(6);
+    const points = [from, hitPoint];
+    const geo = new THREE.BufferGeometry().setFromPoints(points);
+    const mat = new THREE.LineBasicMaterial({ color:0xff5c3c, transparent:true, opacity:1, linewidth:2 });
+    const line = new THREE.Line(geo, mat);
+    gameScene.add(line);
+    let life = 0;
+    const duration = 0.4;
+    addEffect({
+      update(dt){
+        life += dt;
+        const p = Math.min(life/duration,1);
+        mat.opacity = 1 - p;
+        return p < 1;
+      },
+      dispose(){ gameScene.remove(line); geo.dispose(); mat.dispose(); }
+    });
+  }
+
+  function shakeCamera(strength, duration){
+    let life = 0;
+    addEffect({
+      update(dt){
+        life += dt;
+        const p = Math.min(life/duration, 1);
+        const decay = 1-p;
+        gameCamera.position.set(
+          gameCameraBase.x + rand(-1,1)*strength*decay,
+          gameCameraBase.y + rand(-1,1)*strength*decay,
+          gameCameraBase.z
+        );
+        if(p >= 1) gameCamera.position.copy(gameCameraBase);
+        return p < 1;
+      },
+      dispose(){ gameCamera.position.copy(gameCameraBase); }
+    });
+  }
+
+  /* ============================================================
+     4. LÓGICA DEL JUEGO — salud, armas, restauración, modal
+     ============================================================ */
+  let health = 100;
+  let smogLevel = 0;
+  let selectedWeapon = null;
+  let gameOver = false;
+
+  const healthValueEl = document.getElementById('health-value');
+  const healthFillEl = document.getElementById('health-fill');
+  const impactHintEl = document.getElementById('impact-hint');
+  const logPanel = document.getElementById('log-panel');
+  const logEmpty = document.getElementById('log-empty');
+  const restoreBtn = document.getElementById('btn-restore');
+  const dialog = document.getElementById('game-dialog');
+  const dialogFact = document.getElementById('dialog-fact');
+
+  const WEAPONS = {
+    laser:{ damage:8, color:0xff5c6c, messages:[
+      'El láser térmico calcina la superficie y libera carbono atrapado en la vegetación.',
+      'El calor extremo seca la vegetación cercana al punto de impacto.'
+    ]},
+    rocket:{ damage:15, color:0xffb454, messages:[
+      'El impacto destruye instantáneamente el ecosistema local.',
+      'La explosión genera una nube de ceniza que oscurece el cielo.'
+    ]},
+    bomb:{ damage:20, color:0xc084fc, messages:[
+      'La onda expansiva erosiona el suelo en un radio amplio.',
+      'El impacto colapsa hábitats enteros en segundos.'
+    ]},
+    pollution:{ damage:5, color:0x8fd67a, messages:[
+      'Una nueva capa de smog reduce la claridad de océanos y bosques.',
+      'Los gases liberados se acumulan en la atmósfera del planeta.'
+    ]}
+  };
+
+  const EDUCATIONAL_FACTS = [
+    'Desde 1880, la temperatura media global ha aumentado de forma sostenida, y la última década ha sido la más calurosa registrada (NASA GISS).',
+    'El nivel del mar ha subido más de 20 cm desde 1880, y el ritmo de aumento se acelera cada década (NASA).',
+    'Cerca de un millón de especies están en riesgo de extinción en las próximas décadas debido a la actividad humana (IPBES / ONU).',
+    'El océano ha absorbido más del 90% del exceso de calor generado por el cambio climático desde 1970 (IPCC).',
+    'La concentración de CO₂ atmosférico supera hoy las 420 ppm, la más alta en cientos de miles de años (NASA / NOAA).'
+  ];
+
+  function addLog(weaponKey){
+    if(logEmpty) logEmpty.remove();
+    const w = WEAPONS[weaponKey];
+    const msg = w.messages[Math.floor(Math.random()*w.messages.length)];
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.innerHTML = `<b>${document.querySelector('[data-weapon="'+weaponKey+'"] .weapon-name').textContent}</b><br>${msg}`;
+    logPanel.prepend(entry);
+    while(logPanel.children.length > 8) logPanel.removeChild(logPanel.lastChild);
+  }
+
+  function updateHealthUI(){
+    const clamped = Math.max(0, Math.min(100, health));
+    healthValueEl.textContent = Math.round(clamped) + '%';
+    healthFillEl.style.width = clamped + '%';
+    let color, label;
+    if(clamped > 60){ color = 'var(--green)'; gameHalo.className='game-halo'; }
+    else if(clamped > 30){ color = 'var(--amber)'; gameHalo.className='game-halo warn'; }
+    else { color = 'var(--red)'; gameHalo.className='game-halo critical'; }
+    healthValueEl.style.color = color;
+    healthFillEl.style.background = clamped > 60
+      ? 'linear-gradient(90deg, var(--green), #3ee6a0)'
+      : clamped > 30
+        ? 'linear-gradient(90deg, var(--amber), #ff8f4d)'
+        : 'linear-gradient(90deg, var(--red), #ff2f52)';
+    restoreBtn.disabled = clamped === 100;
+  }
+
+  function setSelectedWeapon(key){
+    if(gameOver) return;
+    selectedWeapon = key;
+    document.querySelectorAll('.weapon-card').forEach(c=>{
+      c.classList.toggle('active', c.dataset.weapon === key);
+    });
+    const w = document.querySelector('[data-weapon="'+key+'"] .weapon-name').textContent;
+    impactHintEl.textContent = 'Arma seleccionada: ' + w + ' — haz clic sobre la Tierra';
+    gameCanvas.classList.add('armed');
+  }
+
+  function applyDamage(amount, hitPointLocal, weaponKey){
+    health = Math.max(0, health - amount);
+    updateHealthUI();
+    addLog(weaponKey);
+
+    if(hitPointLocal){
+      const { u, v } = pointToUV(hitPointLocal);
+      if(weaponKey === 'laser') burnMark(u,v);
+      if(weaponKey === 'rocket') craterMark(u,v);
+      if(weaponKey === 'bomb') erosionMark(u,v);
+    }
+
+    if(weaponKey === 'pollution'){
+      smogLevel = Math.min(1, smogLevel + 0.14);
+      smogMesh.material.opacity = smogLevel * 0.55;
+    }
+
+    if(health <= 0 && !gameOver){
+      triggerGameOver();
+    }
+  }
+
+  function triggerGameOver(){
+    gameOver = true;
+    gameCanvas.classList.remove('armed');
+    gameCanvas.classList.add('locked');
+    impactHintEl.textContent = 'El planeta ha colapsado. Restaura la Tierra para continuar.';
+    dialogFact.textContent = EDUCATIONAL_FACTS[Math.floor(Math.random()*EDUCATIONAL_FACTS.length)];
+    if(typeof dialog.showModal === 'function'){
+      dialog.showModal();
+    }
+  }
+
+  function restoreEarth(){
+    health = 100;
+    smogLevel = 0;
+    gameOver = false;
+    selectedWeapon = null;
+    updateHealthUI();
+    document.querySelectorAll('.weapon-card').forEach(c=>c.classList.remove('active'));
+    gameCanvas.classList.remove('armed','locked');
+    impactHintEl.textContent = 'Selecciona una amenaza y haz clic sobre la Tierra';
+
+    damageCtx.clearRect(0,0,DMG_SIZE.w,DMG_SIZE.h);
+    damageCtx.drawImage(baseImage, 0, 0, DMG_SIZE.w, DMG_SIZE.h);
+    damageTexture.needsUpdate = true;
+    smogMesh.material.opacity = 0;
+
+    logPanel.innerHTML = '<p class="log-empty" id="log-empty">Aún no se han registrado eventos.</p>';
+
+    if(dialog.open) dialog.close();
+
+    // destello verde de restauración
+    spawnFlash(new THREE.Vector3(0,0,2.4), { color:0x6bffb0, intensity:4, duration:0.9 });
+    spawnShockwave(new THREE.Vector3(0,0,2.2), { color:0x6bffb0, duration:1.1, maxScale:6 });
+  }
+
+  function initGameLogic(){
+    document.querySelectorAll('.weapon-card').forEach(card=>{
+      card.addEventListener('click', ()=> setSelectedWeapon(card.dataset.weapon));
+    });
+
+    restoreBtn.addEventListener('click', restoreEarth);
+    document.getElementById('btn-dialog-restore').addEventListener('click', restoreEarth);
+    document.getElementById('btn-dialog-close').addEventListener('click', ()=> dialog.close());
+
+    const raycaster = new THREE.Raycaster();
+    const ndc = new THREE.Vector2();
+
+    gameCanvas.addEventListener('click', (e)=>{
+      if(gameOver || !selectedWeapon) return;
+      const rect = gameCanvas.getBoundingClientRect();
+      ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(ndc, gameCamera);
+      const hits = raycaster.intersectObject(gameEarth);
+      if(hits.length === 0) return;
+
+      const worldPoint = hits[0].point;
+      const localPoint = gameEarth.worldToLocal(worldPoint.clone());
+      const weapon = WEAPONS[selectedWeapon];
+
+      if(selectedWeapon === 'laser'){
+        spawnLaserBeam(worldPoint);
+        spawnParticleBurst(worldPoint, { color:0xff7a3c, count:16, speed:0.6, duration:0.9, size:0.06 });
+        applyDamage(weapon.damage, localPoint, 'laser');
+      } else if(selectedWeapon === 'rocket'){
+        spawnRocket(worldPoint, ()=>{
+          spawnFlash(worldPoint, { color:0xffcc66, intensity:4, duration:0.4 });
+          spawnParticleBurst(worldPoint, { color:0xffaa33, count:36, speed:1.6, spread:1.4, duration:1.2, size:0.1 });
+          spawnShockwave(worldPoint, { color:0xffb454, duration:0.8, maxScale:4 });
+          applyDamage(weapon.damage, localPoint, 'rocket');
+        });
+      } else if(selectedWeapon === 'bomb'){
+        spawnFlash(worldPoint, { color:0xd6b3ff, intensity:5, duration:0.5 });
+        spawnParticleBurst(worldPoint, { color:0xb98cf0, count:46, speed:1.2, spread:1.8, duration:1.4, size:0.11 });
+        spawnShockwave(worldPoint, { color:0xc084fc, duration:1.1, maxScale:6 });
+        spawnShockwave(worldPoint, { color:0xffffff, duration:0.6, maxScale:3 });
+        shakeCamera(0.09, 0.45);
+        applyDamage(weapon.damage, localPoint, 'bomb');
+      } else if(selectedWeapon === 'pollution'){
+        spawnParticleBurst(worldPoint, { color:0x8fd67a, count:26, speed:0.4, spread:1.6, duration:1.6, size:0.09 });
+        applyDamage(weapon.damage, null, 'pollution');
+      }
+    });
+  }
+
+  /* ============================================================
+     5. NAVEGACIÓN SUAVE (enlaces del header)
+     ============================================================ */
+  document.querySelectorAll('.site-nav a, a[href^="#"].btn').forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      const id = a.getAttribute('href');
+      if(id && id.startsWith('#')){
+        const target = document.querySelector(id);
+        if(target){
+          e.preventDefault();
+          target.scrollIntoView({ behavior:'smooth', block:'start' });
+        }
+      }
+    });
+  });
+
+  /* ============================================================
+     6. BUCLE DE ANIMACIÓN ÚNICO — requestAnimationFrame
+     ============================================================ */
+  const clock = new THREE.Clock();
   function animate(){
     requestAnimationFrame(animate);
-    earth.rotation.y += 0.0016;
-    brassRing.rotation.z += 0.0006;
-    camera.position.x += (mouseX*1.1 - camera.position.x)*0.02;
-    camera.position.y += (-mouseY*0.7 - camera.position.y)*0.02;
-    camera.lookAt(0,0,0);
-    renderer.render(scene, camera);
+    const dt = Math.min(clock.getDelta(), 0.1);
+    const t = clock.elapsedTime;
+
+    // --- escena héroe ---
+    heroEarth.rotation.y += dt * 0.055;
+    if(heroClouds) heroClouds.rotation.y += dt * 0.07;
+    heroAtmosphere.material.uniforms.uTime.value = t;
+    heroStars.rotation.y += dt * 0.003;
+    heroControls.update();
+    heroRenderer.render(heroScene, heroCamera);
+
+    // --- escena del simulador ---
+    if(gameEarth){
+      gameEarth.rotation.y += dt * 0.04;
+      gameClouds.rotation.y += dt * 0.05;
+      gameAtmosphere.material.uniforms.uTime.value = t;
+      smogMesh.rotation.y += dt * 0.02;
+      updateEffects(dt, t);
+      gameRenderer.render(gameScene, gameCamera);
+    }
   }
   animate();
 
-  // ---- scroll-driven instrument transformation ----
-  const heroH = window.innerHeight;
-  function onScroll(){
-    const y = window.scrollY;
-    const t = Math.min(Math.max(y/heroH, 0), 1);
-
-    const scale = 1 - t*0.78;
-    const tx = t * (window.innerWidth*0.5 - 92);
-    const ty = -t * (window.innerHeight*0.5 - 92);
-    stage.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
-    stage.style.transformOrigin = 'center center';
-
-    const ringSize = 118;
-    ring.style.width = ringSize+'px';
-    ring.style.height = ringSize+'px';
-    ring.style.left = (window.innerWidth - ringSize - 44) + 'px';
-    ring.style.top = (44) + 'px';
-    ring.style.opacity = t > 0.82 ? String((t-0.82)/0.18) : '0';
-
-    readout.style.opacity = t > 0.82 ? String((t-0.82)/0.18) : '0';
-    readout.style.left = (window.innerWidth - 210) + 'px';
-    readout.style.top = (170) + 'px';
-  }
-  window.addEventListener('scroll', onScroll, { passive:true });
-  onScroll();
-
-  function tickClock(){
-    const d = new Date();
-    document.getElementById('utc-time').textContent = d.toISOString().substr(11,8);
-  }
-  setInterval(tickClock, 1000);
-  tickClock();
 })();
 </script>
 
