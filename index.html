@@ -410,45 +410,67 @@ p{color:var(--estelar-mist-dim)}
 .btn-ghost:hover,.btn-ghost:focus-visible{border-color:var(--nebula-violet-soft);color:var(--nebula-violet-soft)}
 .btn-sm{padding:.55rem 1.1rem;font-size:.82rem}
 
-/* Cards */
-.card{
-  background:var(--cosmic-indigo);border:1px solid var(--cosmic-indigo-border);
-  border-radius:var(--radius-md);padding:var(--space-6);
-  box-shadow:var(--shadow-card);
-  transition:border-color var(--dur-fast),transform var(--dur-fast);
-}
-.card:hover{border-color:var(--nebula-violet-dim);transform:translateY(-3px)}
-.card-icon{
-  width:44px;height:44px;border-radius:var(--radius-sm);
-  display:flex;align-items:center;justify-content:center;margin-bottom:var(--space-4);
-  background:var(--nebula-violet-dim);color:var(--nebula-violet-soft);
-}
-.card-icon svg{width:22px;height:22px}
-.card h3{margin-bottom:var(--space-2)}
-.card p{font-size:.94rem}
-
-/* Knowledge accordion (native details) */
+/* Knowledge cards — visuales, sin texto largo. Cada tarjeta es un botón
+   independiente: al abrir su modal, ninguna otra tarjeta cambia de tamaño
+   (a diferencia del antiguo <details> en grid, cuya fila entera se
+   estiraba cuando una tarjeta se expandía). */
 .k-card{
-  background:var(--cosmic-indigo);border:1px solid var(--cosmic-indigo-border);
-  border-radius:var(--radius-md);overflow:hidden;
+  position:relative; display:flex; flex-direction:column; gap:var(--space-3);
+  background:var(--cosmic-indigo); border:1px solid var(--cosmic-indigo-border);
+  border-radius:var(--radius-md); padding:var(--space-4);
+  text-align:left; box-shadow:var(--shadow-card);
+  transition:border-color var(--dur-fast),box-shadow var(--dur-fast);
+  transform:perspective(700px); will-change:transform;
 }
-.k-card summary{
-  list-style:none;cursor:pointer;padding:var(--space-6);
-  display:flex;gap:var(--space-4);align-items:flex-start;
+.k-card:hover,.k-card:focus-visible{ border-color:var(--nebula-violet-dim); box-shadow:var(--shadow-glow-violet); }
+.k-card-visual{
+  position:relative; aspect-ratio:4/3; border-radius:var(--radius-sm); overflow:hidden;
+  background:radial-gradient(ellipse at 50% 40%,var(--nebula-violet-dim),transparent 65%),var(--cosmic-indigo-light);
+  display:flex; align-items:center; justify-content:center;
 }
-.k-card summary::-webkit-details-marker{display:none}
-.k-card .card-icon{margin-bottom:0;flex-shrink:0}
-.k-card summary h3{margin-bottom:var(--space-1)}
-.k-card summary .tag{font-family:var(--font-mono);font-size:.7rem;color:var(--proton-silver)}
-.k-card summary .teaser{font-size:.86rem;margin-top:var(--space-1)}
-.k-card summary::after{
-  content:'+';margin-left:auto;font-family:var(--font-mono);font-size:1.3rem;color:var(--solar-ember);
-  transition:transform var(--dur-fast);
+.k-card-visual svg{ width:76%; height:76%; transition:transform var(--dur-med) var(--ease-out); pointer-events:none; }
+.k-card:hover .k-card-visual svg,.k-card:focus-visible .k-card-visual svg{ transform:scale(1.06) translateZ(0); }
+.k-card-tag{ font-family:var(--font-mono); font-size:.66rem; letter-spacing:.08em; text-transform:uppercase; color:var(--proton-silver); }
+.k-card-title{ font-family:var(--font-display); font-size:1.05rem; font-weight:700; color:var(--estelar-mist); letter-spacing:-.01em; }
+@media(prefers-reduced-motion:reduce){
+  .k-card{ transform:none!important; }
+  .k-card-visual svg{ transition:none; }
 }
-.k-card[open] summary::after{transform:rotate(45deg)}
-.k-body{padding:0 var(--space-6) var(--space-6) calc(44px + var(--space-4) + var(--space-6))}
-.k-body p{font-size:.94rem}
-@media(max-width:560px){.k-body{padding-inline:var(--space-6)}}
+
+/* Modal centrado de conocimiento */
+.k-modal-overlay{
+  position:fixed; inset:0; z-index:var(--z-panel);
+  display:flex; align-items:center; justify-content:center; padding:var(--space-5);
+  background:rgba(var(--void-rgb),.7);
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  opacity:0; pointer-events:none; transition:opacity var(--dur-med) var(--ease-out);
+}
+.k-modal-overlay[hidden]{ display:none; }
+.k-modal-overlay.is-open{ opacity:1; pointer-events:auto; }
+.k-modal{
+  position:relative; width:min(640px,100%); max-height:min(86vh,760px); overflow-y:auto;
+  background:var(--cosmic-indigo); border:1px solid var(--cosmic-indigo-border);
+  border-radius:var(--radius-lg); box-shadow:0 40px 90px -30px rgba(0,0,0,.8),var(--shadow-glow-violet);
+  padding:var(--space-7) var(--space-6);
+  transform:scale(.92) translateY(18px); opacity:0;
+  transition:transform var(--dur-med) var(--ease-out),opacity var(--dur-med) var(--ease-out);
+}
+.k-modal-overlay.is-open .k-modal{ transform:scale(1) translateY(0); opacity:1; }
+.k-modal-visual{
+  aspect-ratio:16/9; border-radius:var(--radius-md); overflow:hidden; margin:var(--space-5) 0;
+  background:radial-gradient(ellipse at 50% 40%,var(--nebula-violet-dim),transparent 65%),var(--cosmic-indigo-light);
+  border:1px solid var(--cosmic-indigo-border);
+  display:flex; align-items:center; justify-content:center;
+}
+.k-modal-visual svg{ width:min(70%,280px); height:auto; }
+.k-modal p{ margin-bottom:var(--space-4); font-size:.98rem; }
+@media(max-width:560px){
+  .k-modal{ padding:var(--space-6) var(--space-5); }
+}
+@media(prefers-reduced-motion:reduce){
+  .k-modal-overlay,.k-modal{ transition:opacity .2s ease; }
+  .k-modal{ transform:none!important; }
+}
 
 /* Detail panel */
 .detail-panel{
@@ -1400,6 +1422,13 @@ html.view-bible-active{ overflow:hidden; }
 </aside>
 <div class="scrim" id="scrim"></div>
 
+<div class="k-modal-overlay" id="kModalOverlay" hidden aria-hidden="true">
+  <div class="k-modal" id="kModal" role="dialog" aria-modal="true" aria-labelledby="kModalTitle">
+    <button type="button" class="detail-panel-close" id="kModalClose" aria-label="Cerrar">✕</button>
+    <div id="kModalContent"></div>
+  </div>
+</div>
+
 <div class="bible-view" id="bibleView" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Aprendiendo con Jesús — Biblia Digital Educativa">
   <canvas class="bible-stars" id="bibleStars" aria-hidden="true"></canvas>
   <div class="bible-nightstand" aria-hidden="true">
@@ -1605,22 +1634,58 @@ SPACE.scaleLevels = [
 SPACE.modules = [
   { id:'agujeros-negros', icon:'blackhole', tag:'Fenómenos extremos', title:'Agujeros negros',
     teaser:'Regiones donde la gravedad es tan intensa que ni la luz escapa.',
-    body:'Se forman cuando estrellas masivas colapsan bajo su propia gravedad. Alrededor del horizonte de sucesos, el espacio-tiempo se curva tanto que nada, ni siquiera la luz, puede escapar. En 2019 se capturó la primera imagen real de uno, en el centro de la galaxia M87.' },
+    body:'Se forman cuando estrellas masivas colapsan bajo su propia gravedad. Alrededor del horizonte de sucesos, el espacio-tiempo se curva tanto que nada, ni siquiera la luz, puede escapar. En 2019 se capturó la primera imagen real de uno, en el centro de la galaxia M87.',
+    paragraphs:[
+      'Un agujero negro nace cuando una estrella varias veces más masiva que el Sol agota su combustible y colapsa bajo su propio peso. Toda esa masa termina comprimida en un punto tan denso que deforma el espacio-tiempo a su alrededor de manera extrema.',
+      'Alrededor de ese punto existe el horizonte de sucesos: el límite a partir del cual nada, ni siquiera la luz, puede escapar de la atracción gravitatoria. Cruzarlo es un viaje sin retorno posible, incluso para la información misma.',
+      'En el centro de casi todas las galaxias grandes —incluida la nuestra— vive un agujero negro supermasivo. El de la Vía Láctea, Sagitario A*, equivale a cuatro millones de soles concentrados en un espacio menor que el Sistema Solar interior.'
+    ],
+    didYouKnow:'En 2019 el Event Horizon Telescope capturó la primera imagen real de un agujero negro, en el centro de la galaxia M87, combinando ocho radiotelescopios repartidos por todo el planeta.' },
   { id:'via-lactea', icon:'galaxy', tag:'Nuestra galaxia', title:'Vía Láctea',
     teaser:'La galaxia espiral que alberga a nuestro Sistema Solar.',
-    body:'Con forma de espiral barrada, contiene entre 100.000 y 400.000 millones de estrellas. Nuestro Sistema Solar orbita su centro cada 230 millones de años aproximadamente, un viaje conocido como año galáctico.' },
+    body:'Con forma de espiral barrada, contiene entre 100.000 y 400.000 millones de estrellas. Nuestro Sistema Solar orbita su centro cada 230 millones de años aproximadamente, un viaje conocido como año galáctico.',
+    paragraphs:[
+      'La Vía Láctea es una galaxia espiral barrada: un disco aplanado con brazos curvos que giran alrededor de una barra central de estrellas viejas. Vista desde arriba, se parecería a un remolino luminoso de cientos de miles de millones de soles.',
+      'Nuestro Sistema Solar vive en el Brazo de Orión, una rama secundaria a unos 27.000 años luz del centro galáctico. Desde ahí, orbitamos ese centro una vez cada 230 millones de años: un solo "año galáctico" desde que existían los dinosaurios.',
+      'Toda la galaxia que vemos a simple vista —esa franja difusa en una noche despejada— es en realidad el disco visto de canto, con miles de millones de estrellas demasiado lejanas para distinguirse una a una.'
+    ],
+    didYouKnow:'La Vía Láctea y la galaxia de Andrómeda se están acercando a unos 110 km/s y se fusionarán dentro de aproximadamente 4.500 millones de años.' },
   { id:'exoplanetas', icon:'ringplanet', tag:'Mundos lejanos', title:'Exoplanetas',
     teaser:'Miles de planetas confirmados fuera de nuestro sistema solar.',
-    body:'Se detectan principalmente por tránsito (la caída de brillo cuando pasan frente a su estrella) o velocidad radial. Algunos orbitan en la "zona habitable", la distancia donde el agua líquida podría existir en su superficie.' },
+    body:'Se detectan principalmente por tránsito (la caída de brillo cuando pasan frente a su estrella) o velocidad radial. Algunos orbitan en la "zona habitable", la distancia donde el agua líquida podría existir en su superficie.',
+    paragraphs:[
+      'Un exoplaneta es cualquier planeta que orbita una estrella distinta al Sol. El primero confirmado alrededor de una estrella similar a la nuestra se descubrió recién en 1995; hoy se conocen más de cinco mil, y la lista crece cada mes.',
+      'La mayoría se detecta por tránsito: cuando el planeta pasa frente a su estrella, bloquea una fracción minúscula de su luz, un parpadeo que los telescopios espaciales pueden medir con enorme precisión. Otros se revelan por el ligero bamboleo gravitatorio que provocan en su estrella.',
+      'Los más buscados son los que orbitan dentro de la "zona habitable": ni tan cerca como para evaporar el agua, ni tan lejos como para congelarla. Encontrar uno con condiciones parecidas a las terrestres sigue siendo uno de los grandes objetivos de la astronomía.'
+    ],
+    didYouKnow:'Existen exoplanetas verdaderamente extremos: uno de ellos, HD 189733 b, tiene vientos de más de 8.000 km/h y lluvia de vidrio fundido en horizontal.' },
   { id:'vida-estelar', icon:'star', tag:'Ciclo estelar', title:'Vida de una estrella',
     teaser:'De nube de gas a gigante roja, enana blanca o supernova.',
-    body:'Una estrella nace en una nube de gas y polvo que colapsa por gravedad. Según su masa, terminará como una enana blanca, una estrella de neutrones o, si es muy masiva, colapsará en un agujero negro tras una supernova.' },
+    body:'Una estrella nace en una nube de gas y polvo que colapsa por gravedad. Según su masa, terminará como una enana blanca, una estrella de neutrones o, si es muy masiva, colapsará en un agujero negro tras una supernova.',
+    paragraphs:[
+      'Toda estrella nace igual: una nube de gas y polvo colapsa por su propia gravedad hasta que la presión y temperatura en su núcleo son suficientes para encender la fusión nuclear. Ese instante marca el comienzo de millones o miles de millones de años de vida estable.',
+      'Mientras fusiona hidrógeno en helio, la estrella permanece en equilibrio: la gravedad que la comprime se balancea con la presión de la fusión que empuja hacia afuera. Nuestro Sol lleva unos 4.600 millones de años en esta etapa, y le quedan otros 5.000 millones.',
+      'El final depende de la masa. Las estrellas como el Sol se hinchan en gigantes rojas y terminan como enanas blancas que se enfrían lentamente. Las mucho más masivas mueren en una supernova y dejan tras de sí una estrella de neutrones o, en los casos más extremos, un agujero negro.'
+    ],
+    didYouKnow:'Casi todos los elementos pesados de tu cuerpo —calcio, hierro, oxígeno— se forjaron dentro de estrellas que murieron antes de que existiera el Sistema Solar.' },
   { id:'materia-oscura', icon:'atom', tag:'Lo invisible', title:'Materia y energía oscura',
     teaser:'El 95% del universo que no podemos ver directamente.',
-    body:'La materia oscura no emite luz pero su gravedad mantiene unidas a las galaxias; se infiere por su efecto sobre la rotación galáctica. La energía oscura, aún más enigmática, acelera la expansión del universo.' },
+    body:'La materia oscura no emite luz pero su gravedad mantiene unidas a las galaxias; se infiere por su efecto sobre la rotación galáctica. La energía oscura, aún más enigmática, acelera la expansión del universo.',
+    paragraphs:[
+      'Cuando los astrónomos midieron la velocidad a la que giran las galaxias, encontraron algo extraño: giran tan rápido que deberían desintegrarse, a menos que exista mucha más masa de la que podemos ver. A esa masa invisible la llamamos materia oscura.',
+      'No emite ni refleja luz, así que no puede observarse directamente: solo se detecta por su efecto gravitatorio, curvando la luz de objetos lejanos o manteniendo unidas a las galaxias. Se estima que compone cerca del 27% del universo.',
+      'La energía oscura es un misterio todavía mayor: una fuerza que actúa en sentido contrario a la gravedad y acelera la expansión del universo. Entre ambas —materia y energía oscura— explican alrededor del 95% de todo lo que existe, dejando a la materia ordinaria como una pequeña fracción del total.'
+    ],
+    didYouKnow:'Si el universo observable fuera un pastel, la materia que forma estrellas, planetas y personas sería apenas una rebanada del 5%.' },
   { id:'misiones', icon:'rocket', tag:'Exploración', title:'Misiones espaciales',
     teaser:'Del Sputnik a los rovers marcianos y las sondas interestelares.',
-    body:'Desde el primer satélite artificial en 1957 hasta las Voyager cruzando el espacio interestelar, cada misión amplió lo que sabemos. Hoy, rovers, telescopios y sondas siguen enviando datos desde todo el sistema solar.' }
+    body:'Desde el primer satélite artificial en 1957 hasta las Voyager cruzando el espacio interestelar, cada misión amplió lo que sabemos. Hoy, rovers, telescopios y sondas siguen enviando datos desde todo el sistema solar.',
+    paragraphs:[
+      'La era espacial comenzó en 1957 con el Sputnik 1, una esfera de apenas 58 cm que solo emitía un pitido, y bastó para cambiar la historia. Poco después llegaron los primeros humanos en órbita y, en 1969, las primeras pisadas en la Luna.',
+      'Desde entonces, cada misión ha ampliado la frontera: rovers que ruedan sobre Marte analizando rocas en busca de rastros de agua antigua, telescopios espaciales que fotografían galaxias a miles de millones de años luz, y sondas que sobrevolaron cada planeta del Sistema Solar.',
+      'Las sondas Voyager, lanzadas en 1977, ya cruzaron los límites de la influencia solar y viajan hoy por el espacio interestelar, todavía enviando datos con la tecnología de hace casi medio siglo.'
+    ],
+    didYouKnow:'Las Voyager llevan a bordo un disco de oro con sonidos e imágenes de la Tierra, pensado como un mensaje para cualquier civilización que algún día las encuentre.' }
 ];
 
 SPACE.links = [
@@ -2363,26 +2428,165 @@ SPACE.gameFacts = {
   const grid = document.getElementById('knowledgeGrid');
   if(!grid) return;
 
+  /* Ilustraciones vectoriales propias por módulo (sin fotos externas):
+     cada una es una escena simple pero distintiva, coherente con la
+     paleta de Nébula. `variant` evita ids de <gradient> duplicados
+     cuando la tarjeta y el modal del mismo módulo coexisten en el DOM. */
+  const ILLUSTRATIONS = {
+    'agujeros-negros': (variant) => `
+      <svg viewBox="0 0 160 160" role="img" aria-hidden="true">
+        <defs>
+          <radialGradient id="g-bh-${variant}" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stop-color="#000"/><stop offset="45%" stop-color="#000"/>
+            <stop offset="75%" stop-color="#2a1240"/><stop offset="100%" stop-color="transparent"/>
+          </radialGradient>
+        </defs>
+        <ellipse cx="80" cy="80" rx="70" ry="24" fill="none" stroke="#FF6A3D" stroke-width="3" opacity=".85" transform="rotate(-14 80 80)"/>
+        <ellipse cx="80" cy="80" rx="54" ry="17" fill="none" stroke="#FFB088" stroke-width="2.4" opacity=".7" transform="rotate(-14 80 80)"/>
+        <ellipse cx="80" cy="80" rx="38" ry="11" fill="none" stroke="#E9D8A6" stroke-width="2" opacity=".6" transform="rotate(-14 80 80)"/>
+        <circle cx="80" cy="80" r="27" fill="url(#g-bh-${variant})"/>
+      </svg>`,
+    'via-lactea': (variant) => `
+      <svg viewBox="0 0 160 160" role="img" aria-hidden="true">
+        <defs>
+          <radialGradient id="g-gx-${variant}" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stop-color="#fff"/><stop offset="35%" stop-color="#E9D8A6"/><stop offset="100%" stop-color="transparent"/>
+          </radialGradient>
+        </defs>
+        <path d="M80 80c0-30 27-47 47-30 14 12 8 35-14 37-25 2-31-21-13-31 12-7 25 2 21 15" fill="none" stroke="#B69CFB" stroke-width="3" stroke-linecap="round" opacity=".85"/>
+        <path d="M80 80c0 30-27 47-47 30-14-12-8-35 14-37 25-2 31 21 13 31-12 7-25-2-21-15" fill="none" stroke="#5AA9E6" stroke-width="3" stroke-linecap="round" opacity=".85"/>
+        <circle cx="80" cy="80" r="17" fill="url(#g-gx-${variant})"/>
+        <circle cx="38" cy="48" r="1.6" fill="#fff"/><circle cx="122" cy="106" r="1.6" fill="#fff"/>
+        <circle cx="118" cy="42" r="1.3" fill="#fff"/><circle cx="42" cy="118" r="1.3" fill="#fff"/>
+      </svg>`,
+    'exoplanetas': () => `
+      <svg viewBox="0 0 160 160" role="img" aria-hidden="true">
+        <circle cx="34" cy="46" r="4" fill="#FFB088"/>
+        <circle cx="34" cy="46" r="9" fill="#FFB088" opacity=".28"/>
+        <ellipse cx="98" cy="86" rx="44" ry="13" fill="none" stroke="#E9D8A6" stroke-width="6" opacity=".45" transform="rotate(-16 98 86)"/>
+        <circle cx="98" cy="86" r="25" fill="#5AA9E6"/>
+        <circle cx="90" cy="78" r="8" fill="#EDEAF7" opacity=".2"/>
+        <path d="M64 96a44 13 0 0068 4" fill="none" stroke="#F3E8C4" stroke-width="6" stroke-linecap="round" opacity=".9" transform="rotate(-16 98 86)"/>
+        <circle cx="20" cy="120" r="1.4" fill="#fff"/><circle cx="130" cy="30" r="1.4" fill="#fff"/><circle cx="140" cy="120" r="1.2" fill="#fff"/>
+      </svg>`,
+    'vida-estelar': () => `
+      <svg viewBox="0 0 160 160" role="img" aria-hidden="true">
+        <circle cx="80" cy="80" r="50" fill="none" stroke="#8B5CF6" stroke-width="2" stroke-dasharray="4 7" opacity=".55"/>
+        <circle cx="80" cy="30" r="9" fill="#FFB088"/>
+        <circle cx="130" cy="80" r="13" fill="#FDB813"/>
+        <circle cx="80" cy="130" r="20" fill="#E2643B"/>
+        <circle cx="30" cy="80" r="7" fill="#EDEAF7"/>
+      </svg>`,
+    'materia-oscura': () => `
+      <svg viewBox="0 0 160 160" role="img" aria-hidden="true">
+        <circle cx="80" cy="80" r="58" fill="none" stroke="#8B5CF6" stroke-width="1.5" stroke-dasharray="2 7" opacity=".5"/>
+        <path d="M22 42L72 72M138 38L96 70M26 132L70 94M134 126L94 92" stroke="#5AA9E6" stroke-width="1.5" opacity=".55"/>
+        <circle cx="80" cy="80" r="11" fill="#E9D8A6"/>
+        <circle cx="22" cy="42" r="3" fill="#B69CFB"/><circle cx="138" cy="38" r="3" fill="#B69CFB"/>
+        <circle cx="26" cy="132" r="3" fill="#B69CFB"/><circle cx="134" cy="126" r="3" fill="#B69CFB"/>
+      </svg>`,
+    'misiones': () => `
+      <svg viewBox="0 0 160 160" role="img" aria-hidden="true">
+        <circle cx="122" cy="122" r="18" fill="#5AA9E6" opacity=".85"/>
+        <circle cx="34" cy="34" r="1.6" fill="#fff"/><circle cx="54" cy="20" r="1.3" fill="#fff"/><circle cx="24" cy="60" r="1.3" fill="#fff"/>
+        <g transform="rotate(35 80 80)">
+          <path d="M80 26c11 0 17 21 17 42 0 15-6 27-17 35-11-8-17-20-17-35 0-21 6-42 17-42z" fill="#EDEAF7"/>
+          <path d="M63 76l-15 21 19-4z" fill="#8B5CF6"/>
+          <path d="M97 76l15 21-19-4z" fill="#8B5CF6"/>
+          <circle cx="80" cy="58" r="6" fill="#5AA9E6"/>
+          <path d="M71 106l9 24 9-24z" fill="#FF6A3D"/>
+        </g>
+      </svg>`
+  };
+
+  function illustration(m, variant){
+    const build = ILLUSTRATIONS[m.id];
+    return build ? build(variant) : SPACE.icon(m.icon);
+  }
+
   try{
     if(!window.SPACE || !Array.isArray(SPACE.modules) || !SPACE.modules.length) throw new Error('SPACE.modules no disponible');
     grid.innerHTML = SPACE.modules.map(m => `
-      <details class="k-card reveal" id="${m.id}">
-        <summary>
-          <span class="card-icon">${SPACE.icon(m.icon)}</span>
-          <span>
-            <span class="tag">${m.tag}</span>
-            <h3>${m.title}</h3>
-            <p class="teaser">${m.teaser}</p>
-          </span>
-        </summary>
-        <div class="k-body">
-          <p>${m.body}</p>
-        </div>
-      </details>
+      <button type="button" class="k-card reveal" id="${m.id}" data-module="${m.id}" aria-haspopup="dialog">
+        <span class="k-card-visual" aria-hidden="true">${illustration(m, 'card')}</span>
+        <span class="k-card-tag">${m.tag}</span>
+        <span class="k-card-title">${m.title}</span>
+      </button>
     `).join('');
   }catch(err){
     console.error('[Nébula] No se pudo renderizar la base de conocimiento', err);
     grid.innerHTML = '<p style="color:var(--proton-silver)">No se pudieron cargar los módulos por ahora. Recarga la página para intentarlo de nuevo.</p>';
+    return;
+  }
+
+  /* ---------- Modal centrado: una sola tarjeta a la vez, el resto del grid no se mueve ---------- */
+  const overlay = document.getElementById('kModalOverlay');
+  const modal = document.getElementById('kModal');
+  const modalContent = document.getElementById('kModalContent');
+  const modalClose = document.getElementById('kModalClose');
+  let lastFocused = null;
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+  }
+
+  function openModal(m, trigger){
+    lastFocused = trigger || document.activeElement;
+    const paragraphs = Array.isArray(m.paragraphs) && m.paragraphs.length ? m.paragraphs : [m.body];
+    modalContent.innerHTML = `
+      <span class="detail-badge">${escapeHtml(m.tag)}</span>
+      <h3 id="kModalTitle">${escapeHtml(m.title)}</h3>
+      <div class="k-modal-visual">${illustration(m, 'modal')}</div>
+      ${paragraphs.map(p => `<p>${escapeHtml(p)}</p>`).join('')}
+      ${m.didYouKnow ? `<p class="fun-fact">¿Sabías que…? ${escapeHtml(m.didYouKnow)}</p>` : ''}
+    `;
+    overlay.hidden = false;
+    overlay.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('is-open')));
+    modalClose.focus();
+  }
+
+  function closeModal(){
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden', 'true');
+    let hidden = false;
+    const finish = () => { if(hidden) return; hidden = true; overlay.hidden = true; };
+    overlay.addEventListener('transitionend', finish, { once:true });
+    setTimeout(finish, 400);
+    if(lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+  }
+
+  grid.addEventListener('click', e => {
+    const card = e.target.closest('[data-module]');
+    if(!card) return;
+    const m = SPACE.modules.find(mod => mod.id === card.dataset.module);
+    if(m) openModal(m, card);
+  });
+
+  modalClose.addEventListener('click', closeModal);
+  overlay.addEventListener('click', e => { if(e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && overlay.classList.contains('is-open')) closeModal();
+  });
+
+  /* ---------- Parallax/tilt 3D sutil al pasar el mouse (solo con puntero fino) ---------- */
+  const supportsHover = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(supportsHover && !reducedMotion){
+    grid.querySelectorAll('.k-card').forEach(card => {
+      card.style.transition = 'transform .35s ease-out,border-color .2s,box-shadow .2s';
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const px = (e.clientX - rect.left) / rect.width - 0.5;
+        const py = (e.clientY - rect.top) / rect.height - 0.5;
+        card.style.transition = 'border-color .2s,box-shadow .2s';
+        card.style.transform = `perspective(700px) rotateX(${(-py * 7).toFixed(2)}deg) rotateY(${(px * 7).toFixed(2)}deg) translateY(-3px)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transition = 'transform .35s ease-out,border-color .2s,box-shadow .2s';
+        card.style.transform = 'perspective(700px) rotateX(0deg) rotateY(0deg)';
+      });
+    });
   }
 })();
 
