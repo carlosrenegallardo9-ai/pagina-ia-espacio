@@ -215,7 +215,7 @@ p{color:var(--estelar-mist-dim)}
 }
 .nav .container{display:flex;align-items:center;justify-content:space-between}
 .brand{display:flex;align-items:center;gap:var(--space-3);font-family:var(--font-display);font-size:1.05rem}
-.brand-mark{width:34px;height:34px;flex-shrink:0}
+.brand-mark{width:34px;height:34px;flex-shrink:0;color:var(--solar-ember)}
 .nav-links{display:flex;gap:var(--space-6);font-family:var(--font-mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
 .nav-links a{color:var(--proton-silver);transition:color var(--dur-fast)}
 .nav-links a:hover,.nav-links a:focus-visible{color:var(--estelar-mist)}
@@ -644,7 +644,7 @@ p{color:var(--estelar-mist-dim)}
   content:'';position:absolute;inset:0;
   background:
     radial-gradient(circle at 30% 30%,rgba(156,152,184,.7),transparent 60%),
-    radial-gradient(circle at 68% 62%,rgba(233,216,166,.35),transparent 55%);
+    radial-gradient(circle at 68% 62%,rgba(var(--dorado-rgb),.35),transparent 55%);
   opacity:calc(var(--level, 0) / 3);
   transition:opacity var(--dur-med) var(--ease-out);
 }
@@ -829,55 +829,72 @@ p{color:var(--estelar-mist-dim)}
    ========================================================================== */
 
 html[data-theme="observatory"]{
-  --deep-void:#04060D;
-  --deep-void-alt:#070A16;
-  --cosmic-indigo:#0E1424;
-  --cosmic-indigo-light:#151D33;
-  --cosmic-indigo-border:#28324E;
+  /* Cielo profundo: azul-noche casi negro, con un matiz frío en vez del
+     violeta-negro cálido del tema base. */
+  --deep-void:#03050B;
+  --deep-void-alt:#060915;
+  --cosmic-indigo:#0C1220;
+  --cosmic-indigo-light:#131A2E;
+  --cosmic-indigo-border:#293150;
 
-  --nebula-violet:#7C8FE6;
-  --nebula-violet-soft:#B9C4F5;
-  --nebula-violet-dim:rgba(124,143,230,.32);
+  /* Violeta controlado: presente como acento secundario, nunca dominante. */
+  --nebula-violet:#7B86C9;
+  --nebula-violet-soft:#AEB9EE;
+  --nebula-violet-dim:rgba(123,134,201,.28);
 
-  --estelar-mist:#E7EEFC;
-  --estelar-mist-dim:rgba(231,238,252,.66);
+  --estelar-mist:#EAF1FD;
+  --estelar-mist-dim:rgba(234,241,253,.7);
 
-  /* El acento "solar" se convierte en luz lunar azul-plateada */
-  --solar-ember:#9FD3FF;
-  --solar-ember-soft:#DCEEFF;
-  --solar-ember-dim:rgba(159,211,255,.35);
+  /* El acento "solar" se convierte en luz de luna: plata azulada, fría,
+     nítida — el color protagonista del tema, en el lugar del ámbar. */
+  --solar-ember:#AEDBFF;
+  --solar-ember-soft:#EAF5FF;
+  --solar-ember-dim:rgba(174,219,255,.34);
 
-  --proton-silver:#8C9AC0;
-  --proton-silver-dim:rgba(140,154,192,.45);
+  --proton-silver:#93A2C8;
+  --proton-silver-dim:rgba(147,162,200,.42);
 
-  --m3-gigante:#D8CBA6;
-  --m3-gigante-dim:rgba(216,203,166,.35);
-  --m3-oceanico:#6FC1FF;
-  --m3-oceanico-dim:rgba(111,193,255,.35);
-  --m3-helado:#BCEFEC;
-  --m3-helado-dim:rgba(188,239,236,.35);
+  --m3-gigante:#D6CDAE;
+  --m3-gigante-dim:rgba(214,205,174,.32);
+  --m3-oceanico:#79C6FF;
+  --m3-oceanico-dim:rgba(121,198,255,.32);
+  --m3-helado:#C3F1EE;
+  --m3-helado-dim:rgba(195,241,238,.32);
 
-  --dorado-celestial:#DCE6F7;
-  --dorado-celestial-soft:#EFF4FC;
-  --dorado-celestial-dim:rgba(220,230,247,.4);
+  --dorado-celestial:#E3EAF9;
+  --dorado-celestial-soft:#F5F9FF;
+  --dorado-celestial-dim:rgba(227,234,249,.38);
 
-  --void-rgb:4,6,13;
-  --indigo-rgb:14,20,36;
-  --violet-rgb:124,143,230;
-  --dorado-rgb:220,230,247;
+  --void-rgb:3,5,11;
+  --indigo-rgb:12,18,32;
+  --violet-rgb:123,134,201;
+  --dorado-rgb:227,234,249;
 
-  --shadow-glow-violet:0 0 40px -8px var(--nebula-violet-dim);
-  --shadow-glow-ember:0 0 32px -6px var(--solar-ember-dim);
-  --shadow-card:0 20px 60px -30px rgba(0,0,0,.8);
+  --shadow-glow-violet:0 0 42px -8px var(--nebula-violet-dim);
+  --shadow-glow-ember:0 0 36px -6px var(--solar-ember-dim);
+  --shadow-card:0 22px 64px -30px rgba(0,0,0,.85);
 
   color-scheme:dark;
 }
 
+/* Atmósfera de cúpula: un velo muy sutil de luz lunar sobre todo el fondo
+   de la página (gradiente estático, sin coste de rendimiento) para que las
+   secciones sin starfield propio —conocimiento, recursos, footer…— no se
+   sientan "planas" frente al hero y el sistema 3D. */
+html[data-theme="observatory"] body{
+  background:
+    radial-gradient(ellipse 90% 55% at 50% 0%,rgba(var(--dorado-rgb),.05),transparent 62%),
+    radial-gradient(ellipse 70% 50% at 12% 100%,rgba(var(--violet-rgb),.06),transparent 65%),
+    var(--deep-void);
+}
+
 /* El visualizador 3D usa materiales WebGL propios (no variables CSS):
    un filtro sutil, aplicado solo al canvas, lo alinea con la paleta
-   lunar sin tocar la escena Three.js ni arriesgar su lógica de carga. */
+   lunar sin tocar la escena Three.js ni arriesgar su lógica de carga.
+   Un poco más frío y desaturado que la luz diurna, como si los planetas
+   se vieran bajo luz de luna en vez de luz solar directa. */
 html[data-theme="observatory"] #s3dCanvas{
-  filter:saturate(.75) brightness(.95) hue-rotate(-6deg);
+  filter:saturate(.68) brightness(.9) contrast(1.05) hue-rotate(-8deg);
 }
 
 .btn-observatory{
@@ -905,11 +922,19 @@ html[data-theme="observatory"] #s3dCanvas{
   border-color:var(--nebula-violet-soft);
   color:var(--estelar-mist);
   box-shadow:0 0 0 1px var(--nebula-violet-dim) inset,0 0 26px -4px var(--nebula-violet-dim);
+  animation:btn-observatory-glow 3.6s ease-in-out infinite;
 }
 .btn-observatory.active svg{
   color:var(--nebula-violet-soft);
   transform:rotate(-12deg);
   filter:drop-shadow(0 0 6px var(--nebula-violet-dim));
+}
+@keyframes btn-observatory-glow{
+  0%,100%{ box-shadow:0 0 0 1px var(--nebula-violet-dim) inset,0 0 26px -4px var(--nebula-violet-dim); }
+  50%{ box-shadow:0 0 0 1px var(--nebula-violet-dim) inset,0 0 36px -2px var(--nebula-violet-dim); }
+}
+@media(prefers-reduced-motion:reduce){
+  .btn-observatory.active{ animation:none; }
 }
 
 @media(max-width:480px){
@@ -1006,7 +1031,7 @@ html.view-bible-active{ overflow:hidden; }
 .bible-surface{
   position:absolute; left:50%; bottom:4%; transform:translateX(-50%);
   width:min(94vw,1100px); height:160px; border-radius:50%;
-  background:radial-gradient(ellipse at center,rgba(233,216,166,.1),transparent 72%);
+  background:radial-gradient(ellipse at center,rgba(var(--dorado-rgb),.1),transparent 72%);
   filter:blur(3px);
 }
 
@@ -1014,7 +1039,7 @@ html.view-bible-active{ overflow:hidden; }
   position:absolute; z-index:5;
   font-family:var(--font-mono);
   border:1px solid var(--cosmic-indigo-border);
-  background:rgba(23,18,51,.55);
+  background:rgba(var(--indigo-rgb),.55);
   -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
   color:var(--estelar-mist-dim);
   transition:border-color .2s,color .2s,transform .2s;
@@ -1072,7 +1097,7 @@ html.view-bible-active{ overflow:hidden; }
   position:absolute; inset:0; border-radius:8px 18px 18px 8px;
   background-image:
     var(--ms-corner),var(--ms-corner),var(--ms-corner),var(--ms-corner),
-    radial-gradient(circle at 30% 18%,rgba(233,216,166,.16),transparent 55%),
+    radial-gradient(circle at 30% 18%,rgba(var(--dorado-rgb),.16),transparent 55%),
     repeating-linear-gradient(115deg,rgba(0,0,0,.14) 0 2px,transparent 2px 5px),
     linear-gradient(160deg,#3d2517,#241207 55%,#160a04);
   background-position:
@@ -1080,18 +1105,18 @@ html.view-bible-active{ overflow:hidden; }
     center,center,center;
   background-repeat:no-repeat;
   background-size:42px 42px,42px 42px,42px 42px,42px 42px,auto,auto,auto;
-  border:1px solid rgba(233,216,166,.25);
-  box-shadow:0 40px 90px -22px rgba(0,0,0,.8),inset 0 0 50px rgba(0,0,0,.55),inset 0 0 0 7px rgba(233,216,166,.06);
+  border:1px solid rgba(var(--dorado-rgb),.25);
+  box-shadow:0 40px 90px -22px rgba(0,0,0,.8),inset 0 0 50px rgba(0,0,0,.55),inset 0 0 0 7px rgba(var(--dorado-rgb),.06);
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--space-3);
   padding:var(--space-7); text-align:center; backface-visibility:hidden;
   transition:box-shadow .35s ease,transform .35s ease;
   overflow:hidden;
 }
 .book-cover:hover .book-cover-face,.book-cover:focus-visible .book-cover-face{
-  box-shadow:0 46px 100px -18px rgba(0,0,0,.85),inset 0 0 50px rgba(0,0,0,.55),inset 0 0 0 7px rgba(233,216,166,.13),0 0 54px -6px var(--nebula-violet-dim);
+  box-shadow:0 46px 100px -18px rgba(0,0,0,.85),inset 0 0 50px rgba(0,0,0,.55),inset 0 0 0 7px rgba(var(--dorado-rgb),.13),0 0 54px -6px var(--nebula-violet-dim);
 }
 .book-cover-face::before{
-  content:''; position:absolute; inset:28px; border:1px solid rgba(233,216,166,.32); border-radius:6px; pointer-events:none;
+  content:''; position:absolute; inset:28px; border:1px solid rgba(var(--dorado-rgb),.32); border-radius:6px; pointer-events:none;
 }
 .book-cover-face::after{
   content:''; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
@@ -1101,13 +1126,13 @@ html.view-bible-active{ overflow:hidden; }
 .book-cover-cross::before,.book-cover-cross::after{
   content:''; position:absolute;
   background:linear-gradient(var(--dorado-celestial-soft),var(--dorado-celestial));
-  box-shadow:0 0 10px rgba(233,216,166,.5); border-radius:2px;
+  box-shadow:0 0 10px rgba(var(--dorado-rgb),.5); border-radius:2px;
 }
 .book-cover-cross::before{ left:50%; top:0; width:4px; height:100%; transform:translateX(-50%); }
 .book-cover-cross::after{ left:50%; top:26%; width:24px; height:4px; transform:translateX(-50%); }
 .book-cover-rule{
   position:relative; z-index:1; width:76px; height:1px;
-  background:linear-gradient(90deg,transparent,rgba(233,216,166,.65),transparent);
+  background:linear-gradient(90deg,transparent,rgba(var(--dorado-rgb),.65),transparent);
 }
 .book-cover-title{
   position:relative; z-index:1;
@@ -1192,6 +1217,7 @@ html.view-bible-active{ overflow:hidden; }
 .book-illustration-frame{
   width:min(70%,260px); aspect-ratio:1/1;
   filter:drop-shadow(0 12px 26px rgba(0,0,0,.28));
+  color:#e9d8a6;
 }
 .book-illustration-frame svg{ width:100%; height:100%; display:block; }
 .book-illustration-caption{
@@ -1272,6 +1298,79 @@ html.view-bible-active{ overflow:hidden; }
   .book-spread{ transition:opacity .3s ease; transform:none!important; }
 }
 
+/* ==========================================================================
+   Modo Observatorio Nocturno · Biblia Digital
+   El libro se dibuja con colores fijos (cuero, tinta, pergamino) para lograr
+   el aspecto de manuscrito, así que no hereda las variables del sitio. Aquí
+   se recolorea esa paleta cálida —cuero avellana, tinta sepia, oro de vela—
+   a una versión fría "leída a la luz de la luna": cuero azul-noche, tinta
+   pizarra y plata en vez de oro, conservando exactamente la misma forma,
+   textura y jerarquía tipográfica del libro original.
+   ========================================================================== */
+html[data-theme="observatory"]{
+  --ms-arch:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 70'><g fill='none' stroke='%239FB4E0' stroke-width='1.3' stroke-linecap='round'><path d='M18 62C18 20 128 8 150 8c22 0 132 12 132 54'/><path d='M34 62C34 32 128 18 150 18c22 0 116 14 116 44'/><path d='M8 62h284'/><circle cx='150' cy='13' r='5.5' fill='none'/><circle cx='150' cy='13' r='2.2' fill='%239FB4E0' stroke='none'/></g></svg>");
+  --ms-corner:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><g fill='none' stroke='%23C9D6F0' stroke-width='1.6'><rect x='7' y='7' width='46' height='46' rx='7'/><circle cx='30' cy='30' r='11'/><path d='M30 7v10M30 43v10M7 30h10M43 30h10'/></g></svg>");
+}
+
+/* Escenario: de velas cálidas a un baño de luz de luna */
+html[data-theme="observatory"] .bible-view{
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 10%,rgba(var(--violet-rgb),.18),transparent 60%),
+    radial-gradient(ellipse 55% 38% at 12% 92%,rgba(var(--dorado-rgb),.08),transparent 70%),
+    radial-gradient(ellipse 55% 38% at 88% 92%,rgba(var(--dorado-rgb),.08),transparent 70%),
+    linear-gradient(180deg,#080B16,#05070F 55%,#03040A 100%);
+}
+html[data-theme="observatory"] .bible-lamp-glow{
+  background:radial-gradient(circle,rgba(var(--dorado-rgb),.14),rgba(var(--violet-rgb),.08) 45%,transparent 72%);
+}
+
+/* Portada: de cuero avellana con oro a cuero azul-noche con plata */
+html[data-theme="observatory"] .book-cover-spine{
+  background:linear-gradient(90deg,#04060D,#141B2E 60%,#04060D);
+}
+html[data-theme="observatory"] .book-cover-face{
+  background-image:
+    var(--ms-corner),var(--ms-corner),var(--ms-corner),var(--ms-corner),
+    radial-gradient(circle at 30% 18%,rgba(var(--dorado-rgb),.14),transparent 55%),
+    repeating-linear-gradient(115deg,rgba(0,0,0,.16) 0 2px,transparent 2px 5px),
+    linear-gradient(160deg,#151D33,#0B0F1C 55%,#050710);
+}
+html[data-theme="observatory"] .book-cover-title{
+  color:#EAF1FD;
+  text-shadow:0 1px 0 #3B4568,0 -1px 1px rgba(0,0,0,.6),0 3px 7px rgba(0,0,0,.55),0 0 22px rgba(var(--dorado-rgb),.35);
+}
+
+/* Páginas: de pergamino cálido a papel bañado en luz lunar */
+html[data-theme="observatory"] .book-page{
+  background:linear-gradient(120deg,rgba(255,255,255,.05),transparent 40%),linear-gradient(#E6EBF6,#DBE2F0);
+  color:#1B2233;
+}
+html[data-theme="observatory"] .book-page-left{
+  background:linear-gradient(120deg,rgba(255,255,255,.08),transparent 45%),linear-gradient(#E2E8F4,#D2DAEC);
+}
+html[data-theme="observatory"] .book-illustration-frame{ color:#AEDBFF; }
+html[data-theme="observatory"] .book-illustration-caption,
+html[data-theme="observatory"] .book-index-eyebrow,
+html[data-theme="observatory"] .book-verse-ref,
+html[data-theme="observatory"] .book-index-btn .idx-num{ color:#5C6690; }
+html[data-theme="observatory"] .book-illustration-quote,
+html[data-theme="observatory"] .book-verse-breakdown{ color:#3C4666; }
+html[data-theme="observatory"] .book-index-title,
+html[data-theme="observatory"] .book-verse-text{ color:#151B2C; }
+html[data-theme="observatory"] .book-index-title::after{
+  background:linear-gradient(90deg,transparent,#7B86C9,transparent);
+}
+html[data-theme="observatory"] .book-index-continue{
+  border-color:rgba(var(--violet-rgb),.35); color:#3E4A93; background:rgba(var(--violet-rgb),.12);
+}
+html[data-theme="observatory"] .book-index-btn{ color:#232D48; border-bottom-color:rgba(27,34,51,.2); }
+html[data-theme="observatory"] .book-index-btn:hover,
+html[data-theme="observatory"] .book-index-btn:focus-visible{ color:#2E4C8A; }
+html[data-theme="observatory"] .book-verse-breakdown strong{ color:#2E4C8A; }
+html[data-theme="observatory"] .book-verse-nav button{ color:#4A5578; border-color:rgba(27,34,51,.28); }
+html[data-theme="observatory"] .book-verse-nav button:hover:not(:disabled),
+html[data-theme="observatory"] .book-verse-nav button:focus-visible:not(:disabled){ border-color:#2E4C8A; color:#2E4C8A; }
+
 </style>
 </head>
 <body>
@@ -1282,7 +1381,7 @@ html.view-bible-active{ overflow:hidden; }
 <header class="nav">
   <div class="container">
     <a class="brand" href="#inicio">
-      <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="#FF6A3D" stroke-width="1.4"><circle cx="12" cy="12" r="2.4" fill="#FF6A3D" stroke="none"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(-24 12 12)"/></svg>
+      <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(-24 12 12)"/></svg>
       Nébula
     </a>
     <div class="nav-actions">
@@ -1566,7 +1665,7 @@ html.view-bible-active{ overflow:hidden; }
     <div class="footer-grid">
       <div class="footer-col">
         <a class="brand" href="#inicio">
-          <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="#FF6A3D" stroke-width="1.4"><circle cx="12" cy="12" r="2.4" fill="#FF6A3D" stroke="none"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(-24 12 12)"/></svg>
+          <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(-24 12 12)"/></svg>
           Nébula
         </a>
         <p style="margin-top:var(--space-4);max-width:280px;font-size:.9rem">Un observatorio digital abierto, pensado para crecer con nuevos planetas, módulos y herramientas.</p>
@@ -4224,11 +4323,11 @@ BIBLE.verses = [
   { id:'gen-1-1', order:1, ref:'Génesis 1:1',
     text:'En el principio creó Dios los cielos y la tierra.',
     breakdown:'<strong>Ciencia espacial:</strong> este primer versículo describe un inicio absoluto del espacio y el tiempo, la misma idea central del modelo del Big Bang: hace unos 13.800 millones de años el universo comenzó a expandirse desde un estado extremadamente denso y caliente. La Biblia no explica el mecanismo físico, pero afirma lo que hoy asombra a la cosmología: el cosmos tuvo un principio, no existió siempre.',
-    illus:'<circle cx="100" cy="100" r="9" fill="#e9d8a6" stroke="none"/><circle cx="100" cy="100" r="24" opacity=".75"/><circle cx="100" cy="100" r="42" opacity=".5" stroke-dasharray="2 5"/><circle cx="100" cy="100" r="62" opacity=".3" stroke-dasharray="1 7"/><path d="M100 34v14M100 152v14M34 100h14M152 100h14M55 55l10 10M135 135l10 10M145 55l-10 10M65 135l-10 10M76 40l6 13M124 40l-6 13M76 160l6-13M124 160l-6-13"/><circle cx="70" cy="52" r="1.6" fill="#e9d8a6" stroke="none"/><circle cx="140" cy="60" r="1.4" fill="#e9d8a6" stroke="none"/><circle cx="150" cy="130" r="1.5" fill="#e9d8a6" stroke="none"/><circle cx="55" cy="140" r="1.3" fill="#e9d8a6" stroke="none"/>' },
+    illus:'<circle cx="100" cy="100" r="9" fill="currentColor" stroke="none"/><circle cx="100" cy="100" r="24" opacity=".75"/><circle cx="100" cy="100" r="42" opacity=".5" stroke-dasharray="2 5"/><circle cx="100" cy="100" r="62" opacity=".3" stroke-dasharray="1 7"/><path d="M100 34v14M100 152v14M34 100h14M152 100h14M55 55l10 10M135 135l10 10M145 55l-10 10M65 135l-10 10M76 40l6 13M124 40l-6 13M76 160l6-13M124 160l-6-13"/><circle cx="70" cy="52" r="1.6" fill="currentColor" stroke="none"/><circle cx="140" cy="60" r="1.4" fill="currentColor" stroke="none"/><circle cx="150" cy="130" r="1.5" fill="currentColor" stroke="none"/><circle cx="55" cy="140" r="1.3" fill="currentColor" stroke="none"/>' },
   { id:'sal-19-1', order:2, ref:'Salmos 19:1',
     text:'Los cielos cuentan la gloria de Dios, y el firmamento anuncia la obra de sus manos.',
     breakdown:'<strong>Astronomía:</strong> cada noche despejada revela miles de estrellas a simple vista y, con un telescopio, billones de galaxias más. Este salmo convierte la observación del cielo en un acto de asombro: el orden y la inmensidad del universo —desde las órbitas planetarias hasta la estructura de las galaxias— se leen aquí como un testimonio silencioso y constante.',
-    illus:'<path d="M30 150l28-40 18 20 24-34 44 54"/><path d="M20 150h160"/><path d="M50 60a50 50 0 01100 0" stroke-dasharray="2 7"/><path d="M100 16v12M84 20l6 14M116 20l-6 14M68 30l8 12M132 30l-8 12" opacity=".55"/><path d="M66 52l26-12 26 6 20 12" stroke-dasharray="1 4" opacity=".6"/><circle cx="66" cy="52" r="1.8" fill="#e9d8a6" stroke="none"/><circle cx="92" cy="40" r="1.8" fill="#e9d8a6" stroke="none"/><circle cx="118" cy="46" r="1.8" fill="#e9d8a6" stroke="none"/><circle cx="138" cy="58" r="1.6" fill="#e9d8a6" stroke="none"/>' },
+    illus:'<path d="M30 150l28-40 18 20 24-34 44 54"/><path d="M20 150h160"/><path d="M50 60a50 50 0 01100 0" stroke-dasharray="2 7"/><path d="M100 16v12M84 20l6 14M116 20l-6 14M68 30l8 12M132 30l-8 12" opacity=".55"/><path d="M66 52l26-12 26 6 20 12" stroke-dasharray="1 4" opacity=".6"/><circle cx="66" cy="52" r="1.8" fill="currentColor" stroke="none"/><circle cx="92" cy="40" r="1.8" fill="currentColor" stroke="none"/><circle cx="118" cy="46" r="1.8" fill="currentColor" stroke="none"/><circle cx="138" cy="58" r="1.6" fill="currentColor" stroke="none"/>' },
   { id:'job-26-7', order:3, ref:'Job 26:7',
     text:'Él extiende el norte sobre vacío, cuelga la tierra sobre nada.',
     breakdown:'<strong>Origen del universo:</strong> escrito miles de años antes de la física newtoniana, este versículo describe la Tierra suspendida sin ningún soporte visible, flotando en el vacío. Hoy sabemos que la gravedad mantiene a los planetas en órbita sin necesidad de pilar alguno: un mundo "cuelga sobre la nada", sostenido por la curvatura del espacio-tiempo.',
@@ -4240,15 +4339,15 @@ BIBLE.verses = [
   { id:'juan-1-1', order:5, ref:'Juan 1:1-3',
     text:'En el principio era el Verbo… todas las cosas por él fueron hechas, y sin él nada de lo que ha sido hecho, fue hecho.',
     breakdown:'<strong>Propósito divino:</strong> la física describe leyes constantes —gravedad, electromagnetismo, la velocidad de la luz— que ordenan cada rincón del cosmos con una precisión asombrosa. Juan llama a ese principio ordenador "el Verbo": una razón, un diseño anterior a la materia, que la sostiene coherente en cada instante.',
-    illus:'<circle cx="100" cy="100" r="7" fill="#e9d8a6" stroke="none"/><circle cx="100" cy="100" r="40" stroke-dasharray="1 6" opacity=".5"/><path d="M100 100L60 60M100 100L140 60M100 100L60 140M100 100L140 140M100 100L100 50M100 100L100 150M100 100L50 100M100 100L150 100" opacity=".55"/><circle cx="60" cy="60" r="2.2" fill="#e9d8a6" stroke="none"/><circle cx="140" cy="60" r="2.2" fill="#e9d8a6" stroke="none"/><circle cx="60" cy="140" r="2.2" fill="#e9d8a6" stroke="none"/><circle cx="140" cy="140" r="2.2" fill="#e9d8a6" stroke="none"/><circle cx="100" cy="50" r="1.8" fill="#e9d8a6" stroke="none"/><circle cx="100" cy="150" r="1.8" fill="#e9d8a6" stroke="none"/><circle cx="50" cy="100" r="1.8" fill="#e9d8a6" stroke="none"/><circle cx="150" cy="100" r="1.8" fill="#e9d8a6" stroke="none"/>' },
+    illus:'<circle cx="100" cy="100" r="7" fill="currentColor" stroke="none"/><circle cx="100" cy="100" r="40" stroke-dasharray="1 6" opacity=".5"/><path d="M100 100L60 60M100 100L140 60M100 100L60 140M100 100L140 140M100 100L100 50M100 100L100 150M100 100L50 100M100 100L150 100" opacity=".55"/><circle cx="60" cy="60" r="2.2" fill="currentColor" stroke="none"/><circle cx="140" cy="60" r="2.2" fill="currentColor" stroke="none"/><circle cx="60" cy="140" r="2.2" fill="currentColor" stroke="none"/><circle cx="140" cy="140" r="2.2" fill="currentColor" stroke="none"/><circle cx="100" cy="50" r="1.8" fill="currentColor" stroke="none"/><circle cx="100" cy="150" r="1.8" fill="currentColor" stroke="none"/><circle cx="50" cy="100" r="1.8" fill="currentColor" stroke="none"/><circle cx="150" cy="100" r="1.8" fill="currentColor" stroke="none"/>' },
   { id:'col-1-16', order:6, ref:'Colosenses 1:16-17',
     text:'Porque en él fueron creadas todas las cosas… y todas las cosas en él subsisten.',
     breakdown:'<strong>Cosmos y sostenimiento:</strong> las constantes físicas del universo —la fuerza nuclear, la gravedad, la carga del electrón— se mantienen estables desde hace miles de millones de años; si variaran mínimamente, ni las estrellas ni la vida podrían existir. Este pasaje describe justo esa idea: no solo un origen, sino una sustentación continua del orden cósmico.',
-    illus:'<ellipse cx="100" cy="100" rx="58" ry="24"/><ellipse cx="100" cy="100" rx="24" ry="58"/><ellipse cx="100" cy="100" rx="44" ry="44" stroke-dasharray="2 6" opacity=".5"/><circle cx="100" cy="100" r="8" fill="#e9d8a6" stroke="none"/>' },
+    illus:'<ellipse cx="100" cy="100" rx="58" ry="24"/><ellipse cx="100" cy="100" rx="24" ry="58"/><ellipse cx="100" cy="100" rx="44" ry="44" stroke-dasharray="2 6" opacity=".5"/><circle cx="100" cy="100" r="8" fill="currentColor" stroke="none"/>' },
   { id:'heb-11-3', order:7, ref:'Hebreos 11:3',
     text:'Por la fe entendemos haber sido constituido el universo por la palabra de Dios, de modo que lo que se ve fue hecho de lo que no se veía.',
     breakdown:'<strong>Origen desde lo invisible:</strong> la cosmología moderna sostiene que el 95% del universo —materia y energía oscura— es invisible para nuestros instrumentos, y que todo emergió de un estado sin partículas ni luz tal como las conocemos. "Lo que se ve, hecho de lo que no se veía" resume, con siglos de anticipación, uno de los misterios más profundos de la física actual.',
-    illus:'<path d="M46 150 65 107"/><path d="M65 107 84 63" stroke-dasharray="2 6" opacity=".65"/><path d="M84 63 100 26" stroke-dasharray="1 5" opacity=".35"/><path d="M154 150 135 107"/><path d="M135 107 116 63" stroke-dasharray="2 6" opacity=".65"/><path d="M116 63 100 26" stroke-dasharray="1 5" opacity=".35"/><circle cx="100" cy="26" r="4" fill="#e9d8a6" opacity=".9" stroke="none"/><path d="M46 150h108" opacity=".5"/>' }
+    illus:'<path d="M46 150 65 107"/><path d="M65 107 84 63" stroke-dasharray="2 6" opacity=".65"/><path d="M84 63 100 26" stroke-dasharray="1 5" opacity=".35"/><path d="M154 150 135 107"/><path d="M135 107 116 63" stroke-dasharray="2 6" opacity=".65"/><path d="M116 63 100 26" stroke-dasharray="1 5" opacity=".35"/><circle cx="100" cy="26" r="4" fill="currentColor" opacity=".9" stroke="none"/><path d="M46 150h108" opacity=".5"/>' }
 ];
 </script>
 <script>
@@ -4343,8 +4442,11 @@ BIBLE.verses = [
      halo cósmico, doble anillo dorado y estrellas— es compartido, así que
      añadir versículos nuevos no exige repetir el resto del dibujo. */
   function illustrationSVG(inner){
+    /* Los trazos usan currentColor: el tono dorado por defecto se
+       recolorea a plata lunar bajo el Modo Observatorio a través de
+       .book-illustration-frame (ver CSS), sin duplicar cada ilustración. */
     const stars = [[42,36],[158,38],[32,150],[168,146],[100,26],[100,174],[27,96],[173,96]]
-      .map(([x,y]) => `<circle cx="${x}" cy="${y}" r="1.3" fill="#f3e8c4" opacity=".8"/>`).join('');
+      .map(([x,y]) => `<circle cx="${x}" cy="${y}" r="1.3" fill="currentColor" opacity=".8"/>`).join('');
     return `
       <svg viewBox="0 0 200 200" role="img" aria-hidden="true">
         <defs>
@@ -4355,10 +4457,10 @@ BIBLE.verses = [
           </radialGradient>
         </defs>
         <circle cx="100" cy="100" r="92" fill="url(#ilCosmos)"/>
-        <circle cx="100" cy="100" r="92" fill="none" stroke="#c9a94f" stroke-width="2"/>
-        <circle cx="100" cy="100" r="85" fill="none" stroke="#8a6a2f" stroke-width="1"/>
+        <circle cx="100" cy="100" r="92" fill="none" stroke="currentColor" stroke-width="2"/>
+        <circle cx="100" cy="100" r="85" fill="none" stroke="currentColor" stroke-width="1" opacity=".55"/>
         ${stars}
-        <g stroke="#e9d8a6" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round">${inner}</g>
+        <g stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round">${inner}</g>
       </svg>
     `;
   }
@@ -4407,7 +4509,7 @@ BIBLE.verses = [
   }
 
   function renderLeftAppendixHTML(){
-    const inner = '<path d="M100 40v120M60 90h80" stroke-width="2"/><circle cx="100" cy="100" r="70" stroke-dasharray="1 7" opacity=".4"/><circle cx="100" cy="100" r="50" stroke-dasharray="2 6" opacity=".3"/><circle cx="100" cy="40" r="3" fill="#e9d8a6" stroke="none"/><circle cx="60" cy="150" r="1.6" fill="#e9d8a6" opacity=".8" stroke="none"/><circle cx="145" cy="70" r="1.6" fill="#e9d8a6" opacity=".8" stroke="none"/><circle cx="150" cy="140" r="1.4" fill="#e9d8a6" opacity=".7" stroke="none"/><circle cx="55" cy="55" r="1.4" fill="#e9d8a6" opacity=".7" stroke="none"/>';
+    const inner = '<path d="M100 40v120M60 90h80" stroke-width="2"/><circle cx="100" cy="100" r="70" stroke-dasharray="1 7" opacity=".4"/><circle cx="100" cy="100" r="50" stroke-dasharray="2 6" opacity=".3"/><circle cx="100" cy="40" r="3" fill="currentColor" stroke="none"/><circle cx="60" cy="150" r="1.6" fill="currentColor" opacity=".8" stroke="none"/><circle cx="145" cy="70" r="1.6" fill="currentColor" opacity=".8" stroke="none"/><circle cx="150" cy="140" r="1.4" fill="currentColor" opacity=".7" stroke="none"/><circle cx="55" cy="55" r="1.4" fill="currentColor" opacity=".7" stroke="none"/>';
     return `
       <div class="book-illustration">
         <div class="book-illustration-frame">${illustrationSVG(inner)}</div>
