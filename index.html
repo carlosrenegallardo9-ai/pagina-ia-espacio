@@ -221,17 +221,46 @@
      HERO
      --------------------------------------------------------------- */
   .hero{
+    position:relative;
     min-height:100vh;
     display:flex;
     align-items:center;
     padding:9rem 6vw 4rem;
   }
+  /* ---------------------------------------------------------------
+     VIDEO DE PORTADA — capa de fondo opcional para el hero.
+     El <video> aún no tiene archivo real (ver comentario en el HTML);
+     mientras no exista, simplemente no se renderiza nada y el fondo
+     de estrellas de siempre queda visible sin romper el layout.
+     --------------------------------------------------------------- */
+  .hero-bg-video{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit:cover;
+    opacity:0.32;
+    pointer-events:none;
+    z-index:0;
+  }
+  .hero-bg-overlay{
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, var(--bg) 0%, rgba(5,6,10,0.55) 40%, var(--bg) 100%);
+    z-index:0;
+    pointer-events:none;
+  }
   .hero-grid{
+    position:relative;
+    z-index:1;
     width:100%;
     display:grid;
     grid-template-columns: 0.95fr 1.15fr;
     gap:4vw;
     align-items:center;
+  }
+  @media (max-width:760px){
+    .hero-bg-video{ display:none; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .hero-bg-video{ display:none; }
   }
   .hero-eyebrow{
     display:inline-flex; align-items:center; gap:0.6rem;
@@ -657,6 +686,24 @@
 
   <!-- ================= SECCIÓN 1 — INTRO + MODELO 3D ================= -->
   <section id="inicio" class="hero">
+
+    <!--
+      VIDEO DE PORTADA (placeholder)
+      Aún no existe el archivo real: cuando lo tengas, colócalo en
+      assets/video/ y actualiza las rutas de abajo (poster + <source>).
+      Si el archivo no existe, el navegador simplemente no muestra nada
+      aquí y el fondo de estrellas de siempre se ve igual que antes.
+    -->
+    <video
+      class="hero-bg-video"
+      autoplay muted loop playsinline
+      poster="assets/video/hero-poster.jpg"
+      aria-hidden="true">
+      <source src="assets/video/hero-earth.mp4" type="video/mp4">
+      <source src="assets/video/hero-earth.webm" type="video/webm">
+    </video>
+    <div class="hero-bg-overlay" aria-hidden="true"></div>
+
     <div class="hero-grid">
 
       <div class="hero-copy">
