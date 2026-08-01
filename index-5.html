@@ -7119,6 +7119,27 @@ BIBLE.verses = [
     return new THREE.Points(geo, mat);
   }
 
+  /* ---------- Orienta un cilindro (eje Y por defecto) para que conecte
+     geométricamente dos puntos exactos, ajustando además su longitud al
+     tramo real. Sustituye las rotaciones "a ojo" usadas en la primera
+     versión de los modelos (antenas, patas del módulo lunar, puntales del
+     Webb): con esto cada pieza queda anclada en su punto real en vez de
+     aproximada por prueba y error. ---------- */
+  function orientBetween(mesh, from, to){
+    var dir = new THREE.Vector3().subVectors(to, from);
+    var len = dir.length();
+    if(len < 1e-6) return mesh;
+    dir.normalize();
+    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
+    mesh.position.copy(from).addScaledVector(dir, len/2);
+    mesh.scale.y = len;
+    return mesh;
+  }
+  function makeStrut(radius, colorMat, from, to){
+    var mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, 8), colorMat);
+    return orientBetween(mesh, from, to);
+  }
+
   /* ---------------------------------------------------------------------
      4. Modelos procedurales — un THREE.Group por categoría, construido
         con primitivas (esferas, cilindros, cajas, toros), en línea con el
@@ -7167,13 +7188,17 @@ BIBLE.verses = [
           g.add(seam);
         }
         var antMat = new THREE.MeshStandardMaterial({ color:accentHex, roughness:.35, metalness:.6 });
-        var antAngles = [ [0.5,0.5], [-0.5,0.5], [0.5,-0.5], [-0.5,-0.5] ];
-        antAngles.forEach(function(a){
-          var ant = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 2.4, 8), antMat);
-          ant.position.set(a[0]*1.6, -0.9, a[1]*1.6);
-          ant.rotation.z = a[0] * 0.9;
-          ant.rotation.x = -a[1] * 0.9;
-          g.add(ant);
+        var bodyR = 1.1;
+        var antDefs = [
+          { from:[0.42,-0.42,0.62], to:[1.55,-1.85,2.05], r:0.022 },
+          { from:[-0.42,-0.42,0.62], to:[-1.55,-1.85,2.05], r:0.022 },
+          { from:[0.42,-0.55,-0.5], to:[1.7,-2.35,-1.95], r:0.017 },
+          { from:[-0.42,-0.55,-0.5], to:[-1.7,-2.35,-1.95], r:0.017 }
+        ];
+        antDefs.forEach(function(d){
+          var from = new THREE.Vector3(d.from[0],d.from[1],d.from[2]).normalize().multiplyScalar(bodyR);
+          var to = new THREE.Vector3(d.to[0],d.to[1],d.to[2]);
+          g.add(makeStrut(d.r, antMat, from, to));
         });
         break;
       }
@@ -7223,17 +7248,18 @@ BIBLE.verses = [
         g.add(cockpit);
 
         var legMat = new THREE.MeshStandardMaterial({ color:accentHex, roughness:.55, metalness:.35 });
+        var braceMat = new THREE.MeshStandardMaterial({ color:0xb8b6ba, roughness:.6, metalness:.4 });
         var padMat = new THREE.MeshStandardMaterial({ color:0x2a2a30, roughness:.7, metalness:.1 });
         var legAngles = [45,135,225,315];
         legAngles.forEach(function(deg){
           var rad = deg*Math.PI/180;
-          var leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.1, 8), legMat);
-          leg.position.set(Math.cos(rad)*1.15, -0.85, Math.sin(rad)*1.15);
-          leg.rotation.z = Math.cos(rad) * 0.5;
-          leg.rotation.x = -Math.sin(rad) * 0.5;
-          g.add(leg);
+          var hipOuter = new THREE.Vector3(Math.cos(rad)*0.95, 0.05, Math.sin(rad)*0.95);
+          var hipInner = new THREE.Vector3(Math.cos(rad)*0.55, -0.5, Math.sin(rad)*0.55);
+          var foot = new THREE.Vector3(Math.cos(rad)*1.75, -1.55, Math.sin(rad)*1.75);
+          g.add(makeStrut(0.05, legMat, hipOuter, foot));
+          g.add(makeStrut(0.03, braceMat, hipInner, foot));
           var pad = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.06, 16), padMat);
-          pad.position.set(Math.cos(rad)*1.55, -1.42, Math.sin(rad)*1.55);
+          pad.position.copy(foot);
           g.add(pad);
         });
 
@@ -7282,34 +7308,41 @@ BIBLE.verses = [
         break;
       }
       case 'telescope-webb': {
-        var goldMirrorMat = new THREE.MeshStandardMaterial({ color:accentHex, roughness:.28, metalness:.9 });
-        var hexRadius = 0.34;
-        function hexAt(q,r){
-          var x = hexRadius*1.5*q*1.02;
-          var z = hexRadius*Math.sqrt(3)*(r + q/2)*1.02;
-          return [x,z];
+        var goldMirrorMat = new THREE.MeshStandardMaterial({ color:accentHex, roughness:.32, metalness:.75, emissive:accentHex, emissiveIntensity:.28 });
+        /* Disco hexagonal de radio axial 2 (19 celdas) sin la celda central:
+           exactamente 18 segmentos — igual que el espejo primario real del
+           Webb, con el hueco central por el que asoma la estructura del
+           espejo secundario. */
+        var hexSize = 0.34*1.08;
+        var hexCoords = [];
+        for(var hq=-2; hq<=2; hq++){
+          for(var hr=-2; hr<=2; hr++){
+            if(Math.abs(hq+hr) <= 2 && !(hq===0 && hr===0)) hexCoords.push([hq,hr]);
+          }
         }
-        var coords = [[0,0],[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1],
-          [2,0],[2,-1],[2,-2],[1,-2],[0,-2],[-1,-1],[-2,0],[-2,1],[-2,2],[-1,2],[0,2]];
-        coords.forEach(function(c){
-          var pos = hexAt(c[0], c[1]);
-          var hexMesh = new THREE.Mesh(new THREE.CylinderGeometry(hexRadius, hexRadius, 0.05, 6), goldMirrorMat);
+        hexCoords.forEach(function(c){
+          var x = hexSize*1.5*c[0];
+          var y = hexSize*Math.sqrt(3)*(c[1] + c[0]/2);
+          var hexMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.05, 6), goldMirrorMat);
           hexMesh.rotation.x = Math.PI/2;
           hexMesh.rotation.z = Math.PI/6;
-          hexMesh.position.set(pos[0], pos[1], 0);
+          hexMesh.position.set(x, y, 0);
           g.add(hexMesh);
         });
 
+        /* Trípode que sostiene el espejo secundario: tres puntales reales
+           anclados en el borde del espejo primario y convergiendo en la
+           esfera del secundario, orientados con orientBetween() en vez de
+           rotaciones aproximadas. */
         var strutMat = new THREE.MeshStandardMaterial({ color:0xcfd2da, roughness:.4, metalness:.5 });
-        var strutDefs = [ {x:0.5, y:0.5, rx:0.9, rz:0.5}, {x:-0.5, y:0.5, rx:0.9, rz:-0.5}, {x:0, y:-0.65, rx:-1.1, rz:0} ];
-        strutDefs.forEach(function(d){
-          var strut = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,1.8,8), strutMat);
-          strut.position.set(d.x, d.y, 0.9);
-          strut.rotation.x = d.rx; strut.rotation.z = d.rz;
-          g.add(strut);
+        var secondaryPos = new THREE.Vector3(0, 0, 1.85);
+        [95, 215, 335].forEach(function(deg){
+          var rad = deg*Math.PI/180;
+          var anchor = new THREE.Vector3(Math.cos(rad)*0.95, Math.sin(rad)*0.95, 0.05);
+          g.add(makeStrut(0.022, strutMat, anchor, secondaryPos));
         });
         var secondary = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 16), strutMat);
-        secondary.position.set(0,0,1.85);
+        secondary.position.copy(secondaryPos);
         g.add(secondary);
 
         var shieldMat = new THREE.MeshStandardMaterial({ color:0xc9c4d4, roughness:.5, metalness:.15, side:THREE.DoubleSide });
@@ -7325,15 +7358,26 @@ BIBLE.verses = [
         g.add(chassis);
 
         var wheelMat = new THREE.MeshStandardMaterial({ color:0x2a2a2e, roughness:.8, metalness:.15 });
+        var hubMat = new THREE.MeshStandardMaterial({ color:0xb8b8bc, roughness:.4, metalness:.6 });
+        var suspMat = new THREE.MeshStandardMaterial({ color:0x8f8a80, roughness:.55, metalness:.4 });
         var wheelPositions = [
-          [-0.7,-0.35,0.65],[0,-0.35,0.7],[0.7,-0.35,0.65],
-          [-0.7,-0.35,-0.65],[0,-0.35,-0.7],[0.7,-0.35,-0.65]
+          [-0.7,-0.35,0.65],[0,-0.42,0.72],[0.7,-0.35,0.65],
+          [-0.7,-0.35,-0.65],[0,-0.42,-0.72],[0.7,-0.35,-0.65]
         ];
         wheelPositions.forEach(function(p){
           var wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.18, 20), wheelMat);
           wheel.rotation.z = Math.PI/2;
           wheel.position.set(p[0], p[1], p[2]);
           g.add(wheel);
+          var hub = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.2, 12), hubMat);
+          hub.rotation.z = Math.PI/2;
+          hub.position.set(p[0], p[1], p[2]);
+          g.add(hub);
+          /* Puntal de suspensión: sugiere el bogie real que conecta cada
+             rueda al chasis, anclado con orientBetween() en vez de una
+             posición fija que no cambia con la geometría de la rueda. */
+          var chassisAnchor = new THREE.Vector3(p[0]*0.75, -0.18, p[2]*0.75);
+          g.add(makeStrut(0.035, suspMat, chassisAnchor, new THREE.Vector3(p[0], p[1]+0.08, p[2])));
         });
 
         var mastMat = new THREE.MeshStandardMaterial({ color:0xb8b8bc, roughness:.5, metalness:.4 });
@@ -7343,6 +7387,19 @@ BIBLE.verses = [
         var head = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.16,0.16), new THREE.MeshStandardMaterial({ color:accentHex, roughness:.4, metalness:.4 }));
         head.position.set(-0.35, 1.18, 0.1);
         g.add(head);
+
+        /* Brazo robótico frontal articulado en dos tramos (orientBetween),
+           rematado en la torreta de instrumentos característica del róver. */
+        var armMat = new THREE.MeshStandardMaterial({ color:0xdcdcdc, roughness:.5, metalness:.45 });
+        var shoulder = new THREE.Vector3(-0.75, 0.05, -0.35);
+        var elbow = new THREE.Vector3(-1.3, -0.18, -0.58);
+        var wrist = new THREE.Vector3(-1.8, -0.58, -0.62);
+        g.add(makeStrut(0.045, armMat, shoulder, elbow));
+        g.add(makeStrut(0.04, armMat, elbow, wrist));
+        var turret = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.22, 12), new THREE.MeshStandardMaterial({ color:accentHex, roughness:.45, metalness:.4 }));
+        turret.position.copy(wrist);
+        turret.rotation.z = Math.PI/2.4;
+        g.add(turret);
 
         var rtgMat = new THREE.MeshStandardMaterial({ color:0x1c1c20, roughness:.6, metalness:.35 });
         var rtg = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.55,16), rtgMat);
@@ -7383,8 +7440,15 @@ BIBLE.verses = [
     var model = buildModel(kind, accentHex);
     scene.add(model);
 
+    /* Iluminación de 3 puntos + hemisferio: la luz clave marca el volumen,
+       una luz de relleno tenue desde el lado opuesto evita que las caras
+       metálicas queden negras al girar (visible sobre todo en el casco y
+       el Webb), y la luz hemisférica aporta una gradación suave superior/
+       inferior sin coste extra de sombras. */
     var key = new THREE.DirectionalLight(0xfff4e0, 1.2); key.position.set(4,3,4); scene.add(key);
-    scene.add(new THREE.AmbientLight(0x161a26, 1.1));
+    var fill = new THREE.DirectionalLight(0xaebfe8, .45); fill.position.set(-3.5,1,-2.5); scene.add(fill);
+    scene.add(new THREE.HemisphereLight(0xfaf6ff, 0x11121c, .65));
+    scene.add(new THREE.AmbientLight(0x161a26, .45));
     var rim = new THREE.PointLight(accentHex, .8, 16); rim.position.set(-4,-1,-3); scene.add(rim);
 
     function resize(){ fitCanvas(renderer, camera, wrap); }
