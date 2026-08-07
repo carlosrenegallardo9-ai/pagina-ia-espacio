@@ -268,6 +268,7 @@
       <p class="q-meta" style="text-align:center;">CÓDIGO DE SALA</p>
       <div class="room-code" id="host-code">------</div>
       <p class="q-meta" style="text-align:center;" id="host-count">0 astronautas a bordo</p>
+      <p class="q-meta" id="host-error" style="display:none; color:var(--red); text-align:center;"></p>
       <div class="player-chips" id="host-chips"></div>
       <div class="field-row">
         <button class="btn btn-primary btn-block" id="host-start" disabled>Iniciar misión 🚀</button>
@@ -286,6 +287,7 @@
       <div class="field-row">
         <input class="field mono" id="join-code" maxlength="6" placeholder="CÓDIGO" style="text-transform:uppercase;">
         <input class="field" id="join-name" maxlength="18" placeholder="Tu nombre de astronauta">
+        <p class="q-meta" id="join-error" style="display:none; color:var(--red); text-align:center;"></p>
         <button class="btn btn-primary btn-block" id="join-submit">Embarcar 🛰️</button>
         <button class="btn btn-ghost btn-block" data-back="screen-menu">← Volver</button>
       </div>
@@ -400,9 +402,15 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
 'use strict';
+
+/* ============================= SUPABASE ============================= */
+const SUPABASE_URL = 'https://hblsjoxujpxopendvqki.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_YMppTOwVxBZSPevoyKem2A_7CuHz62_';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ============================= BACKGROUND STARFIELD ============================= */
 (function initBg(){
@@ -661,7 +669,6 @@ function rankFor(score){
 }
 
 /* ============================= UTILITIES ============================= */
-function uid(){ return Math.random().toString(36).slice(2,10); }
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function shuffle(arr){
   const a = arr.slice();
@@ -708,27 +715,29 @@ function nebulaAvatarHTML(){
 document.querySelectorAll('[id^="nebula-"][id$="-slot"]').forEach(el=>{ el.innerHTML = nebulaAvatarHTML(); });
 document.getElementById('nebula-menu-slot').innerHTML = '<div class="nebula-figure sz-lg" style="margin:0 auto;">'+nebulaAvatarHTML()+'</div>';
 
-/* ============================= LEADERBOARD (localStorage) ============================= */
-const LB_KEY = 'cosmoquiz_leaderboard_v1';
-function loadLB(){ try{ return JSON.parse(localStorage.getItem(LB_KEY)) || []; }catch(e){ return []; } }
-function saveLBEntry(entry){
-  const lb = loadLB();
-  lb.push(entry);
-  lb.sort((a,b)=> b.score - a.score);
-  localStorage.setItem(LB_KEY, JSON.stringify(lb.slice(0,50)));
+/* ============================= LEADERBOARD (Supabase) ============================= */
+async function loadLB(){
+  const { data, error } = await sb.from('leaderboard')
+    .select('name,score,rank,created_at')
+    .order('score', { ascending:false })
+    .limit(50);
+  if(error){ console.error('[cosmoquiz] loadLB error', error); return []; }
+  return (data||[]).map(r=> ({ name:r.name, score:r.score, rank:r.rank, date:new Date(r.created_at).getTime() }));
 }
-function renderLeaderboard(){
-  const lb = loadLB();
+async function saveLBEntry(entry){
+  const { error } = await sb.from('leaderboard').insert({ name:entry.name, score:entry.score, rank:entry.rank });
+  if(error) console.error('[cosmoquiz] saveLBEntry error', error);
+}
+async function renderLeaderboard(){
   const body = document.getElementById('lb-body');
   const empty = document.getElementById('lb-empty');
-  body.innerHTML = '';
-  if(!lb.length){ empty.style.display='block'; return; }
-  empty.style.display='none';
-  lb.slice(0,20).forEach((e,i)=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${i+1}</td><td>${escapeHtml(e.name)}</td><td class="mono">${e.score}</td><td>${escapeHtml(e.rank)}</td><td class="mono">${fmtDate(e.date)}</td>`;
-    body.appendChild(tr);
-  });
+  empty.style.display = 'none';
+  body.innerHTML = '<tr><td colspan="5" class="empty-note">Cargando…</td></tr>';
+  const lb = await loadLB();
+  if(!lb.length){ body.innerHTML=''; empty.style.display='block'; return; }
+  body.innerHTML = lb.slice(0,20).map((e,i)=>
+    `<tr><td>${i+1}</td><td>${escapeHtml(e.name)}</td><td class="mono">${e.score}</td><td>${escapeHtml(e.rank)}</td><td class="mono">${fmtDate(e.date)}</td></tr>`
+  ).join('');
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
@@ -751,30 +760,12 @@ document.querySelectorAll('[data-back]').forEach(btn=>{
   });
 });
 
-/* ============================= ROOM (BroadcastChannel transport) ============================= */
-function Room(code, role){
-  this.code = code;
-  this.role = role;
-  this.bc = ('BroadcastChannel' in window) ? new BroadcastChannel('cosmoquiz-room-'+code) : null;
-  this.listeners = {};
-  const self = this;
-  if(this.bc){
-    this.bc.onmessage = (e)=> self._dispatch(e.data);
-  }
-}
-Room.prototype.send = function(msg){
-  if(this.bc) this.bc.postMessage(Object.assign({}, msg, { _from: this.role, _ts: Date.now() }));
-};
-Room.prototype.on = function(type, cb){ (this.listeners[type] = this.listeners[type]||[]).push(cb); };
-Room.prototype._dispatch = function(msg){ (this.listeners[msg.type]||[]).forEach(cb=>cb(msg)); };
-Room.prototype.close = function(){ if(this.bc) this.bc.close(); };
-
 /* ============================= APP STATE ============================= */
 const App = {
   mode:null, // 'solo' | 'host' | 'player'
-  room:null,
+  channel:null, // supabase realtime channel
   code:null,
-  playerId: uid(),
+  playerId:null,
   playerName:'',
   order:[],
   qIndex:-1,
@@ -785,22 +776,57 @@ const App = {
   answered:false,
   score:0,
   failStreak:0,
-  hostPlayers: new Map(), // id -> {name, score, failStreak, answered, lastResult}
+  hostPlayers: new Map(), // id -> {name, score, failStreak, answered}
   hostAnswersThisQ: new Map(),
+  _launching:false,
+  _finalized:false,
   teardownRoom(){
-    if(this.room){ this.room.close(); this.room=null; }
+    if(this.channel){ sb.removeChannel(this.channel); this.channel=null; }
     this.mode=null; this.code=null; this.hostPlayers.clear();
+    this._launching=false; this._finalized=false;
   }
 };
 
-function buildOrder(){
-  return shuffle(QUESTIONS).sort(()=>0).slice(); // will be reordered below by difficulty
-}
 function buildProgressiveOrder(){
   const easy = shuffle(QUESTIONS.filter(q=>q.diff==='Fácil'));
   const med = shuffle(QUESTIONS.filter(q=>q.diff==='Media'));
   const hard = shuffle(QUESTIONS.filter(q=>q.diff==='Difícil'));
   return easy.concat(med, hard).map(shuffledQuestion);
+}
+
+/* Deterministic per-room question order + option shuffle, seeded by the room
+   code, so every device that joins the same room independently computes the
+   exact same sequence (question content never needs to travel through the
+   database — only the current question index + deadline do). */
+function seedFromCode(code){
+  let h = 0;
+  for(let i=0;i<code.length;i++){ h = (Math.imul(31,h) + code.charCodeAt(i))|0; }
+  return h>>>0;
+}
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = (seed + 0x6D2B79F5)|0;
+    let t = Math.imul(seed ^ seed>>>15, 1 | seed);
+    t = (t + Math.imul(t ^ t>>>7, 61 | t)) ^ t;
+    return ((t ^ t>>>14) >>> 0) / 4294967296;
+  };
+}
+function shuffleSeeded(arr, rnd){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j = Math.floor(rnd()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function buildProgressiveOrderForRoom(code){
+  const rnd = mulberry32(seedFromCode(code));
+  const easy = shuffleSeeded(QUESTIONS.filter(q=>q.diff==='Fácil'), rnd);
+  const med  = shuffleSeeded(QUESTIONS.filter(q=>q.diff==='Media'), rnd);
+  const hard = shuffleSeeded(QUESTIONS.filter(q=>q.diff==='Difícil'), rnd);
+  return easy.concat(med, hard).map(q=>{
+    const order = shuffleSeeded([0,1,2,3], rnd);
+    const options = order.map(i=>q.options[i]);
+    const correct = order.indexOf(q.correct);
+    return Object.assign({}, q, { options, correct });
+  });
 }
 
 /* ============================= MENU HANDLERS ============================= */
@@ -854,55 +880,66 @@ function handleSoloAnswer(idx){
     showScreen('screen-reveal', true);
   }, 700);
 }
-function soloFinish(){
+async function soloFinish(){
   const rank = rankFor(App.score);
-  saveLBEntry({ name:App.playerName, score:App.score, rank:rank.name, date:Date.now() });
-  renderFinalSolo(rank);
   showScreen('screen-final', true);
-}
-function renderFinalSolo(rank){
   document.getElementById('final-rank-name').textContent = rank.name;
   document.getElementById('final-score').textContent = App.score + ' puntos';
   document.getElementById('nebula-final-slot').innerHTML = nebulaAvatarHTML();
-  const lb = loadLB().slice(0,5);
+  document.getElementById('final-board-list').innerHTML = '<p class="q-meta" style="text-align:center;">Guardando puntaje…</p>';
+  launchConfetti();
+  await saveLBEntry({ name:App.playerName, score:App.score, rank:rank.name });
+  const lb = (await loadLB()).slice(0,5);
   const list = document.getElementById('final-board-list');
   list.innerHTML = '<p class="q-meta" style="text-align:center;">Top 5 global</p>' + lb.map((e,i)=>
     `<div class="board-row"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(e.name)}</span><span class="board-score">${e.score}</span></div>`
   ).join('');
-  launchConfetti();
 }
 
-/* ============================= HOST MODE ============================= */
-function startHostLobby(){
+/* ============================= HOST MODE (Supabase) ============================= */
+async function startHostLobby(){
   App.teardownRoom();
   App.mode = 'host';
   App.code = makeRoomCode();
-  App.room = new Room(App.code, 'host');
+  App.order = buildProgressiveOrderForRoom(App.code);
+  App.qIndex = -1;
   App.hostPlayers.clear();
   document.getElementById('host-code').textContent = App.code;
   document.getElementById('host-chips').innerHTML = '';
   document.getElementById('host-count').textContent = '0 astronautas a bordo';
   document.getElementById('host-start').disabled = true;
-
-  App.room.on('join', (msg)=>{
-    if(!App.hostPlayers.has(msg.id)){
-      App.hostPlayers.set(msg.id, { name:msg.name, score:0, failStreak:0, answered:false });
-    }
-    App.room.send({ type:'roster', players: rosterArray() });
-    renderHostLobby();
-  });
-  App.room.on('answer', (msg)=>{
-    if(App.mode!=='host') return;
-    App.hostAnswersThisQ.set(msg.id, { idx: msg.idx, ts: msg._ts });
-    const p = App.hostPlayers.get(msg.id);
-    if(p) p.answered = true;
-    updateHostAnsweredCount();
-  });
-
+  document.getElementById('host-error').style.display = 'none';
   showScreen('screen-host-lobby', true);
-}
-function rosterArray(){
-  return Array.from(App.hostPlayers.entries()).map(([id,p])=>({ id, name:p.name, score:p.score }));
+
+  const { error } = await sb.from('rooms').insert({ code:App.code, status:'waiting', question_index:-1 });
+  if(error){
+    console.error('[cosmoquiz] create room error', error);
+    const errEl = document.getElementById('host-error');
+    errEl.textContent = 'No se pudo crear la sala (revisa que las tablas de Supabase existan). ' + error.message;
+    errEl.style.display = 'block';
+    return;
+  }
+
+  App.channel = sb.channel('room-'+App.code)
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'players', filter:`room_code=eq.${App.code}` }, (payload)=>{
+      const p = payload.new;
+      if(!App.hostPlayers.has(p.id)) App.hostPlayers.set(p.id, { name:p.name, score:0, failStreak:0, answered:false });
+      renderHostLobby();
+    })
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'answers', filter:`room_code=eq.${App.code}` }, (payload)=>{
+      const a = payload.new;
+      if(a.question_index !== App.qIndex) return;
+      App.hostAnswersThisQ.set(a.player_id, true);
+      const p = App.hostPlayers.get(a.player_id);
+      if(p) p.answered = true;
+      updateHostAnsweredCount();
+    })
+    .subscribe();
+
+  // Catch up on anyone who joined in the instant before the subscription was live.
+  const { data: existingPlayers } = await sb.from('players').select('id,name').eq('room_code', App.code);
+  (existingPlayers||[]).forEach(p=>{ if(!App.hostPlayers.has(p.id)) App.hostPlayers.set(p.id, { name:p.name, score:0, failStreak:0, answered:false }); });
+  renderHostLobby();
 }
 function renderHostLobby(){
   const chips = document.getElementById('host-chips');
@@ -910,49 +947,39 @@ function renderHostLobby(){
   document.getElementById('host-count').textContent = App.hostPlayers.size + ' astronauta' + (App.hostPlayers.size===1?'':'s') + ' a bordo';
   document.getElementById('host-start').disabled = App.hostPlayers.size === 0;
 }
-document.getElementById('host-start').addEventListener('click', ()=>{
-  App.order = buildProgressiveOrder();
-  App.qIndex = -1;
-  App.room.send({ type:'launch' });
+document.getElementById('host-start').addEventListener('click', async ()=>{
+  document.getElementById('host-start').disabled = true;
+  await sb.from('rooms').update({ status:'launch' }).eq('code', App.code);
   runLaunchCountdown(()=> hostNext());
 });
 
-function hostNext(){
+async function hostNext(){
   App.qIndex++;
   if(App.qIndex >= App.order.length){ return hostFinish(); }
   App.currentQuestion = App.order[App.qIndex];
   App.hostAnswersThisQ = new Map();
   App.hostPlayers.forEach(p=> p.answered=false);
-  const deadline = Date.now() + App.currentQuestion.time*1000 + 250; // small buffer for message latency
+  const deadline = Date.now() + App.currentQuestion.time*1000 + 400; // buffer for network latency
   App.deadline = deadline;
-  App.room.send({ type:'question', qIndex:App.qIndex, total:App.order.length, question: App.currentQuestion, deadline });
   showScreen('screen-host-question', true);
   renderHostQuestion(App.currentQuestion);
   startTimer(App.currentQuestion.time, ()=> hostReveal());
+  await sb.from('rooms').update({ status:'playing', question_index:App.qIndex, question_deadline:new Date(deadline).toISOString() }).eq('code', App.code);
 }
 function updateHostAnsweredCount(){
   const el = document.getElementById('host-q-answered');
   if(el) el.textContent = App.hostAnswersThisQ.size + '/' + App.hostPlayers.size + ' respondieron';
 }
-function hostReveal(){
+async function hostReveal(){
   stopTimer();
-  const q = App.currentQuestion;
-  const results = [];
-  App.hostPlayers.forEach((p, id)=>{
-    const ans = App.hostAnswersThisQ.get(id);
-    const correct = ans && ans.idx === q.correct;
-    const timeLeftMs = ans ? Math.max(0, App.deadline - ans.ts) : 0;
-    const r = scoreAnswer(!!correct, timeLeftMs, q.time*1000, q.bonus, p.failStreak);
-    p.score += r.points;
-    p.failStreak = correct ? 0 : (r.meteor ? 0 : p.failStreak+1);
-    results.push({ id, name:p.name, correct: !!correct, points:r.points, meteor:r.meteor, total:p.score, idx: ans?ans.idx:-1 });
-  });
-  const scoreboard = Array.from(App.hostPlayers.entries())
-    .map(([id,p])=>({ id, name:p.name, score:p.score }))
-    .sort((a,b)=> b.score-a.score);
-  App.room.send({ type:'reveal', correctIdx:q.correct, results, scoreboard, isLast: App.qIndex>=App.order.length-1 });
+  const { data: playersRows, error: pErr } = await sb.from('players').select('id,name,score').eq('room_code', App.code);
+  if(pErr) console.error('[cosmoquiz] fetch players error', pErr);
+  const scoreboard = (playersRows||[]).map(p=>({ id:p.id, name:p.name, score:p.score })).sort((a,b)=> b.score-a.score);
+
   renderHostScoreboard(scoreboard);
   showScreen('screen-scoreboard', true);
+  await sb.from('rooms').update({ status:'scoreboard' }).eq('code', App.code);
+
   const actions = document.getElementById('board-actions');
   const isLast = App.qIndex >= App.order.length-1;
   actions.innerHTML = '';
@@ -968,15 +995,11 @@ function renderHostScoreboard(scoreboard){
     `<div class="board-row"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(p.name)}</span><span class="board-score">${p.score}</span></div>`
   ).join('') || '<p class="empty-note">Sin jugadores.</p>';
 }
-function hostFinish(){
-  const scoreboard = Array.from(App.hostPlayers.entries())
-    .map(([id,p])=>({ id, name:p.name, score:p.score }))
-    .sort((a,b)=> b.score-a.score);
-  scoreboard.forEach(p=>{
-    const rank = rankFor(p.score);
-    saveLBEntry({ name:p.name, score:p.score, rank:rank.name, date:Date.now() });
-  });
-  App.room.send({ type:'final', scoreboard });
+async function hostFinish(){
+  const { data: playersRows } = await sb.from('players').select('id,name,score').eq('room_code', App.code);
+  const scoreboard = (playersRows||[]).map(p=>({ id:p.id, name:p.name, score:p.score })).sort((a,b)=> b.score-a.score);
+  await sb.from('rooms').update({ status:'finished' }).eq('code', App.code);
+
   document.getElementById('final-rank-name').textContent = 'Misión de tripulación finalizada';
   document.getElementById('final-score').textContent = scoreboard.length + ' astronautas completaron la misión';
   document.getElementById('nebula-final-slot').innerHTML = nebulaAvatarHTML();
@@ -1003,79 +1026,144 @@ function renderHostQuestion(q){
   });
 }
 
-/* ============================= JOIN / PLAYER MODE ============================= */
-document.getElementById('join-submit').addEventListener('click', ()=>{
-  const code = document.getElementById('join-code').value.trim().toUpperCase();
+/* ============================= JOIN / PLAYER MODE (Supabase) ============================= */
+document.getElementById('join-submit').addEventListener('click', async ()=>{
+  const codeInput = document.getElementById('join-code');
+  const errEl = document.getElementById('join-error');
+  const code = codeInput.value.trim().toUpperCase();
   const name = document.getElementById('join-name').value.trim() || 'Cadete';
-  if(code.length < 4){ document.getElementById('join-code').focus(); return; }
-  App.teardownRoom();
-  App.mode = 'player';
-  App.code = code;
-  App.playerName = name;
-  App.score = 0;
-  App.failStreak = 0;
-  App.room = new Room(code, 'player');
+  errEl.style.display = 'none';
+  if(code.length < 4){ codeInput.focus(); return; }
 
-  App.room.on('roster', ()=>{});
-  App.room.on('launch', ()=>{ runLaunchCountdown(()=>{ showScreen('screen-player-wait', true); }); });
-  App.room.on('question', (msg)=>{
-    App.qIndex = msg.qIndex;
-    App.order = App.order.length ? App.order : new Array(msg.total).fill(null);
-    App.currentQuestion = msg.question;
-    App.deadline = msg.deadline;
-    App.answered = false;
-    showScreen('screen-question', true);
-    renderQuestion(msg.question, 'player', msg.qIndex, msg.total);
-    startTimer(msg.question.time, ()=>{}, msg.deadline);
-  });
-  App.room.on('reveal', (msg)=>{
-    stopTimer();
-    const mine = msg.results.find(r=> r.id === App.playerId);
-    App.score = mine ? mine.total : App.score;
-    App.failStreak = mine && mine.correct ? 0 : App.failStreak;
-    markAnswerButtons(mine?mine.idx:-1, msg.correctIdx);
-    const myRankPos = msg.scoreboard.findIndex(p=>p.id===App.playerId)+1;
-    setTimeout(()=>{
-      renderReveal({
-        correct: mine?mine.correct:false,
-        points: mine?mine.points:0,
-        meteor: mine?mine.meteor:false,
-        question: App.currentQuestion,
-        totalScore: App.score,
-        position: myRankPos,
-        totalPlayers: msg.scoreboard.length,
-        waitingForHost: true
-      });
-      showScreen('screen-reveal', true);
-    }, 500);
-  });
-  App.room.on('final', (msg)=>{
-    const mine = msg.scoreboard.find(p=>p.id===App.playerId);
-    const myScore = mine ? mine.score : App.score;
-    const rank = rankFor(myScore);
-    document.getElementById('final-rank-name').textContent = rank.name;
-    document.getElementById('final-score').textContent = myScore + ' puntos';
-    document.getElementById('nebula-final-slot').innerHTML = nebulaAvatarHTML();
-    const list = document.getElementById('final-board-list');
-    list.innerHTML = msg.scoreboard.map((p,i)=>
-      `<div class="board-row ${p.id===App.playerId?'me':''}"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(p.name)}</span><span class="board-score">${p.score}</span></div>`
-    ).join('');
-    launchConfetti();
-    showScreen('screen-final', true);
-  });
+  const submitBtn = document.getElementById('join-submit');
+  submitBtn.disabled = true;
+  try{
+    const { data: room, error: roomErr } = await sb.from('rooms').select('*').eq('code', code).maybeSingle();
+    if(roomErr || !room){
+      errEl.textContent = 'No encontramos esa sala. Verifica el código con tu Capitán Nébula.';
+      errEl.style.display = 'block';
+      return;
+    }
+    const { data: playerRow, error: joinErr } = await sb.from('players')
+      .insert({ room_code:code, name })
+      .select('id')
+      .single();
+    if(joinErr){
+      console.error('[cosmoquiz] join error', joinErr);
+      errEl.textContent = 'No se pudo unir a la sala. Intenta de nuevo.';
+      errEl.style.display = 'block';
+      return;
+    }
 
-  App.room.send({ type:'join', id:App.playerId, name });
-  document.getElementById('player-wait-code').textContent = code;
-  document.getElementById('player-wait-title').textContent = `¡Hola, ${name}! A bordo.`;
-  showScreen('screen-player-wait', true);
+    App.teardownRoom();
+    App.mode = 'player';
+    App.code = code;
+    App.playerId = playerRow.id;
+    App.playerName = name;
+    App.score = 0;
+    App.failStreak = 0;
+    App.order = buildProgressiveOrderForRoom(code);
+    App.qIndex = -1;
+
+    App.channel = sb.channel('room-'+code)
+      .on('postgres_changes', { event:'UPDATE', schema:'public', table:'rooms', filter:`code=eq.${code}` }, (payload)=> handleRoomUpdate(payload.new))
+      .subscribe();
+
+    document.getElementById('player-wait-code').textContent = code;
+    document.getElementById('player-wait-title').textContent = `¡Hola, ${name}! A bordo.`;
+    showScreen('screen-player-wait', true);
+
+    // In case the room already moved past "waiting" before we subscribed.
+    handleRoomUpdate(room);
+  } finally {
+    submitBtn.disabled = false;
+  }
 });
 
-function playerAnswerClick(idx){
+function handleRoomUpdate(room){
+  if(room.status === 'launch' && App.qIndex === -1 && !App._launching){
+    App._launching = true;
+    runLaunchCountdown(()=>{ App._launching = false; showScreen('screen-player-wait', true); });
+    return;
+  }
+  if(room.status === 'playing' && room.question_index != null && room.question_index !== App.qIndex && room.question_index < App.order.length){
+    App.qIndex = room.question_index;
+    App.currentQuestion = App.order[App.qIndex];
+    App.deadline = new Date(room.question_deadline).getTime();
+    App.answered = false;
+    showScreen('screen-question', true);
+    renderQuestion(App.currentQuestion, 'player', App.qIndex, App.order.length);
+    startTimer(App.currentQuestion.time, ()=>{ if(!App.answered) playerTimeout(); }, App.deadline);
+    return;
+  }
+  if(room.status === 'finished'){
+    finalizeForPlayer();
+  }
+}
+
+async function playerAnswerClick(idx){
   if(App.answered) return;
   App.answered = true;
   markLocked();
-  App.room.send({ type:'answer', id:App.playerId, idx, ts:Date.now() });
   document.getElementById('q-lock-note').style.display = 'block';
+  await submitPlayerAnswer(idx);
+}
+async function playerTimeout(){
+  if(App.answered) return;
+  App.answered = true;
+  await submitPlayerAnswer(-1);
+}
+async function submitPlayerAnswer(idx){
+  stopTimer();
+  const q = App.currentQuestion;
+  const correct = idx === q.correct;
+  const timeLeftMs = Math.max(0, App.deadline - Date.now());
+  const result = scoreAnswer(correct, timeLeftMs, q.time*1000, q.bonus, App.failStreak);
+
+  const { error: ansErr } = await sb.from('answers').insert({
+    room_code: App.code, player_id: App.playerId, question_index: App.qIndex,
+    option_index: idx, is_correct: correct, points: result.points
+  });
+  if(ansErr) console.error('[cosmoquiz] submit answer error', ansErr);
+
+  App.score += result.points;
+  App.failStreak = correct ? 0 : (result.meteor ? 0 : App.failStreak+1);
+  const { error: updErr } = await sb.from('players').update({ score:App.score, fail_streak:App.failStreak }).eq('id', App.playerId);
+  if(updErr) console.error('[cosmoquiz] update score error', updErr);
+
+  markAnswerButtons(idx, q.correct);
+
+  const { data: playersRows } = await sb.from('players').select('id,score').eq('room_code', App.code);
+  const scoreboard = (playersRows||[]).sort((a,b)=> b.score-a.score);
+  const position = scoreboard.findIndex(p=>p.id===App.playerId)+1;
+
+  setTimeout(()=>{
+    renderReveal({
+      correct, points: result.points, meteor: result.meteor, question: q, totalScore: App.score,
+      position, totalPlayers: scoreboard.length, waitingForHost: true
+    });
+    showScreen('screen-reveal', true);
+  }, 400);
+}
+
+async function finalizeForPlayer(){
+  if(App._finalized) return;
+  App._finalized = true;
+  const { data: playersRows } = await sb.from('players').select('id,name,score').eq('room_code', App.code);
+  const scoreboard = (playersRows||[]).sort((a,b)=> b.score-a.score);
+  const rank = rankFor(App.score);
+
+  document.getElementById('final-rank-name').textContent = rank.name;
+  document.getElementById('final-score').textContent = App.score + ' puntos';
+  document.getElementById('nebula-final-slot').innerHTML = nebulaAvatarHTML();
+  const list = document.getElementById('final-board-list');
+  list.innerHTML = scoreboard.map((p,i)=>
+    `<div class="board-row ${p.id===App.playerId?'me':''}"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(p.name)}</span><span class="board-score">${p.score}</span></div>`
+  ).join('');
+  launchConfetti();
+  showScreen('screen-final', true);
+
+  await saveLBEntry({ name:App.playerName, score:App.score, rank:rank.name });
 }
 
 /* ============================= SHARED SCORING ============================= */
