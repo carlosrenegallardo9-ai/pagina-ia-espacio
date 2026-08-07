@@ -3,37 +3,124 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tierra — Un atlas del cosmos cercano</title>
+<title>Nébula · Tierra — Un atlas del cosmos cercano</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23FF6A3D'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   :root{
-    --void: #060810;
-    --void-2: #0a0e1a;
-    --ink: #F1EEE6;
-    --ink-dim: #A6A2B8;
-    --brass: #C9A063;
-    --brass-dim: rgba(201,160,99,0.35);
-    --teal: #5AA9A3;
-    --card: rgba(15,18,30,0.6);
-    --hair: rgba(201,160,99,0.18);
+    --void:#050308;
+    --void-2:#0a0714;
+    --void-3:#130e24;
+    --surface: rgba(255,255,255,0.045);
+    --surface-strong: rgba(255,255,255,0.09);
+    --line: rgba(255,255,255,0.13);
+    --line-soft: rgba(255,255,255,0.07);
+    --ink:#f5f3f7;
+    --ink-dim:#a8a3ba;
+    --ink-faint:#726c88;
+    --indigo:#6a5cff;
+    --violet:#9b7bff;
+    --ember:#ff6a3d;
+    --gold:#e8c07d;
+    --gold-dim: rgba(232,192,125,0.4);
+    --radius-lg: 28px;
+    --radius-full: 999px;
+    --ease: cubic-bezier(.16,1,.3,1);
   }
 
   *{ box-sizing:border-box; }
 
   html{ scroll-behavior:smooth; }
 
+  a{ color:inherit; text-decoration:none; }
+
   body{
     margin:0;
     background: var(--void);
     color: var(--ink);
-    font-family: 'Inter', sans-serif;
-    font-weight:300;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight:400;
     overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
   }
 
-  ::selection{ background: var(--brass); color:var(--void); }
+  ::selection{ background: var(--ember); color:var(--void); }
+
+  /* ---------- BUTTONS ---------- */
+  .btn-row{ display:flex; gap:0.9rem; flex-wrap:wrap; align-items:center; }
+  .btn{
+    position:relative;
+    display:inline-flex; align-items:center; justify-content:center;
+    height:50px; padding:0 1.85rem;
+    border-radius:var(--radius-full);
+    font-family:'Manrope',sans-serif;
+    font-size:0.92rem; font-weight:700;
+    white-space:nowrap;
+    isolation:isolate; overflow:hidden;
+    transition: transform .45s var(--ease), background-color .4s var(--ease), border-color .4s var(--ease), box-shadow .4s var(--ease);
+    border:1px solid transparent;
+    text-decoration:none;
+  }
+  .btn:active{ transform:scale(0.955); transition-duration:.15s; }
+  .btn-fill{ background:var(--ink); color:#0b0716; box-shadow:0 1px 0 rgba(255,255,255,0.5) inset, 0 14px 30px -14px rgba(0,0,0,0.5); }
+  .btn-fill:hover{ background:#fff; transform:translateY(-2px); }
+  .btn-outline{
+    background:rgba(255,255,255,0.05);
+    border-color:rgba(255,255,255,0.4);
+    color:var(--ink);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+  }
+  .btn-outline:hover{ background:rgba(255,255,255,0.12); border-color:rgba(255,255,255,0.75); transform:translateY(-2px); }
+  .btn-sm{ height:40px; padding:0 1.3rem; font-size:0.82rem; }
+
+  /* ---------- NAV ---------- */
+  .nav{
+    position:fixed; top:0; left:0; width:100%; z-index:200;
+    height:56px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 clamp(1.2rem, 4vw, 3rem);
+    background:transparent;
+    border-bottom:1px solid transparent;
+    transition: background .5s var(--ease), border-color .5s var(--ease);
+  }
+  .nav.is-solid{
+    background:rgba(6,4,12,0.78);
+    backdrop-filter:blur(20px) saturate(160%);
+    -webkit-backdrop-filter:blur(20px) saturate(160%);
+    border-bottom-color:var(--line-soft);
+  }
+  .nav-brand{
+    display:flex; align-items:center; gap:0.55rem;
+    font-family:'Unbounded', sans-serif; font-weight:700; font-size:1rem;
+  }
+  .nav-mark{
+    width:20px; height:20px; border-radius:50%;
+    background: radial-gradient(circle at 32% 30%, #ffd9a8, var(--ember) 55%, #7a2c12 100%);
+    box-shadow:0 0 14px -2px var(--ember);
+  }
+  .nav-links{
+    display:flex; align-items:center; gap:2.1rem;
+    font-size:0.83rem; font-weight:500; color:var(--ink-dim);
+    list-style:none;
+  }
+  .nav-links a{ color:inherit; text-decoration:none; transition:color .25s var(--ease); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-right{ display:flex; align-items:center; gap:1rem; }
+  .nav-cta{
+    height:34px; padding:0 1.15rem; border-radius:var(--radius-full);
+    background:rgba(255,255,255,0.08); border:1px solid var(--line);
+    font-size:0.79rem; font-weight:700;
+    display:flex; align-items:center; gap:0.4rem;
+    transition:background-color .35s var(--ease), border-color .35s var(--ease), transform .35s var(--ease);
+    color:var(--ink); text-decoration:none;
+    backdrop-filter:blur(10px);
+  }
+  .nav-cta:hover{ background:rgba(255,255,255,0.16); border-color:rgba(255,255,255,0.35); transform:translateY(-1px); }
+  @media (max-width: 700px){ .nav-links{ display:none; } }
 
   #globe-stage{
     position:fixed;
@@ -49,7 +136,7 @@
     position:fixed;
     z-index:2;
     pointer-events:none;
-    border:1px solid var(--brass-dim);
+    border:1px solid var(--gold-dim);
     border-radius:50%;
     transition: opacity 0.4s ease;
   }
@@ -60,7 +147,7 @@
     font-family:'Space Mono', monospace;
     font-size:11px;
     letter-spacing:0.04em;
-    color: var(--brass);
+    color: var(--gold);
     text-transform:uppercase;
     opacity:0;
     transition: opacity 0.5s ease;
@@ -97,35 +184,40 @@
     font-size:12px;
     letter-spacing:0.18em;
     text-transform:uppercase;
-    color: var(--brass);
+    color: var(--gold);
     margin: 0 6vw 1.2rem;
+    display:flex; align-items:center; gap:0.7rem;
   }
+  .hero-eyebrow::before{ content:''; width:20px; height:1px; background:var(--gold); }
   .hero-title{
-    font-family:'Fraunces', serif;
-    font-weight:500;
-    font-size: clamp(4.5rem, 13vw, 10.5rem);
-    line-height:0.88;
+    font-family:'Unbounded', sans-serif;
+    font-weight:700;
+    font-size: clamp(3.4rem, 10vw, 7.6rem);
+    line-height:0.98;
     margin: 0 6vw;
     color: var(--ink);
     letter-spacing:-0.01em;
+    text-shadow:0 4px 40px rgba(0,0,0,0.4);
   }
   .hero-title em{
+    font-family:'Cormorant Garamond', serif;
     font-style:italic;
-    font-weight:400;
-    color: var(--teal);
+    font-weight:600;
+    color: var(--violet);
   }
   .hero-sub{
     font-size: clamp(1rem, 1.6vw, 1.2rem);
-    font-weight:300;
+    font-weight:400;
     color: var(--ink-dim);
     max-width:36ch;
     margin: 1.6rem 6vw 0;
-    line-height:1.6;
+    line-height:1.7;
+  }
+  .hero-actions{
+    display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;
+    margin: 2.2rem 6vw 0;
   }
   .scroll-cue{
-    position:absolute;
-    bottom: 2.4rem;
-    left: 6vw;
     font-family:'Space Mono', monospace;
     font-size:11px;
     letter-spacing:0.14em;
@@ -137,13 +229,13 @@
   .scroll-cue::after{
     content:'';
     width:1px; height:34px;
-    background: linear-gradient(var(--brass), transparent);
+    background: linear-gradient(var(--gold), transparent);
   }
 
   /* ---------- SECTION SCAFFOLD ---------- */
   .band{
     padding: 9rem 6vw;
-    border-top: 1px solid var(--hair);
+    border-top: 1px solid var(--line-soft);
   }
   .band-head{
     display:flex;
@@ -158,14 +250,17 @@
     font-size:11px;
     letter-spacing:0.1em;
     text-transform:uppercase;
-    color: var(--brass);
+    color: var(--gold);
     white-space:nowrap;
+    display:flex; align-items:center; gap:0.6rem;
   }
+  .band-scale::before{ content:''; width:16px; height:1px; background:var(--gold); }
   .band-title{
-    font-family:'Fraunces', serif;
-    font-weight:500;
+    font-family:'Unbounded', sans-serif;
+    font-weight:700;
     font-size: clamp(2rem, 4vw, 3rem);
-    margin:0.4rem 0 0;
+    margin:0.6rem 0 0;
+    letter-spacing:-0.01em;
   }
   .band-lede{
     max-width:58ch;
@@ -179,21 +274,24 @@
     display:grid;
     grid-template-columns: repeat(4, 1fr);
     gap:1px;
-    background: var(--hair);
-    border:1px solid var(--hair);
+    background: var(--line-soft);
+    border:1px solid var(--line-soft);
+    border-radius:var(--radius-lg);
+    overflow:hidden;
   }
   .vital{
-    background: var(--void);
+    background: var(--void-2);
     padding:2rem 1.6rem;
+    transition: background-color .35s var(--ease);
   }
+  .vital:hover{ background: var(--void-3); }
   .vital-num{
-    font-family:'Fraunces', serif;
-    font-style:italic;
-    font-weight:400;
-    font-size:2.1rem;
+    font-family:'Unbounded', sans-serif;
+    font-weight:700;
+    font-size:1.9rem;
     color: var(--ink);
   }
-  .vital-unit{ font-size:1rem; color:var(--teal); font-style:normal; }
+  .vital-unit{ font-size:0.95rem; color:var(--violet); font-family:'Manrope',sans-serif; font-weight:600; }
   .vital-label{
     margin-top:0.6rem;
     font-family:'Space Mono', monospace;
@@ -217,13 +315,14 @@
     align-items:center;
     gap:2rem;
     padding: 1.5rem 0;
-    border-top:1px solid var(--hair);
+    border-top:1px solid var(--line-soft);
   }
   .layer:first-child{ border-top:none; }
   .layer-name{
-    font-family:'Fraunces', serif;
+    font-family:'Cormorant Garamond', serif;
     font-style:italic;
-    font-size:1.3rem;
+    font-weight:600;
+    font-size:1.4rem;
     color: var(--ink);
   }
   .layer-desc{
@@ -234,7 +333,7 @@
   .layer-alt{
     font-family:'Space Mono', monospace;
     font-size:11px;
-    color: var(--brass);
+    color: var(--gold);
     text-align:right;
     letter-spacing:0.04em;
   }
@@ -243,13 +342,17 @@
   .planets{
     display:grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 2.5rem 2rem;
+    gap: 1.4rem;
   }
   @media (max-width: 860px){ .planets{ grid-template-columns: repeat(2,1fr); } }
   .planet{
-    padding-top:1.6rem;
-    border-top:1px solid var(--hair);
+    padding:1.6rem 1.4rem;
+    background: var(--surface);
+    border:1px solid var(--line-soft);
+    border-radius:var(--radius-lg);
+    transition: background .35s var(--ease), transform .35s var(--ease), border-color .35s var(--ease);
   }
+  .planet:hover{ background: var(--surface-strong); transform:translateY(-6px); border-color:var(--line); }
   .planet-orb{
     width:46px; height:46px;
     border-radius:50%;
@@ -257,13 +360,13 @@
     box-shadow: inset -8px -8px 16px rgba(0,0,0,0.5), 0 0 22px -4px currentColor;
   }
   .planet-name{
-    font-family:'Fraunces', serif;
-    font-weight:500;
-    font-size:1.25rem;
-    margin:0 0 0.4rem;
+    font-family:'Unbounded', sans-serif;
+    font-weight:700;
+    font-size:1.05rem;
+    margin:0 0 0.5rem;
   }
   .planet-fact{
-    font-size:0.88rem;
+    font-size:0.86rem;
     color: var(--ink-dim);
     line-height:1.6;
   }
@@ -272,7 +375,7 @@
   .scale-strip{
     position:relative;
     height:3px;
-    background: var(--hair);
+    background: var(--line-soft);
     margin: 3.5rem 0 2.5rem;
     border-radius:2px;
   }
@@ -281,7 +384,7 @@
     top:50%;
     width:8px; height:8px;
     border-radius:50%;
-    background: var(--brass);
+    background: var(--gold);
     transform: translate(-50%,-50%);
   }
   .scale-dot .tag{
@@ -293,12 +396,12 @@
     color: var(--ink-dim);
     white-space:nowrap;
   }
-  .scale-dot .tag b{ color:var(--ink); display:block; font-size:11px; }
+  .scale-dot .tag b{ color:var(--ink); display:block; font-size:11px; font-family:'Unbounded',sans-serif; font-weight:700; }
 
   /* ---------- FOOTER ---------- */
   .foot{
     padding: 6rem 6vw 4rem;
-    border-top:1px solid var(--hair);
+    border-top:1px solid var(--line-soft);
     display:flex;
     justify-content:space-between;
     align-items:center;
@@ -306,9 +409,10 @@
     gap:1.5rem;
   }
   .foot-mark{
-    font-family:'Fraunces', serif;
+    font-family:'Cormorant Garamond', serif;
     font-style:italic;
-    font-size:1.1rem;
+    font-weight:600;
+    font-size:1.2rem;
     color:var(--ink-dim);
   }
   .foot-note{
@@ -333,6 +437,19 @@
 </head>
 <body>
 
+<nav class="nav" id="siteNav">
+  <a href="#" class="nav-brand"><span class="nav-mark"></span>Nébula</a>
+  <ul class="nav-links">
+    <li><a href="#vitals">Datos vitales</a></li>
+    <li><a href="#atmosphere">Atmósfera</a></li>
+    <li><a href="#planets">Planetas</a></li>
+    <li><a href="#scale">Escala del cosmos</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="cosmo-quiz.html" class="nav-cta">🚀 Cosmo Quiz</a>
+  </div>
+</nav>
+
 <div id="globe-stage"></div>
 <div class="instrument-ring" id="ring"></div>
 <div class="readout" id="readout">
@@ -348,7 +465,10 @@
     <p class="hero-eyebrow">Atlas del cosmos cercano — distancia 0 km</p>
     <h1 class="hero-title">La Tierra,<br>un <em>punto azul</em><br>en la oscuridad</h1>
     <p class="hero-sub">Un recorrido breve por el planeta que habitamos, su atmósfera, sus vecinos y la escala real del vacío que nos rodea.</p>
-    <div class="scroll-cue">DESCENDER</div>
+    <div class="hero-actions">
+      <a href="cosmo-quiz.html" class="btn btn-fill">🚀 Jugar Cosmo Quiz</a>
+      <div class="scroll-cue">DESCENDER</div>
+    </div>
   </section>
 
   <div class="veil">
@@ -449,8 +569,8 @@
   </section>
 
   <footer class="foot">
-    <span class="foot-mark">Atlas del cosmos cercano</span>
-    <a href="cosmo-quiz.html" class="foot-note" style="color:var(--teal); text-decoration:none; border-bottom:1px solid var(--brass-dim); padding-bottom:2px;">🚀 JUGAR COSMO QUIZ: RUMBO A LAS ESTRELLAS</a>
+    <span class="foot-mark">Nébula — Atlas del cosmos cercano</span>
+    <a href="cosmo-quiz.html" class="btn btn-outline btn-sm">🚀 Jugar Cosmo Quiz</a>
     <span class="foot-note">DATOS OSTENSIBLEMENTE APROXIMADOS · NASA / IAU</span>
   </footer>
 
@@ -557,7 +677,7 @@
   // atmosphere glow — fresnel-ish rim shader
   const atmoGeo = new THREE.SphereGeometry(2.09, 64, 64);
   const atmoMat = new THREE.ShaderMaterial({
-    uniforms:{ glowColor:{ value: new THREE.Color(0x5aa9a3) } },
+    uniforms:{ glowColor:{ value: new THREE.Color(0x9b7bff) } },
     vertexShader: `
       varying float intensity;
       void main(){
@@ -579,9 +699,9 @@
   const atmo = new THREE.Mesh(atmoGeo, atmoMat);
   scene.add(atmo);
 
-  // brass instrument ring
+  // gold instrument ring
   const ringGeo = new THREE.TorusGeometry(2.55, 0.012, 8, 128);
-  const ringMat = new THREE.MeshBasicMaterial({ color:0xc9a063, transparent:true, opacity:0.55 });
+  const ringMat = new THREE.MeshBasicMaterial({ color:0xe8c07d, transparent:true, opacity:0.55 });
   const brassRing = new THREE.Mesh(ringGeo, ringMat);
   brassRing.rotation.x = Math.PI/2.3;
   scene.add(brassRing);
@@ -632,6 +752,14 @@
     renderer.render(scene, camera);
   }
   animate();
+
+  // ---- nav bar solid-on-scroll ----
+  const siteNav = document.getElementById('siteNav');
+  function onNavScroll(){
+    siteNav.classList.toggle('is-solid', window.scrollY > 40);
+  }
+  window.addEventListener('scroll', onNavScroll, { passive:true });
+  onNavScroll();
 
   // ---- scroll-driven instrument transformation ----
   const heroH = window.innerHeight;
