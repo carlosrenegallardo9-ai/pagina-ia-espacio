@@ -148,6 +148,17 @@
   .chip{ background:linear-gradient(135deg, var(--purple), var(--blue)); padding:0.5rem 1rem; border-radius:999px; font-weight:700; font-size:0.9rem; display:flex; align-items:center; gap:0.4rem; animation: pop .25s ease; }
   @keyframes pop{ from{ transform:scale(0.6); opacity:0;} to{ transform:scale(1); opacity:1;} }
 
+  /* ---------- COUNT / TOGGLE PICKER ---------- */
+  .count-picker{ display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap; }
+  .count-btn{
+    height:38px; padding:0 1rem; border-radius:var(--radius-full, 999px);
+    background:rgba(255,255,255,0.05); border:1px solid var(--hair);
+    color:var(--ink-dim); font-weight:700; font-size:0.85rem;
+    transition:background-color .25s ease, color .25s ease, border-color .25s ease;
+  }
+  .count-btn:hover{ color:var(--ink); border-color:var(--purple); }
+  .count-btn.is-active{ background:linear-gradient(135deg,var(--purple),var(--blue)); color:#fff; border-color:transparent; }
+
   /* ---------- LAUNCH COUNTDOWN ---------- */
   #screen-launch .rocket{ font-size:5rem; display:inline-block; transform-origin:center; animation: shake 0.25s infinite; }
   #screen-launch.launching .rocket{ animation: liftoff 1s ease-in forwards; }
@@ -272,6 +283,13 @@
       </div>
       <div class="field-row">
         <input class="field" id="solo-name" maxlength="18" placeholder="Tu nombre de astronauta">
+        <p class="q-meta" style="text-align:center; margin:0.2rem 0 0;">Número de preguntas</p>
+        <div class="count-picker" id="solo-count-picker">
+          <button type="button" class="count-btn" data-count="10">10</button>
+          <button type="button" class="count-btn" data-count="15">15</button>
+          <button type="button" class="count-btn is-active" data-count="20">20</button>
+          <button type="button" class="count-btn" data-count="24">Todas</button>
+        </div>
         <button class="btn btn-primary btn-block" id="solo-start">Comenzar misión 🚀</button>
         <button class="btn btn-ghost btn-block" data-back="screen-menu">← Volver</button>
       </div>
@@ -287,7 +305,23 @@
       </div>
       <p class="q-meta" style="text-align:center;">CÓDIGO DE SALA</p>
       <div class="room-code" id="host-code">------</div>
-      <p class="q-meta" style="text-align:center;" id="host-count">0 astronautas a bordo</p>
+
+      <p class="q-meta" style="text-align:center; margin-top:0.4rem;">Número de preguntas</p>
+      <div class="count-picker" id="host-count-picker">
+        <button type="button" class="count-btn" data-count="10">10</button>
+        <button type="button" class="count-btn" data-count="15">15</button>
+        <button type="button" class="count-btn is-active" data-count="20">20</button>
+        <button type="button" class="count-btn" data-count="24">Todas</button>
+      </div>
+
+      <p class="q-meta" style="text-align:center; margin-top:1rem;">¿El anfitrión también juega?</p>
+      <div class="count-picker" id="host-play-toggle">
+        <button type="button" class="count-btn is-active" data-play="0">🎤 Solo presentar</button>
+        <button type="button" class="count-btn" data-play="1">🎮 Jugar también</button>
+      </div>
+      <input class="field" id="host-player-name" maxlength="18" placeholder="Tu nombre de astronauta (anfitrión)" style="display:none; margin-top:0.8rem;">
+
+      <p class="q-meta" style="text-align:center; margin-top:1.2rem;" id="host-count">0 astronautas a bordo</p>
       <p class="q-meta" id="host-error" style="display:none; color:var(--red); text-align:center;"></p>
       <div class="player-chips" id="host-chips"></div>
       <div class="field-row">
@@ -359,6 +393,7 @@
       <div class="timer-wrap"><div class="timer-bar" id="host-timer-bar"></div></div>
       <div class="q-text" id="host-q-text">Cargando pregunta…</div>
       <div class="answers" id="host-q-answers"></div>
+      <p class="locked-note" id="host-q-lock-note" style="display:none;">✅ Tu respuesta quedó registrada, Capitán.</p>
     </div>
   </section>
 
@@ -798,19 +833,33 @@ const App = {
   failStreak:0,
   hostPlayers: new Map(), // id -> {name, score, failStreak, answered}
   hostAnswersThisQ: new Map(),
+  soloCount:20,
+  hostCount:20,
+  hostPlaying:false, // whether the room host also plays along, not just presents
   _launching:false,
   _finalized:false,
   teardownRoom(){
     if(this.channel){ sb.removeChannel(this.channel); this.channel=null; }
     this.mode=null; this.code=null; this.hostPlayers.clear();
-    this._launching=false; this._finalized=false;
+    this._launching=false; this._finalized=false; this.hostPlaying=false;
   }
 };
 
-function buildProgressiveOrder(){
-  const easy = shuffle(QUESTIONS.filter(q=>q.diff==='Fácil'));
-  const med = shuffle(QUESTIONS.filter(q=>q.diff==='Media'));
-  const hard = shuffle(QUESTIONS.filter(q=>q.diff==='Difícil'));
+/* Split a requested total into easy/media/difícil counts, spread as evenly
+   as possible (extra questions go to the earlier, easier tiers first). */
+function pickCounts(total){
+  total = Math.max(6, Math.min(24, total|0 || 24));
+  const perTier = Math.floor(total/3);
+  const remainder = total - perTier*3;
+  const counts = [perTier, perTier, perTier];
+  for(let i=0;i<remainder;i++) counts[i]++;
+  return counts;
+}
+function buildProgressiveOrder(count){
+  const counts = pickCounts(count);
+  const easy = shuffle(QUESTIONS.filter(q=>q.diff==='Fácil')).slice(0, counts[0]);
+  const med  = shuffle(QUESTIONS.filter(q=>q.diff==='Media')).slice(0, counts[1]);
+  const hard = shuffle(QUESTIONS.filter(q=>q.diff==='Difícil')).slice(0, counts[2]);
   return easy.concat(med, hard).map(shuffledQuestion);
 }
 
@@ -836,11 +885,12 @@ function shuffleSeeded(arr, rnd){
   for(let i=a.length-1;i>0;i--){ const j = Math.floor(rnd()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
   return a;
 }
-function buildProgressiveOrderForRoom(code){
+function buildProgressiveOrderForRoom(code, count){
   const rnd = mulberry32(seedFromCode(code));
-  const easy = shuffleSeeded(QUESTIONS.filter(q=>q.diff==='Fácil'), rnd);
-  const med  = shuffleSeeded(QUESTIONS.filter(q=>q.diff==='Media'), rnd);
-  const hard = shuffleSeeded(QUESTIONS.filter(q=>q.diff==='Difícil'), rnd);
+  const counts = pickCounts(count);
+  const easy = shuffleSeeded(QUESTIONS.filter(q=>q.diff==='Fácil'), rnd).slice(0, counts[0]);
+  const med  = shuffleSeeded(QUESTIONS.filter(q=>q.diff==='Media'), rnd).slice(0, counts[1]);
+  const hard = shuffleSeeded(QUESTIONS.filter(q=>q.diff==='Difícil'), rnd).slice(0, counts[2]);
   return easy.concat(med, hard).map(q=>{
     const order = shuffleSeeded([0,1,2,3], rnd);
     const options = order.map(i=>q.options[i]);
@@ -848,6 +898,37 @@ function buildProgressiveOrderForRoom(code){
     return Object.assign({}, q, { options, correct });
   });
 }
+
+/* ============================= CONFIG PICKERS ============================= */
+function wireCountPicker(containerId, onSelect){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  el.querySelectorAll('.count-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      el.querySelectorAll('.count-btn').forEach(b=> b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      onSelect(parseInt(btn.dataset.count, 10));
+    });
+  });
+}
+function resetCountPicker(containerId, defaultCount){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  el.querySelectorAll('.count-btn').forEach(b=> b.classList.toggle('is-active', parseInt(b.dataset.count,10)===defaultCount));
+}
+wireCountPicker('solo-count-picker', (n)=>{ App.soloCount = n; });
+wireCountPicker('host-count-picker', (n)=>{
+  App.hostCount = n;
+  if(App.code) sb.from('rooms').update({ question_count:n }).eq('code', App.code);
+});
+document.querySelectorAll('#host-play-toggle .count-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#host-play-toggle .count-btn').forEach(b=> b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    App.hostPlaying = btn.dataset.play === '1';
+    document.getElementById('host-player-name').style.display = App.hostPlaying ? 'block' : 'none';
+  });
+});
 
 /* ============================= MENU HANDLERS ============================= */
 document.getElementById('btn-solo').addEventListener('click', ()=>{ ensureAudio(); showScreen('screen-solo-setup', true); });
@@ -863,7 +944,7 @@ document.getElementById('solo-start').addEventListener('click', ()=>{
   App.playerName = name;
   App.score = 0;
   App.failStreak = 0;
-  App.order = buildProgressiveOrder();
+  App.order = buildProgressiveOrder(App.soloCount);
   App.qIndex = -1;
   runLaunchCountdown(()=> soloNext());
 });
@@ -921,17 +1002,22 @@ async function startHostLobby(){
   App.teardownRoom();
   App.mode = 'host';
   App.code = makeRoomCode();
-  App.order = buildProgressiveOrderForRoom(App.code);
   App.qIndex = -1;
   App.hostPlayers.clear();
+  App.hostCount = 20;
+  App.hostPlaying = false;
   document.getElementById('host-code').textContent = App.code;
   document.getElementById('host-chips').innerHTML = '';
   document.getElementById('host-count').textContent = '0 astronautas a bordo';
   document.getElementById('host-start').disabled = true;
   document.getElementById('host-error').style.display = 'none';
+  document.getElementById('host-player-name').style.display = 'none';
+  document.getElementById('host-player-name').value = '';
+  resetCountPicker('host-count-picker', 20);
+  document.querySelectorAll('#host-play-toggle .count-btn').forEach(b=> b.classList.toggle('is-active', b.dataset.play==='0'));
   showScreen('screen-host-lobby', true);
 
-  const { error } = await sb.from('rooms').insert({ code:App.code, status:'waiting', question_index:-1 });
+  const { error } = await sb.from('rooms').insert({ code:App.code, status:'waiting', question_index:-1, question_count:App.hostCount });
   if(error){
     console.error('[cosmoquiz] create room error', error);
     const errEl = document.getElementById('host-error');
@@ -969,7 +1055,28 @@ function renderHostLobby(){
 }
 document.getElementById('host-start').addEventListener('click', async ()=>{
   document.getElementById('host-start').disabled = true;
-  await sb.from('rooms').update({ status:'launch' }).eq('code', App.code);
+  App.order = buildProgressiveOrderForRoom(App.code, App.hostCount);
+  App.qIndex = -1;
+  App.answered = false;
+
+  if(App.hostPlaying){
+    const hostName = document.getElementById('host-player-name').value.trim() || 'Capitán Nébula';
+    const { data: playerRow, error: hostJoinErr } = await sb.from('players')
+      .insert({ room_code:App.code, name:hostName })
+      .select('id')
+      .single();
+    if(hostJoinErr){
+      console.error('[cosmoquiz] host self-join error', hostJoinErr);
+      App.hostPlaying = false;
+    } else {
+      App.playerId = playerRow.id;
+      App.playerName = hostName;
+      App.score = 0;
+      App.failStreak = 0;
+    }
+  }
+
+  await sb.from('rooms').update({ status:'launch', question_count:App.hostCount }).eq('code', App.code);
   runLaunchCountdown(()=> hostNext());
 });
 
@@ -979,11 +1086,15 @@ async function hostNext(){
   App.currentQuestion = App.order[App.qIndex];
   App.hostAnswersThisQ = new Map();
   App.hostPlayers.forEach(p=> p.answered=false);
+  App.answered = false;
   const deadline = Date.now() + App.currentQuestion.time*1000 + 400; // buffer for network latency
   App.deadline = deadline;
   showScreen('screen-host-question', true);
   renderHostQuestion(App.currentQuestion);
-  startTimer(App.currentQuestion.time, ()=> hostReveal());
+  startTimer(App.currentQuestion.time, async ()=>{
+    if(App.hostPlaying && !App.answered){ App.answered = true; await submitAnswerCore(-1); }
+    hostReveal();
+  });
   await sb.from('rooms').update({ status:'playing', question_index:App.qIndex, question_deadline:new Date(deadline).toISOString() }).eq('code', App.code);
 }
 function updateHostAnsweredCount(){
@@ -1035,15 +1146,27 @@ function renderHostQuestion(q){
   document.getElementById('host-q-progress').textContent = `Pregunta ${App.qIndex+1}/${App.order.length}`;
   document.getElementById('host-q-text').textContent = q.q;
   document.getElementById('host-bonus-banner').classList.toggle('show', !!q.bonus);
+  document.getElementById('host-q-lock-note').style.display = 'none';
   updateHostAnsweredCount();
   const wrap = document.getElementById('host-q-answers');
   wrap.innerHTML = '';
   q.options.forEach((opt,i)=>{
-    const b = document.createElement('div');
+    const b = document.createElement(App.hostPlaying ? 'button' : 'div');
     b.className = 'ans a'+i;
     b.innerHTML = `<span class="shape">${SHAPES[i]}</span><span>${escapeHtml(opt)}</span>`;
+    if(App.hostPlaying) b.addEventListener('click', ()=> hostSelfAnswerClick(i));
     wrap.appendChild(b);
   });
+}
+async function hostSelfAnswerClick(idx){
+  if(App.answered) return;
+  App.answered = true;
+  document.querySelectorAll('#host-q-answers .ans').forEach((b,i)=>{
+    b.disabled = true;
+    if(i===idx) b.classList.add('picked');
+  });
+  document.getElementById('host-q-lock-note').style.display = 'block';
+  await submitAnswerCore(idx);
 }
 
 /* ============================= JOIN / PLAYER MODE (Supabase) ============================= */
@@ -1082,7 +1205,7 @@ document.getElementById('join-submit').addEventListener('click', async ()=>{
     App.playerName = name;
     App.score = 0;
     App.failStreak = 0;
-    App.order = buildProgressiveOrderForRoom(code);
+    App.order = buildProgressiveOrderForRoom(code, room.question_count);
     App.qIndex = -1;
 
     App.channel = sb.channel('room-'+code)
@@ -1101,6 +1224,9 @@ document.getElementById('join-submit').addEventListener('click', async ()=>{
 });
 
 function handleRoomUpdate(room){
+  if(App.qIndex === -1 && room.question_count != null){
+    App.order = buildProgressiveOrderForRoom(App.code, room.question_count);
+  }
   if(room.status === 'launch' && App.qIndex === -1 && !App._launching){
     App._launching = true;
     runLaunchCountdown(()=>{ App._launching = false; showScreen('screen-player-wait', true); });
@@ -1133,8 +1259,11 @@ async function playerTimeout(){
   App.answered = true;
   await submitPlayerAnswer(-1);
 }
-async function submitPlayerAnswer(idx){
-  stopTimer();
+/* Shared by regular players and by a host who opted to also play: scores the
+   answer, writes it to `answers`, and updates the player's own `players` row.
+   Does not touch the timer or navigate screens — callers handle that, since
+   a host answering must not stop the room's authoritative pacing timer. */
+async function submitAnswerCore(idx){
   const q = App.currentQuestion;
   const correct = idx === q.correct;
   const timeLeftMs = Math.max(0, App.deadline - Date.now());
@@ -1151,6 +1280,12 @@ async function submitPlayerAnswer(idx){
   const { error: updErr } = await sb.from('players').update({ score:App.score, fail_streak:App.failStreak }).eq('id', App.playerId);
   if(updErr) console.error('[cosmoquiz] update score error', updErr);
 
+  return { correct, points: result.points, meteor: result.meteor };
+}
+async function submitPlayerAnswer(idx){
+  stopTimer();
+  const q = App.currentQuestion;
+  const { correct, points, meteor } = await submitAnswerCore(idx);
   markAnswerButtons(idx, q.correct);
 
   const { data: playersRows } = await sb.from('players').select('id,score').eq('room_code', App.code);
@@ -1159,7 +1294,7 @@ async function submitPlayerAnswer(idx){
 
   setTimeout(()=>{
     renderReveal({
-      correct, points: result.points, meteor: result.meteor, question: q, totalScore: App.score,
+      correct, points, meteor, question: q, totalScore: App.score,
       position, totalPlayers: scoreboard.length, waitingForHost: true
     });
     showScreen('screen-reveal', true);
