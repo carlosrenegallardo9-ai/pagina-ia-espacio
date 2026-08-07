@@ -294,39 +294,34 @@
   @media (max-width: 980px){ .quick-row{ grid-template-columns:repeat(4,1fr); } }
   @media (max-width: 560px){ .quick-row{ grid-template-columns:repeat(3,1fr); gap:1.3rem 0.8rem;} .quick-thumb{ font-size:1.25rem;} }
 
-  /* ---------- PRODUCT-STYLE SECTION (AirPods Max dynamic) ---------- */
-  .product{
-    position:relative; min-height:92vh;
-    display:flex; flex-direction:column; justify-content:space-between;
-    padding: clamp(4.5rem,8vw,7rem) 0 clamp(3rem,6vw,4.5rem);
+  /* ---------- SOLAR SYSTEM SECTION (near-fullscreen 3D) ---------- */
+  .solar-section{
+    position:relative; height:100svh; min-height:640px;
     overflow:hidden;
     border-top:1px solid var(--line-soft);
   }
-  .product-bg-word{
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    font-family:'Unbounded',sans-serif; font-weight:900; letter-spacing:-0.02em;
-    font-size:clamp(4.5rem, 16vw, 13rem); color:rgba(255,255,255,0.045);
-    white-space:nowrap; pointer-events:none; user-select:none; z-index:0;
-  }
-  .product-stage{
-    position:relative; z-index:1; flex:1;
-    display:flex; align-items:center; justify-content:center;
-    min-height:380px;
-  }
-  #solarStage{
-    width:min(76vw, 680px); height:min(76vw, 680px); max-height:66vh;
-    position:relative; cursor:grab;
-  }
+  #solarStage{ position:absolute; inset:0; width:100%; height:100%; cursor:grab; }
   #solarStage:active{ cursor:grabbing; }
   #solarCanvas{ width:100%; height:100%; display:block; touch-action:none; }
+
+  .solar-top{
+    position:absolute; top:0; left:0; right:0; z-index:2;
+    padding: clamp(5.5rem,11vw,7.5rem) clamp(1.2rem,5vw,3.4rem) 0;
+    background:linear-gradient(180deg, rgba(5,3,8,0.75) 0%, rgba(5,3,8,0.3) 60%, transparent 100%);
+    pointer-events:none;
+  }
+  .solar-top .btn-row{ pointer-events:auto; margin-top:1.4rem; }
+  .solar-title{ font-size:clamp(2rem,4.6vw,3.2rem); margin:0.7rem 0 0.6rem; }
+
   .solar-hint{
-    position:absolute; left:50%; bottom:0.9rem; transform:translateX(-50%);
-    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.08em; color:rgba(245,243,247,0.65);
+    position:absolute; left:50%; top:1rem; transform:translateX(-50%);
+    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.08em; color:rgba(245,243,247,0.55);
     white-space:nowrap; text-transform:uppercase; pointer-events:none;
     text-shadow:0 2px 10px rgba(0,0,0,0.8);
     opacity:0; transition:opacity .6s var(--ease) .3s;
+    z-index:2;
   }
-  #solarStage.is-ready .solar-hint{ opacity:1; }
+  #solarStage.is-ready ~ .solar-hint{ opacity:1; }
   .solar-tooltip{
     position:absolute; top:0; left:0; z-index:5;
     padding:0.4rem 0.85rem; border-radius:var(--radius-full);
@@ -338,26 +333,68 @@
     white-space:nowrap;
   }
   .solar-tooltip.is-visible{ opacity:1; }
+  .solar-labels{ position:absolute; inset:0; z-index:3; pointer-events:none; }
+  .solar-planet-label{
+    position:absolute; top:0; left:0; transform:translate(-50%,-160%);
+    font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:rgba(245,243,247,0.85); text-shadow:0 2px 8px rgba(0,0,0,0.9);
+    white-space:nowrap; opacity:0; transition:opacity .3s var(--ease);
+  }
+  .solar-planet-label.is-visible{ opacity:1; }
   .solar-loading{
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:0.6rem;
+    position:absolute; inset:0; z-index:4; display:flex; align-items:center; justify-content:center; gap:0.6rem;
     font-family:'Space Mono',monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-faint);
     opacity:1; transition:opacity .6s var(--ease);
   }
-  #solarStage.is-ready .solar-loading{ opacity:0; pointer-events:none; }
+  #solarStage.is-ready ~ .solar-loading{ opacity:0; pointer-events:none; }
   .solar-loading-dot{ width:6px; height:6px; border-radius:50%; background:var(--ember); animation:pulseDot 1.4s infinite; }
-  @media (max-width:760px){
-    #solarStage{ width:92vw; height:92vw; max-height:70vh; }
-    .solar-hint{ white-space:normal; text-align:center; width:82%; font-size:9px; line-height:1.5; }
+
+  /* ---------- SOLAR TOOLBAR ---------- */
+  .solar-toolbar{
+    position:absolute; left:50%; bottom:clamp(1rem,3vw,1.8rem); transform:translateX(-50%);
+    z-index:6; max-width:min(94vw, 920px); width:100%;
+    background:rgba(10,7,18,0.68); border:1px solid var(--line);
+    backdrop-filter:blur(20px) saturate(160%);
+    border-radius:22px; padding:0.9rem 1.1rem;
+    display:flex; flex-direction:column; gap:0.75rem;
+    box-shadow:0 24px 60px -20px rgba(0,0,0,0.7);
   }
-  .product-foot{
-    position:relative; z-index:1;
-    display:flex; justify-content:space-between; align-items:flex-end; gap:2rem; flex-wrap:wrap;
+  .solar-toolbar-row{ display:flex; align-items:center; gap:0.6rem; }
+  .solar-focus-row{
+    display:flex; gap:0.4rem; overflow-x:auto; padding-bottom:2px;
+    -ms-overflow-style:none; scrollbar-width:none;
   }
-  .product-info{ max-width:34ch; }
-  .product-eyebrow-row{ display:flex; align-items:center; gap:0.7rem; margin-bottom:0.8rem; }
-  .product-title{ font-size:clamp(2.2rem,5.2vw,3.4rem); margin-bottom:0.7rem; }
-  .product-stat{
-    font-family:'Space Mono', monospace; font-size:12px; letter-spacing:0.06em; color:var(--gold); margin-bottom:0.9rem;
+  .solar-focus-row::-webkit-scrollbar{ display:none; }
+  .solar-chip{
+    flex:0 0 auto; height:32px; padding:0 0.85rem; border-radius:var(--radius-full);
+    background:rgba(255,255,255,0.06); border:1px solid var(--line-soft);
+    font-size:0.76rem; font-weight:700; color:var(--ink-dim);
+    display:flex; align-items:center; gap:0.4rem; white-space:nowrap;
+    transition:background-color .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease);
+  }
+  .solar-chip:hover{ color:var(--ink); border-color:var(--line); }
+  .solar-chip.is-active{ background:linear-gradient(135deg,var(--indigo),var(--violet)); color:#fff; border-color:transparent; }
+  .solar-chip .dot{ width:8px; height:8px; border-radius:50%; background:currentColor; flex:0 0 auto; }
+  .solar-toolbar-divider{ height:1px; background:var(--line-soft); margin:0 -1.1rem; }
+  .solar-toolbar-controls{ display:flex; align-items:center; gap:1.1rem; flex-wrap:wrap; }
+  .solar-speed{ display:flex; align-items:center; gap:0.6rem; flex:1; min-width:170px; }
+  .solar-speed label{ font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-faint); white-space:nowrap; }
+  .solar-speed input[type=range]{ flex:1; accent-color:var(--indigo); }
+  .solar-toggle-group{ display:flex; gap:0.5rem; }
+  .solar-toggle{
+    height:32px; padding:0 0.9rem; border-radius:var(--radius-full);
+    background:rgba(255,255,255,0.05); border:1px solid var(--line-soft);
+    font-size:0.76rem; font-weight:700; color:var(--ink-dim);
+    display:flex; align-items:center; gap:0.4rem;
+    transition:background-color .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease);
+  }
+  .solar-toggle.is-active{ background:rgba(255,255,255,0.14); color:var(--ink); border-color:var(--line); }
+  .solar-toggle-icon{ width:10px; height:10px; border-radius:3px; border:1.4px solid currentColor; }
+  .solar-toggle.is-active .solar-toggle-icon{ background:currentColor; }
+  @media (max-width:700px){
+    .solar-toolbar-controls{ flex-direction:column; align-items:stretch; gap:0.7rem; }
+    .solar-toggle-group{ justify-content:space-between; }
+    .solar-toggle{ flex:1; justify-content:center; }
   }
 
   /* horizontal planet scroller */
@@ -410,6 +447,19 @@
   .sacred .lede{ color:#cbb894; }
   .sacred .eyebrow{ color:var(--gold); }
   .sacred .eyebrow::before{ background:var(--gold); }
+  .sacred-glow{
+    position:absolute; left:38%; top:42%; width:min(70vw,900px); height:min(70vw,900px);
+    transform:translate(-50%,-50%);
+    background:radial-gradient(circle, rgba(232,192,125,0.28), transparent 62%);
+    pointer-events:none;
+    animation: candleFlicker 4.5s ease-in-out infinite;
+  }
+  @keyframes candleFlicker{
+    0%,100%{ opacity:0.65; transform:translate(-50%,-50%) scale(1); }
+    50%{ opacity:1; transform:translate(-50%,-50%) scale(1.045); }
+  }
+  .sacred.is-paused .sacred-glow{ animation-play-state:paused; opacity:0.4; transition:opacity .8s var(--ease); }
+  @media (prefers-reduced-motion: reduce){ .sacred-glow{ animation:none; opacity:0.7; } }
 
   /* ---------- MODALS / PANELS (selective disclosure) ---------- */
   .veil{
@@ -420,27 +470,46 @@
   .veil.is-open{ opacity:1; pointer-events:auto; }
 
   .panel{
-    position:fixed; top:0; right:0; height:100%; width:min(480px, 92vw);
+    position:fixed; top:0; right:0; height:100%; width:min(500px, 92vw);
     background:#0b0714; border-left:1px solid var(--line);
     z-index:501; transform:translateX(100%);
-    transition:transform .5s var(--ease);
+    transition:transform .55s var(--ease);
     display:flex; flex-direction:column;
     box-shadow:-30px 0 80px rgba(0,0,0,0.5);
   }
   .panel.is-open{ transform:translateX(0); }
   .panel-head{
     display:flex; justify-content:space-between; align-items:center;
-    padding:1.4rem 1.6rem; border-bottom:1px solid var(--line-soft);
+    padding:1.5rem 1.8rem; border-bottom:1px solid var(--line-soft);
+    background:linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
   }
-  .panel-eyebrow{ font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:0.12em; color:var(--gold); text-transform:uppercase; }
-  .panel-body{ padding:1.8rem 1.8rem 2.6rem; overflow-y:auto; flex:1; }
-  .panel-orb{ width:76px; height:76px; border-radius:50%; margin-bottom:1.6rem; box-shadow:inset -12px -12px 22px rgba(0,0,0,0.55), 0 0 34px -6px currentColor; }
-  .panel-title{ font-size:1.9rem; margin-bottom:0.9rem; }
-  .panel-text{ color:var(--ink-dim); line-height:1.75; font-size:0.98rem; margin-bottom:1.6rem; }
-  .panel-grid{ display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line-soft); border:1px solid var(--line-soft); border-radius:14px; overflow:hidden; }
-  .panel-stat{ background:#0b0714; padding:1.1rem 1.2rem; }
-  .panel-stat b{ display:block; font-family:'Unbounded',sans-serif; font-size:1.05rem; margin-bottom:0.2rem; }
-  .panel-stat span{ font-size:0.74rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.04em; }
+  .panel-eyebrow{ font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:0.14em; color:var(--gold); text-transform:uppercase; display:flex; align-items:center; gap:0.55rem; }
+  .panel-eyebrow::before{ content:''; width:14px; height:1px; background:var(--gold); }
+  .panel-body{ padding:2rem 1.8rem 2.8rem; overflow-y:auto; flex:1; }
+  .panel-media{
+    width:100%; aspect-ratio:16/10; border-radius:20px; margin-bottom:1.8rem;
+    position:relative; overflow:hidden; background:linear-gradient(135deg, var(--void-3), var(--void-2));
+    border:1px solid var(--line-soft);
+  }
+  .panel-media img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity 1s var(--ease); }
+  .panel-media img.is-loaded{ opacity:1; }
+  .panel-orb{ width:80px; height:80px; border-radius:50%; margin-bottom:1.7rem; box-shadow:inset -12px -12px 22px rgba(0,0,0,0.55), 0 0 40px -6px currentColor; }
+  .panel-title{ font-size:2rem; margin-bottom:1rem; letter-spacing:-0.01em; }
+  .panel-text{ color:var(--ink-dim); line-height:1.8; font-size:0.99rem; margin-bottom:1.7rem; }
+  .panel-grid{ display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line-soft); border:1px solid var(--line-soft); border-radius:16px; overflow:hidden; margin-bottom:1.7rem; }
+  .panel-stat{ background:#0b0714; padding:1.2rem 1.3rem; transition:background-color .3s var(--ease); }
+  .panel-stat:hover{ background:rgba(255,255,255,0.035); }
+  .panel-stat b{ display:block; font-family:'Unbounded',sans-serif; font-size:1.1rem; margin-bottom:0.25rem; }
+  .panel-stat span{ font-size:0.73rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.05em; }
+  .panel-link{
+    display:inline-flex; align-items:center; gap:0.5rem;
+    padding:0.85rem 1.2rem; border-radius:var(--radius-full);
+    background:rgba(255,255,255,0.05); border:1px solid var(--line-soft);
+    font-size:0.85rem; font-weight:700; color:var(--ink);
+    transition:background-color .3s var(--ease), border-color .3s var(--ease), transform .3s var(--ease);
+  }
+  .panel-link:hover{ background:rgba(255,255,255,0.12); border-color:var(--line); transform:translateY(-2px); }
+  .panel-link svg{ flex:0 0 auto; }
 
   /* lightbox for gallery */
   .lightbox{
@@ -468,6 +537,25 @@
   .lightbox-year{ font-family:'Space Mono',monospace; color:var(--gold); font-size:12px; letter-spacing:0.12em; margin-bottom:0.6rem; }
   .lightbox-title{ font-family:'Unbounded',sans-serif; font-weight:700; font-size:clamp(1.5rem,3.6vw,2.6rem); margin-bottom:0.7rem; text-shadow:0 4px 24px rgba(0,0,0,0.5); }
   .lightbox-text{ color:var(--ink-dim); max-width:58ch; line-height:1.65; font-size:0.98rem; }
+  .lightbox-story{
+    max-height:0; overflow:hidden; transition:max-height .6s var(--ease);
+    color:var(--ink-dim); max-width:58ch; line-height:1.7; font-size:0.94rem;
+  }
+  .lightbox-story-inner{ padding-top:0.9rem; }
+  .lightbox-visual.is-expanded .lightbox-story{ max-height:220px; }
+  .lightbox-actions{ display:flex; align-items:center; gap:1rem; margin-top:1.1rem; flex-wrap:wrap; }
+  .lightbox-expand{
+    font-size:0.8rem; font-weight:700; color:var(--ink); display:inline-flex; align-items:center; gap:0.4rem;
+    background:rgba(255,255,255,0.08); border:1px solid var(--line-soft); border-radius:var(--radius-full);
+    padding:0.55rem 1rem; transition:background-color .3s var(--ease);
+  }
+  .lightbox-expand:hover{ background:rgba(255,255,255,0.16); }
+  .lightbox-expand .chev{ transition:transform .4s var(--ease); }
+  .lightbox-visual.is-expanded .lightbox-expand .chev{ transform:rotate(180deg); }
+  .lightbox-link{
+    font-size:0.8rem; font-weight:700; color:var(--gold); display:inline-flex; align-items:center; gap:0.4rem;
+  }
+  .lightbox-link:hover{ color:#f6dba4; }
   .lightbox-nav{ display:flex; justify-content:center; gap:0.8rem; align-items:center; margin-top:1.6rem; }
   .lightbox-dots{ display:flex; gap:0.4rem; margin:0 0.6rem; }
   .lightbox-dot{ width:6px; height:6px; border-radius:50%; background:var(--ink-faint); transition:background .3s var(--ease), transform .3s var(--ease); }
@@ -507,6 +595,36 @@
   .book-progress{ display:flex; gap:0.4rem; }
   .book-progress span{ width:22px; height:2px; background:rgba(255,255,255,0.15); border-radius:2px; }
   .book-progress span.is-active{ background:var(--gold); }
+
+  /* ---------- TOPIC MODAL (Aprende a tu ritmo — centered) ---------- */
+  .topic-modal{
+    position:fixed; inset:0; z-index:520;
+    background:rgba(4,2,8,0.86); backdrop-filter:blur(10px);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .4s var(--ease);
+    padding:2rem;
+  }
+  .topic-modal.is-open{ opacity:1; pointer-events:auto; }
+  .topic-modal-card{
+    max-width:560px; width:100%; max-height:88vh; overflow-y:auto;
+    background:#0b0714; border:1px solid var(--line); border-radius:26px;
+    box-shadow:0 50px 100px -30px rgba(0,0,0,0.85);
+    position:relative;
+    transform:translateY(18px) scale(0.98); transition:transform .5s var(--ease);
+  }
+  .topic-modal.is-open .topic-modal-card{ transform:translateY(0) scale(1); }
+  .topic-modal-media{
+    width:100%; aspect-ratio:16/10; position:relative; overflow:hidden;
+    background:linear-gradient(135deg, var(--void-3), var(--void-2));
+    border-radius:26px 26px 0 0;
+  }
+  .topic-modal-media img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity 1s var(--ease); }
+  .topic-modal-media img.is-loaded{ opacity:1; }
+  .topic-modal-media-icon{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:3.4rem; opacity:0.5; }
+  .topic-modal-close{ position:absolute; top:1rem; right:1rem; z-index:2; }
+  .topic-modal-body{ padding:1.8rem 2rem 2.2rem; }
+  .topic-modal-title{ font-size:1.7rem; margin-bottom:0.9rem; }
+  .topic-modal-text{ color:var(--ink-dim); line-height:1.8; font-size:0.98rem; margin-bottom:1.6rem; }
 
   /* ---------- LEARN GRID (Aprender) ---------- */
   .learn-grid{
@@ -617,8 +735,31 @@
 
   @media (max-width: 760px){
     .band{ padding:4.5rem 0; }
-    .product{ min-height:auto; }
     .panel{ width:100vw; }
+    .solar-toolbar{ bottom:0.6rem; padding:0.7rem 0.8rem; border-radius:18px; }
+    .solar-top{ padding-top:5.5rem; }
+  }
+
+  /* ---------- MODO OBSERVATORIO (red-light / night-vision mode) ---------- */
+  .observatory-overlay{
+    position:fixed; inset:0; z-index:9000; pointer-events:none;
+    background:#ff2200; mix-blend-mode:color;
+    opacity:0; transition:opacity .7s var(--ease);
+  }
+  .observatory-overlay::after{
+    content:''; position:absolute; inset:0;
+    background:#000; mix-blend-mode:multiply; opacity:0;
+    transition:opacity .7s var(--ease);
+  }
+  body.observatory-on .observatory-overlay{ opacity:1; }
+  body.observatory-on .observatory-overlay::after{ opacity:0.22; }
+  .observatory-toggle{ position:relative; }
+  .observatory-toggle .obs-dot{
+    width:8px; height:8px; border-radius:50%; background:var(--ink-faint);
+    transition:background .3s var(--ease), box-shadow .3s var(--ease);
+  }
+  body.observatory-on .observatory-toggle .obs-dot{
+    background:#ff3b1f; box-shadow:0 0 8px 1px rgba(255,59,31,0.8);
   }
 </style>
 </head>
@@ -634,15 +775,18 @@
     <li><a href="#aprender">Aprender</a></li>
   </ul>
   <div class="nav-right">
+    <button class="nav-cta observatory-toggle" id="observatoryToggle" title="Modo Observatorio: preserva tu visión nocturna"><span class="obs-dot"></span>Observatorio</button>
     <button class="nav-cta" id="navAiBtn">✦ Guía IA</button>
     <button class="nav-toggle" id="navToggle" aria-label="Abrir menú"><span></span></button>
   </div>
 </nav>
+<div class="observatory-overlay" id="observatoryOverlay" aria-hidden="true"></div>
 <div class="nav-mobile" id="navMobile">
   <a href="#explorador">Sistema Solar</a>
   <a href="#galeria">Galería Espacial</a>
   <a href="#dorado">Dorado Celestial</a>
   <a href="#aprender">Aprender</a>
+  <button class="nav-cta observatory-toggle" id="observatoryToggleMobile" style="align-self:flex-start; margin-top:0.6rem;"><span class="obs-dot"></span>Modo Observatorio</button>
 </div>
 
 <main id="inicio">
@@ -685,26 +829,39 @@
     <div class="quick-row" id="quickRow"></div>
   </section>
 
-  <!-- ================= EXPLORADOR (product-style) ================= -->
-  <section class="product wrap reveal" id="explorador">
-    <span class="product-bg-word" aria-hidden="true">SISTEMA SOLAR</span>
-    <div class="product-stage" id="solarStage">
+  <!-- ================= EXPLORADOR (near-fullscreen 3D) ================= -->
+  <section class="solar-section reveal" id="explorador">
+    <div id="solarStage">
       <canvas id="solarCanvas"></canvas>
+      <div class="solar-labels" id="solarLabels"></div>
       <div class="solar-tooltip" id="solarTooltip"></div>
-      <p class="solar-hint" id="solarHint">Arrastra para rotar · rueda para hacer zoom · toca un planeta</p>
-      <div class="solar-loading" id="solarLoading"><span class="solar-loading-dot"></span>Cargando el sistema solar en 3D…</div>
     </div>
-    <div class="product-foot">
-      <div class="product-info">
-        <div class="product-eyebrow-row">
-          <p class="eyebrow" style="margin:0">Explorador del Sistema Solar</p>
-        </div>
-        <h2 class="display product-title">Ocho mundos.<br>Una sola luz.</h2>
-        <p class="lede">Recorre cada planeta con datos reales, escalas comparadas y una vista que gira contigo.</p>
-      </div>
+    <p class="solar-hint" id="solarHint">Arrastra para rotar · rueda para hacer zoom · toca un planeta</p>
+    <div class="solar-loading" id="solarLoading"><span class="solar-loading-dot"></span>Cargando el sistema solar en 3D…</div>
+
+    <div class="solar-top wrap">
+      <p class="eyebrow" style="margin:0">Explorador del Sistema Solar</p>
+      <h2 class="display solar-title">Ocho mundos.<br>Una sola luz.</h2>
+      <p class="lede">Recorre cada planeta en 3D real: arrastra, haz zoom, sigue su órbita o detén el tiempo.</p>
       <div class="btn-row">
         <button class="btn btn-outline btn-sm" id="scaleBtn">Ver escalas cósmicas</button>
         <a href="#planetScroller" class="btn btn-fill btn-sm">Explorar planetas</a>
+      </div>
+    </div>
+
+    <div class="solar-toolbar" id="solarToolbar">
+      <div class="solar-focus-row" id="solarFocusRow"></div>
+      <div class="solar-toolbar-divider"></div>
+      <div class="solar-toolbar-controls">
+        <div class="solar-speed">
+          <label for="solarSpeedSlider">Velocidad</label>
+          <input type="range" id="solarSpeedSlider" min="0" max="3" step="0.1" value="1">
+        </div>
+        <div class="solar-toggle-group">
+          <button class="solar-toggle is-active" id="toggleOrbits" type="button"><span class="solar-toggle-icon"></span>Órbitas</button>
+          <button class="solar-toggle" id="toggleNames" type="button"><span class="solar-toggle-icon"></span>Nombres</button>
+          <button class="btn-icon" id="solarResetView" type="button" aria-label="Reiniciar vista" title="Reiniciar vista">↺</button>
+        </div>
       </div>
     </div>
   </section>
@@ -718,7 +875,7 @@
     <div class="cinematic-content">
       <div class="cinematic-text">
         <p class="eyebrow">Galería Espacial</p>
-        <h2 class="display cinematic-title">Nueve hitos.<br>Un mismo asombro.</h2>
+        <h2 class="display cinematic-title">Once hitos.<br>Un mismo asombro.</h2>
         <p class="lede">Desde el primer satélite hasta el telescopio que mira más lejos que ningún ojo humano.</p>
       </div>
       <div class="btn-row">
@@ -733,6 +890,7 @@
     <img class="cinematic-photo" id="sacredPhoto" alt="" aria-hidden="true" loading="lazy" decoding="async">
     <canvas class="cinematic-canvas" id="sacredCanvas"></canvas>
     <div class="cinematic-scrim"></div>
+    <div class="sacred-glow" aria-hidden="true"></div>
     <div class="cinematic-content">
       <div class="cinematic-text">
         <p class="eyebrow">Dorado Celestial · Aprendiendo con Jesús</p>
@@ -811,7 +969,7 @@
 </aside>
 
 <!-- ================= GALLERY LIGHTBOX ================= -->
-<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Galería Espacial — nueve hitos de la exploración espacial">
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Galería Espacial — once hitos de la exploración espacial">
   <button class="btn-icon lightbox-close" id="lightboxClose" aria-label="Cerrar galería">✕</button>
   <div class="lightbox-card">
     <div class="lightbox-visual" id="lightboxVisual">
@@ -824,6 +982,11 @@
         <p class="lightbox-year" id="lightboxYear"></p>
         <h3 class="lightbox-title" id="lightboxTitle"></h3>
         <p class="lightbox-text" id="lightboxText"></p>
+        <div class="lightbox-story" id="lightboxStory"><div class="lightbox-story-inner" id="lightboxStoryText"></div></div>
+        <div class="lightbox-actions">
+          <button class="lightbox-expand" id="lightboxExpandBtn" type="button">Conoce la historia <span class="chev">↓</span></button>
+          <a class="lightbox-link" id="lightboxLink" href="#" target="_blank" rel="noopener noreferrer">Ver fuente ↗</a>
+        </div>
       </div>
     </div>
     <div class="lightbox-nav">
@@ -846,6 +1009,20 @@
       <button class="btn-icon" id="bookPrev" aria-label="Página anterior">←</button>
       <div class="book-progress" id="bookProgress"></div>
       <button class="btn-icon" id="bookNext" aria-label="Página siguiente">→</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= TOPIC MODAL (Aprender) ================= -->
+<div class="topic-modal" id="topicModal" role="dialog" aria-modal="true" aria-label="Aprende a tu ritmo">
+  <div class="topic-modal-card">
+    <button class="btn-icon topic-modal-close" id="topicModalClose" aria-label="Cerrar">✕</button>
+    <div class="topic-modal-media" id="topicModalMedia"></div>
+    <div class="topic-modal-body">
+      <p class="panel-eyebrow" style="margin-bottom:1rem;">Aprende a tu ritmo</p>
+      <h3 class="topic-modal-title display" id="topicModalTitle"></h3>
+      <p class="topic-modal-text" id="topicModalText"></p>
+      <div id="topicModalLinkWrap"></div>
     </div>
   </div>
 </div>
@@ -879,43 +1056,82 @@
     apollo11: WM('Aldrin_Apollo_11_original.jpg'),
     moon: WM('Full_Moon_Luc_Viatour.jpg'),
     earthBlueMarble: WM('The_Earth_seen_from_Apollo_17.jpg'),
-    gagarin: WM('Yuri_Gagarin_Colour.jpg'),
     iss: WM('International_Space_Station_after_undocking_of_STS-132.jpg'),
     blackHole: WM('Black_hole_-_Messier_87_crop_max_res.jpg'),
     sputnik: WM('Sputnik_asm.jpg'),
     voyagerRecord: WM('Voyager_Golden_Record.jpg'),
-    curiosity: WM('Curiosity_Self-Portrait_at_Big_Sky_Drilling_Site.jpg')
+    milkyWay: WM('Milky_Way_Night_Sky_Black_Rock_Desert_Nevada.jpg'),
+    constellations: WM('Orion_Constellation.jpg'),
+    // multi-candidate slots: several images kept broken in earlier testing, so these
+    // try more than one Commons filename before falling back to the gradient treatment.
+    gagarin: [ WM('Yuri_Gagarin_Colour.jpg'), WM('RIAN_archive_25981_Yuri_Gagarin.jpg'), WM('Bundesarchiv_Bild_Yuri_Gagarin.jpg') ],
+    curiosity: [ WM('Mars_Curiosity_Rover.jpg'), WM("Curiosity_Self-Portrait_at_'Big_Sky'_Drilling_Site.jpg"), WM('Curiosity_Self-Portrait_at_Big_Sky_Drilling_Site.jpg') ],
+    paleBlueDot: [ WM('Pale_Blue_Dot.png'), WM('Pale_Blue_Dot.jpg') ],
+    venusSurface: [ WM('Venera_13_photo.jpg'), WM('Venera_13.jpg') ]
   };
 
-  function loadImageInto(imgEl, url, onSuccess){
-    if(!url || !imgEl) return;
+  function loadImageInto(imgEl, urlOrList, onSuccess){
+    if(!urlOrList || !imgEl) return;
+    const candidates = Array.isArray(urlOrList) ? urlOrList.slice() : [urlOrList];
     imgEl.referrerPolicy = 'no-referrer';
-    imgEl.addEventListener('load', ()=>{ imgEl.classList.add('is-loaded'); if(onSuccess) onSuccess(); }, { once:true });
-    imgEl.addEventListener('error', ()=>{ imgEl.removeAttribute('src'); }, { once:true });
-    imgEl.src = url;
+    function tryNext(){
+      const next = candidates.shift();
+      if(!next){ imgEl.removeAttribute('src'); return; }
+      const onLoad = ()=>{ imgEl.classList.add('is-loaded'); cleanup(); if(onSuccess) onSuccess(); };
+      const onError = ()=>{ cleanup(); tryNext(); };
+      function cleanup(){ imgEl.removeEventListener('load', onLoad); imgEl.removeEventListener('error', onError); }
+      imgEl.addEventListener('load', onLoad, { once:true });
+      imgEl.addEventListener('error', onError, { once:true });
+      imgEl.src = next;
+    }
+    tryNext();
   }
 
   const PLANETS = [
-    { name:"Mercurio", color:"#8a8078", grad:["#b8ada2","#6b6259"], fact:"El más cercano al Sol; sin atmósfera que module su temperatura extrema.", diameter:"4 879 km", day:"58.6 días", orbit:"88 días", moons:"0" },
-    { name:"Venus", color:"#c98a4a", grad:["#e8c48a","#a56a3a"], fact:"Su atmósfera de dióxido de carbono lo convierte en el planeta más caliente.", diameter:"12 104 km", day:"243 días", orbit:"225 días", moons:"0" },
-    { name:"Tierra", color:"#4a8ab5", grad:["#6fa8c9","#2c4a6b"], fact:"El único mundo conocido con agua líquida estable y vida.", diameter:"12 742 km", day:"24 h", orbit:"365.25 días", moons:"1" },
-    { name:"Marte", color:"#c96a3a", grad:["#d68a5c","#8a3f22"], fact:"Casquetes polares de hielo y el volcán más grande del sistema solar.", diameter:"6 779 km", day:"24.6 h", orbit:"687 días", moons:"2" },
-    { name:"Júpiter", color:"#c9a063", grad:["#d9b98a","#8a6a3f"], fact:"Un gigante gaseoso con una tormenta más ancha que la Tierra.", diameter:"139 820 km", day:"9.9 h", orbit:"11.9 años", moons:"95" },
-    { name:"Saturno", color:"#d4b876", grad:["#e0cf9e","#a68e5a"], fact:"Sus anillos son fragmentos de hielo y roca de apenas metros de espesor.", diameter:"116 460 km", day:"10.7 h", orbit:"29.5 años", moons:"146" },
-    { name:"Urano", color:"#5aa9a3", grad:["#8fd0d6","#3a7a80"], fact:"Gira casi de lado, con un eje inclinado 98 grados sobre su órbita.", diameter:"50 724 km", day:"17.2 h", orbit:"84 años", moons:"27" },
-    { name:"Neptuno", color:"#4a6ac9", grad:["#6f8fd6","#2c3f8a"], fact:"Los vientos más rápidos del sistema solar, hasta 2 100 km/h.", diameter:"49 244 km", day:"16.1 h", orbit:"165 años", moons:"14" }
+    { name:"Mercurio", color:"#8a8078", grad:["#b8ada2","#6b6259"], fact:"El más cercano al Sol; sin atmósfera que module su temperatura extrema.", diameter:"4 879 km", day:"58.6 días", orbit:"88 días", moons:"0", link:{ label:"NASA · Mercurio", url:"https://solarsystem.nasa.gov/planets/mercury/overview/" } },
+    { name:"Venus", color:"#c98a4a", grad:["#e8c48a","#a56a3a"], fact:"Su atmósfera de dióxido de carbono lo convierte en el planeta más caliente.", diameter:"12 104 km", day:"243 días", orbit:"225 días", moons:"0", link:{ label:"NASA · Venus", url:"https://solarsystem.nasa.gov/planets/venus/overview/" } },
+    { name:"Tierra", color:"#4a8ab5", grad:["#6fa8c9","#2c4a6b"], fact:"El único mundo conocido con agua líquida estable y vida.", diameter:"12 742 km", day:"24 h", orbit:"365.25 días", moons:"1", link:{ label:"NASA · Tierra", url:"https://solarsystem.nasa.gov/planets/earth/overview/" } },
+    { name:"Marte", color:"#c96a3a", grad:["#d68a5c","#8a3f22"], fact:"Casquetes polares de hielo y el volcán más grande del sistema solar.", diameter:"6 779 km", day:"24.6 h", orbit:"687 días", moons:"2", link:{ label:"NASA · Marte", url:"https://solarsystem.nasa.gov/planets/mars/overview/" } },
+    { name:"Júpiter", color:"#c9a063", grad:["#d9b98a","#8a6a3f"], fact:"Un gigante gaseoso con una tormenta más ancha que la Tierra.", diameter:"139 820 km", day:"9.9 h", orbit:"11.9 años", moons:"95", link:{ label:"NASA · Júpiter", url:"https://solarsystem.nasa.gov/planets/jupiter/overview/" } },
+    { name:"Saturno", color:"#d4b876", grad:["#e0cf9e","#a68e5a"], fact:"Sus anillos son fragmentos de hielo y roca de apenas metros de espesor.", diameter:"116 460 km", day:"10.7 h", orbit:"29.5 años", moons:"146", link:{ label:"NASA · Saturno", url:"https://solarsystem.nasa.gov/planets/saturn/overview/" } },
+    { name:"Urano", color:"#5aa9a3", grad:["#8fd0d6","#3a7a80"], fact:"Gira casi de lado, con un eje inclinado 98 grados sobre su órbita.", diameter:"50 724 km", day:"17.2 h", orbit:"84 años", moons:"27", link:{ label:"NASA · Urano", url:"https://solarsystem.nasa.gov/planets/uranus/overview/" } },
+    { name:"Neptuno", color:"#4a6ac9", grad:["#6f8fd6","#2c3f8a"], fact:"Los vientos más rápidos del sistema solar, hasta 2 100 km/h.", diameter:"49 244 km", day:"16.1 h", orbit:"165 años", moons:"14", link:{ label:"NASA · Neptuno", url:"https://solarsystem.nasa.gov/planets/neptune/overview/" } }
   ];
 
   const MILESTONES = [
-    { year:"1957", title:"Sputnik 1", text:"El primer objeto humano en alcanzar la órbita terrestre. Un pitido de radio que anunció la era espacial.", img:IMG.sputnik, tint:"180deg" },
-    { year:"1961", title:"Vostok 1", text:"Yuri Gagarin se convierte en el primer humano en ver la Tierra desde el espacio, en una sola órbita de 108 minutos.", img:IMG.gagarin, tint:"200deg" },
-    { year:"1969", title:"Apollo 11", text:"Neil Armstrong y Buzz Aldrin pisan la Luna. La primera vez que un ser humano camina sobre otro mundo.", img:IMG.apollo11, tint:"30deg" },
-    { year:"1977", title:"Voyager 1 y 2", text:"Lanzadas para sobrevolar los gigantes gaseosos, hoy son los objetos hechos por el hombre más lejanos del cosmos.", img:IMG.voyagerRecord, tint:"260deg" },
-    { year:"1990", title:"Telescopio Hubble", text:"Puesto en órbita para ver más allá de la atmósfera, redefinió nuestra imagen del universo profundo.", img:IMG.nebulaPillars, tint:"330deg" },
-    { year:"1998", title:"Estación Espacial Internacional", text:"El primer módulo se ensambla en órbita: el inicio de una presencia humana continua fuera de la Tierra.", img:IMG.iss, tint:"210deg" },
-    { year:"2012", title:"Curiosity en Marte", text:"Un laboratorio rodante desciende en el cráter Gale para estudiar si Marte pudo albergar vida.", img:IMG.curiosity, tint:"20deg" },
-    { year:"2021", title:"Telescopio James Webb", text:"El observatorio infrarrojo más potente jamás construido comienza a mirar hacia el amanecer del universo.", img:IMG.carinaGold, tint:"40deg" },
-    { year:"Hoy", title:"Regreso a la Luna", text:"El programa Artemis prepara el camino para una presencia humana sostenida más allá de la órbita terrestre.", img:IMG.moon, tint:"230deg" }
+    { year:"1957", title:"Sputnik 1", text:"El primer objeto humano en alcanzar la órbita terrestre. Un pitido de radio que anunció la era espacial.",
+      story:"Del tamaño de una pelota de playa, Sputnik 1 orbitó la Tierra cada 96 minutos durante tres semanas antes de que sus baterías se agotaran. Su simple señal de radio, captada por radioaficionados en todo el planeta, desató la carrera espacial entre EE. UU. y la URSS.",
+      img:IMG.sputnik, tint:"180deg", link:{ label:"Wikipedia · Sputnik 1", url:"https://es.wikipedia.org/wiki/Sputnik_1" } },
+    { year:"1961", title:"Vostok 1", text:"Yuri Gagarin se convierte en el primer humano en ver la Tierra desde el espacio, en una sola órbita de 108 minutos.",
+      story:"A los 27 años, Gagarin completó una vuelta completa al planeta a bordo de una cápsula que él mismo no podía controlar manualmente por seguridad. Al reingresar a la atmósfera, se eyectó y aterrizó en paracaídas en un campo, donde una campesina y su nieta fueron las primeras en recibirlo.",
+      img:IMG.gagarin, tint:"200deg", link:{ label:"Wikipedia · Vostok 1", url:"https://es.wikipedia.org/wiki/Vostok_1" } },
+    { year:"1969", title:"Apollo 11", text:"Neil Armstrong y Buzz Aldrin pisan la Luna. La primera vez que un ser humano camina sobre otro mundo.",
+      story:"«Un pequeño paso para el hombre, un gran salto para la humanidad.» Seiscientos millones de personas — una quinta parte de la humanidad — vieron la transmisión en vivo. Armstrong y Aldrin pasaron poco más de dos horas fuera del módulo, recolectando 21.5 kg de muestras lunares.",
+      img:IMG.apollo11, tint:"30deg", link:{ label:"Wikipedia · Apolo 11", url:"https://es.wikipedia.org/wiki/Apolo_11" } },
+    { year:"1977", title:"Voyager 1 y 2", text:"Lanzadas para sobrevolar los gigantes gaseosos, hoy son los objetos hechos por el hombre más lejanos del cosmos.",
+      story:"Cada sonda lleva un disco de oro con sonidos e imágenes de la Tierra, por si algún día un ser inteligente lo encuentra. Voyager 1 cruzó al espacio interestelar en 2012 y sigue enviando datos, a más de 24 000 millones de km de distancia, con una señal que tarda 22 horas en llegar.",
+      img:IMG.voyagerRecord, tint:"260deg", link:{ label:"Wikipedia · Voyager 1", url:"https://es.wikipedia.org/wiki/Voyager_1" } },
+    { year:"1982", title:"La superficie de Venus", text:"La sonda soviética Venera 13 envía la primera fotografía en color de la superficie de otro planeta.",
+      story:"Diseñada para sobrevivir apenas 32 minutos bajo 465 °C y una presión 92 veces mayor que la terrestre, Venera 13 funcionó 127 minutos: casi cuatro veces más de lo previsto. Sus imágenes muestran un paisaje anaranjado de roca volcánica bajo un cielo denso de dióxido de carbono.",
+      img:IMG.venusSurface, tint:"35deg", link:{ label:"Wikipedia · Venera 13", url:"https://es.wikipedia.org/wiki/Venera_13" } },
+    { year:"1990", title:"Telescopio Hubble", text:"Puesto en órbita para ver más allá de la atmósfera, redefinió nuestra imagen del universo profundo.",
+      story:"Un defecto en su espejo principal casi arruina la misión, corregido en 1993 por astronautas en una caminata espacial histórica. Desde entonces, Hubble ha capturado más de 1.5 millones de observaciones, incluida esta imagen de los Pilares de la Creación: columnas de gas donde nacen nuevas estrellas.",
+      img:IMG.nebulaPillars, tint:"330deg", link:{ label:"Wikipedia · Telescopio Hubble", url:"https://es.wikipedia.org/wiki/Telescopio_espacial_Hubble" } },
+    { year:"1990", title:"El Pequeño Punto Azul", text:"A petición de Carl Sagan, la Voyager 1 gira su cámara y fotografía a la Tierra desde 6 000 millones de km.",
+      story:"En la imagen, la Tierra ocupa menos de un píxel: un punto pálido suspendido en un rayo de luz solar disperso. «Ese es aquí. Ese es nuestro hogar», escribió Sagan. «Todo lo que ha sido, todos los que amaste, cada ser humano que existió, vivió su vida ahí.»",
+      img:IMG.paleBlueDot, tint:"215deg", link:{ label:"Wikipedia · Pale Blue Dot", url:"https://es.wikipedia.org/wiki/Pale_Blue_Dot" } },
+    { year:"1998", title:"Estación Espacial Internacional", text:"El primer módulo se ensambla en órbita: el inicio de una presencia humana continua fuera de la Tierra.",
+      story:"Construida con piezas de quince países ensambladas en el vacío, orbita la Tierra cada 90 minutos a 400 km de altitud. Desde noviembre del año 2000, siempre ha tenido al menos una tripulación humana viviendo y trabajando a bordo, sin interrupción.",
+      img:IMG.iss, tint:"210deg", link:{ label:"Wikipedia · Estación Espacial Internacional", url:"https://es.wikipedia.org/wiki/Estaci%C3%B3n_Espacial_Internacional" } },
+    { year:"2012", title:"Curiosity en Marte", text:"Un laboratorio rodante desciende en el cráter Gale para estudiar si Marte pudo albergar vida.",
+      story:"Su aterrizaje usó una maniobra sin precedentes apodada «siete minutos de terror»: una grúa aérea cohete lo bajó suavemente a la superficie. Más de una década después, sigue explorando el monte Sharp, confirmando que Marte tuvo antiguos lagos de agua líquida.",
+      img:IMG.curiosity, tint:"20deg", link:{ label:"Wikipedia · Curiosity", url:"https://es.wikipedia.org/wiki/Curiosity" } },
+    { year:"2021", title:"Telescopio James Webb", text:"El observatorio infrarrojo más potente jamás construido comienza a mirar hacia el amanecer del universo.",
+      story:"Su espejo de 6.5 metros, hecho de 18 segmentos de berilio bañados en oro, se despliega en el espacio como un origami tras el lanzamiento. Orbita el punto de Lagrange L2, a 1.5 millones de km de la Tierra, observando galaxias tal como eran apenas 300 millones de años después del Big Bang.",
+      img:IMG.carinaGold, tint:"40deg", link:{ label:"Wikipedia · Telescopio James Webb", url:"https://es.wikipedia.org/wiki/Telescopio_espacial_James_Webb" } },
+    { year:"Hoy", title:"Regreso a la Luna", text:"El programa Artemis prepara el camino para una presencia humana sostenida más allá de la órbita terrestre.",
+      story:"Artemis busca llevar a la primera mujer y la primera persona no blanca a la superficie lunar, estableciendo una base como paso previo a una misión tripulada a Marte. Orion, su cápsula, ya voló sin tripulación alrededor de la Luna en 2022.",
+      img:IMG.moon, tint:"230deg", link:{ label:"Wikipedia · Programa Artemisa", url:"https://es.wikipedia.org/wiki/Programa_Artemisa" } }
   ];
 
   const BOOK_PAGES = [
@@ -966,20 +1182,41 @@
 
   const TOPICS = [
     { title:"Agujeros negros", icon:"◉", img:IMG.blackHole, teaser:"Regiones donde ni la luz logra escapar.",
-      full:"Se forman cuando una estrella masiva colapsa sobre sí misma al final de su vida. En su horizonte de sucesos, las leyes de la física tal como las conocemos dejan de aplicarse. La imagen del horizonte de sucesos de M87*, captada en 2019, fue la primera fotografía directa de un agujero negro." },
-    { title:"La Vía Láctea", icon:"✦", img:null, teaser:"Nuestro hogar: un disco espiral de cien mil años luz.",
-      full:"Un disco espiral de unos 100 000 años luz de diámetro con cerca de 100 000 millones de estrellas. El Sol tarda unos 230 millones de años en completar una vuelta alrededor de su centro, donde reside un agujero negro supermasivo." },
+      full:"Se forman cuando una estrella masiva colapsa sobre sí misma al final de su vida. En su horizonte de sucesos, las leyes de la física tal como las conocemos dejan de aplicarse. La imagen del horizonte de sucesos de M87*, captada en 2019, fue la primera fotografía directa de un agujero negro.",
+      link:{ label:"Wikipedia · Agujero negro", url:"https://es.wikipedia.org/wiki/Agujero_negro" } },
+    { title:"La Vía Láctea", icon:"✦", img:IMG.milkyWay, teaser:"Nuestro hogar: un disco espiral de cien mil años luz.",
+      full:"Un disco espiral de unos 100 000 años luz de diámetro con cerca de 100 000 millones de estrellas. El Sol tarda unos 230 millones de años en completar una vuelta alrededor de su centro, donde reside un agujero negro supermasivo.",
+      link:{ label:"Wikipedia · Vía Láctea", url:"https://es.wikipedia.org/wiki/V%C3%ADa_L%C3%A1ctea" } },
     { title:"Exoplanetas", icon:"◐", img:null, teaser:"Mundos que orbitan estrellas distintas al Sol.",
-      full:"Se han confirmado más de 5 000 exoplanetas; algunos orbitan en la 'zona habitable' de su estrella, donde el agua líquida sería posible. Ninguno ha sido confirmado como habitado, pero la búsqueda continúa con cada nueva generación de telescopios." },
+      full:"Se han confirmado más de 5 000 exoplanetas; algunos orbitan en la 'zona habitable' de su estrella, donde el agua líquida sería posible. Ninguno ha sido confirmado como habitado, pero la búsqueda continúa con cada nueva generación de telescopios.",
+      link:{ label:"Wikipedia · Exoplaneta", url:"https://es.wikipedia.org/wiki/Exoplaneta" } },
     { title:"Vida de una estrella", icon:"✧", img:IMG.nebulaPillars, teaser:"Nace en el polvo, muere en la luz.",
-      full:"Nace en una nebulosa como esta, brilla durante millones o miles de millones de años fusionando hidrógeno, y termina como enana blanca, estrella de neutrones o agujero negro, según su masa. Los elementos pesados de tu cuerpo se forjaron en explosiones de supernova." },
+      full:"Nace en una nebulosa como esta, brilla durante millones o miles de millones de años fusionando hidrógeno, y termina como enana blanca, estrella de neutrones o agujero negro, según su masa. Los elementos pesados de tu cuerpo se forjaron en explosiones de supernova.",
+      link:{ label:"Wikipedia · Evolución estelar", url:"https://es.wikipedia.org/wiki/Evoluci%C3%B3n_estelar" } },
     { title:"Materia y energía oscura", icon:"◯", img:null, teaser:"El 95% del universo que no podemos ver.",
-      full:"Inferimos su existencia por los efectos gravitacionales que ejerce sobre las galaxias y por la aceleración de la expansión cósmica, no por observación directa. Sigue siendo uno de los mayores misterios sin resolver de la física moderna." },
+      full:"Inferimos su existencia por los efectos gravitacionales que ejerce sobre las galaxias y por la aceleración de la expansión cósmica, no por observación directa. Sigue siendo uno de los mayores misterios sin resolver de la física moderna.",
+      link:{ label:"Wikipedia · Materia oscura", url:"https://es.wikipedia.org/wiki/Materia_oscura" } },
     { title:"Misiones espaciales", icon:"⟡", img:IMG.iss, teaser:"Del Sputnik a las sondas interestelares.",
-      full:"Siete décadas de exploración que llevaron ojos humanos y robóticos desde la órbita baja hasta los confines del sistema solar, incluida una presencia humana continua a bordo de la Estación Espacial Internacional desde el año 2000." }
+      full:"Siete décadas de exploración que llevaron ojos humanos y robóticos desde la órbita baja hasta los confines del sistema solar, incluida una presencia humana continua a bordo de la Estación Espacial Internacional desde el año 2000.",
+      link:{ label:"Wikipedia · Exploración espacial", url:"https://es.wikipedia.org/wiki/Exploraci%C3%B3n_espacial" } },
+    { title:"Constelaciones", icon:"⟡", img:IMG.constellations, teaser:"Ochenta y ocho patrones que dividen el cielo.",
+      full:"Figuras trazadas entre estrellas que, salvo por su posición aparente desde la Tierra, no suelen tener relación física entre sí. La Unión Astronómica Internacional reconoce 88 constelaciones oficiales, usadas desde la antigüedad para navegar y contar el tiempo.",
+      link:{ label:"Wikipedia · Constelación", url:"https://es.wikipedia.org/wiki/Constelaci%C3%B3n" } }
   ];
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ============ MODO OBSERVATORIO ============ */
+  function setObservatory(on){
+    document.body.classList.toggle('observatory-on', on);
+    try{ localStorage.setItem('nebula-observatory', on ? '1' : '0'); }catch(e){}
+  }
+  let observatoryOn = false;
+  try{ observatoryOn = localStorage.getItem('nebula-observatory') === '1'; }catch(e){}
+  setObservatory(observatoryOn);
+  document.querySelectorAll('#observatoryToggle, #observatoryToggleMobile').forEach(btn=>{
+    btn.addEventListener('click', ()=> setObservatory(!document.body.classList.contains('observatory-on')));
+  });
 
   /* ============ NAV ============ */
   const nav = document.getElementById('siteNav');
@@ -1038,6 +1275,14 @@
   const panelEyebrow = document.getElementById('panelEyebrow');
   const panelClose = document.getElementById('panelClose');
 
+  function panelLinkHtml(link){
+    if(!link) return '';
+    return `<a class="panel-link" href="${link.url}" target="_blank" rel="noopener noreferrer">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3H3v10h10v-3M9 3h4v4M13 3 7 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      ${link.label}
+    </a>`;
+  }
+
   function openPlanetPanel(i){
     panelEyebrow.textContent = 'Ficha del planeta';
     const p = PLANETS[i];
@@ -1050,7 +1295,8 @@
         <div class="panel-stat"><b>${p.day}</b><span>Duración del día</span></div>
         <div class="panel-stat"><b>${p.orbit}</b><span>Año orbital</span></div>
         <div class="panel-stat"><b>${p.moons}</b><span>Lunas conocidas</span></div>
-      </div>`;
+      </div>
+      ${panelLinkHtml(p.link)}`;
     openPanel();
   }
   function openScalePanel(){
@@ -1103,6 +1349,9 @@
   const lbYear = document.getElementById('lightboxYear');
   const lbTitle = document.getElementById('lightboxTitle');
   const lbText = document.getElementById('lightboxText');
+  const lbStoryText = document.getElementById('lightboxStoryText');
+  const lbExpandBtn = document.getElementById('lightboxExpandBtn');
+  const lbLink = document.getElementById('lightboxLink');
   const lbDots = document.getElementById('lightboxDots');
   let lbIndex = 0;
   const lbImageCache = {};
@@ -1122,16 +1371,21 @@
     lbImg.classList.remove('is-loaded');
     lbImg.alt = m.title + ' — ' + m.year;
     if(lbImageCache[idx]){
-      lbImg.src = m.img;
+      lbImg.src = lbImageCache[idx];
       lbImg.classList.add('is-loaded');
     } else {
-      loadImageInto(lbImg, m.img, ()=>{ lbImageCache[idx] = true; });
+      loadImageInto(lbImg, m.img, ()=>{ lbImageCache[idx] = lbImg.currentSrc || lbImg.src; });
     }
     lbYear.textContent = 'HITO ' + (idx+1) + ' / ' + MILESTONES.length + ' · ' + m.year;
     lbTitle.textContent = m.title;
     lbText.textContent = m.text;
+    lbStoryText.textContent = m.story || '';
+    document.getElementById('lightboxVisual').classList.remove('is-expanded');
+    if(m.link){ lbLink.href = m.link.url; lbLink.style.display = ''; }
+    else { lbLink.style.display = 'none'; }
     [...lbDots.children].forEach((d,idx)=> d.classList.toggle('is-active', idx===lbIndex));
   }
+  lbExpandBtn.addEventListener('click', ()=> document.getElementById('lightboxVisual').classList.toggle('is-expanded'));
 
   function openLightbox(i){
     renderMilestone(i || 0);
@@ -1194,15 +1448,27 @@
     learnGrid.appendChild(card);
   });
 
+  /* ============ TOPIC MODAL ============ */
+  const topicModal = document.getElementById('topicModal');
+  const topicModalMedia = document.getElementById('topicModalMedia');
+  const topicModalTitle = document.getElementById('topicModalTitle');
+  const topicModalText = document.getElementById('topicModalText');
+  const topicModalLinkWrap = document.getElementById('topicModalLinkWrap');
+
   function openTopicPanel(i){
-    panelEyebrow.textContent = 'Aprende a tu ritmo';
     const topic = TOPICS[i];
-    panelBody.innerHTML = `
-      <div class="panel-orb" style="display:flex;align-items:center;justify-content:center;font-size:2rem;background:linear-gradient(135deg, var(--indigo), var(--violet));">${topic.icon}</div>
-      <h3 class="panel-title">${topic.title}</h3>
-      <p class="panel-text">${topic.full}</p>`;
-    openPanel();
+    topicModalMedia.innerHTML = topic.img
+      ? `<img alt="${topic.title}" loading="eager" decoding="async">`
+      : `<div class="topic-modal-media-icon">${topic.icon}</div>`;
+    if(topic.img) loadImageInto(topicModalMedia.querySelector('img'), topic.img);
+    topicModalTitle.textContent = topic.title;
+    topicModalText.textContent = topic.full;
+    topicModalLinkWrap.innerHTML = panelLinkHtml(topic.link);
+    topicModal.classList.add('is-open');
   }
+  function closeTopicModal(){ topicModal.classList.remove('is-open'); }
+  document.getElementById('topicModalClose').addEventListener('click', closeTopicModal);
+  topicModal.addEventListener('click', (e)=>{ if(e.target === topicModal) closeTopicModal(); });
 
   /* ============ AI GUIDE ============ */
   const aiFab = document.getElementById('aiFab');
@@ -1237,7 +1503,7 @@
     if(/año luz|distancia|lejos/.test(q)) reply = 'Un año luz es la distancia que recorre la luz en un año: unos 9.46 billones de kilómetros. La sección "Escalas cósmicas" lo muestra de forma visual.';
     else if(/júpiter|jupiter/.test(q)) reply = 'Júpiter es el gigante gaseoso más grande del sistema solar, con una tormenta —la Gran Mancha Roja— más ancha que la Tierra. Ábrelo en el Explorador para ver su ficha completa.';
     else if(/dorado|biblia|sagrad|génesis|genesis/.test(q)) reply = 'Dorado Celestial es un espacio reverente que enlaza el relato de la creación con la astronomía contemporánea. Puedes leerlo completo en esa sección.';
-    else if(/galer[ií]a/.test(q)) reply = 'La Galería Espacial reúne nueve hitos de la exploración, desde el Sputnik hasta el telescopio James Webb. Ábrela con el botón "Ver la galería".';
+    else if(/galer[ií]a/.test(q)) reply = 'La Galería Espacial reúne once hitos de la exploración, desde el Sputnik hasta el regreso a la Luna. Ábrela con el botón "Ver la galería".';
     else if(/hola|buenas/.test(q)) reply = '¡Hola! Puedo guiarte por el sistema solar, las escalas del cosmos o el Dorado Celestial. ¿Por dónde empezamos?';
     setTimeout(()=> addMsg(reply, 'bot'), 420);
   }
@@ -1260,7 +1526,7 @@
   /* ============ ESC to close any overlay ============ */
   window.addEventListener('keydown', (e)=>{
     if(e.key !== 'Escape') return;
-    closePanel(); closeAi();
+    closePanel(); closeAi(); closeTopicModal();
     lightbox.classList.remove('is-open');
     book.classList.remove('is-open');
   });
@@ -1356,10 +1622,20 @@
     }
   });
 
+  const sacredSection = document.getElementById('dorado');
   const sacredPreviewBtn = document.getElementById('sacredPreviewBtn');
+  let sacredUserPaused = false;
   sacredPreviewBtn.addEventListener('click', ()=>{
-    if(sacredField.isRunning()){ sacredField.pause(); sacredPreviewBtn.textContent = 'Reanudar el resplandor'; }
-    else { sacredField.resume(); sacredPreviewBtn.textContent = 'Detener el resplandor'; }
+    sacredUserPaused = sacredField.isRunning();
+    if(sacredUserPaused){
+      sacredField.pause();
+      sacredSection.classList.add('is-paused');
+      sacredPreviewBtn.textContent = 'Reanudar el resplandor';
+    } else {
+      sacredField.resume();
+      sacredSection.classList.remove('is-paused');
+      sacredPreviewBtn.textContent = 'Detener el resplandor';
+    }
   });
 
   // pause offscreen fields for performance
@@ -1371,6 +1647,7 @@
     entries.forEach(entry=>{
       const match = fieldMap.find(([el])=> el === entry.target);
       if(!match) return;
+      if(match[1] === sacredField && sacredUserPaused) return;
       if(entry.isIntersecting) match[1].resume(); else match[1].pause();
     });
   }, { threshold:0.05 });
@@ -1457,18 +1734,27 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
 
+  const DEFAULT_CAM_POS = new THREE.Vector3(0, 7, 15);
+  const DEFAULT_TARGET = new THREE.Vector3(0, 0, 0);
+
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
-  controls.minDistance = 6;
-  controls.maxDistance = 26;
-  controls.maxPolarAngle = Math.PI * 0.82;
-  controls.minPolarAngle = Math.PI * 0.18;
+  controls.minDistance = 2.4;
+  controls.maxDistance = 42;
+  controls.maxPolarAngle = Math.PI * 0.86;
+  controls.minPolarAngle = Math.PI * 0.14;
   controls.rotateSpeed = 0.55;
-  controls.zoomSpeed = 0.7;
+  controls.zoomSpeed = 0.75;
   controls.enablePan = false;
   controls.autoRotate = !reduceMotion;
   controls.autoRotateSpeed = 0.35;
+
+  let focusIndex = null;
+  let homing = false;
+  let speedMultiplier = 1;
+  let showOrbits = true;
+  let showNames = false;
 
   // starfield
   const starGeo = new THREE.BufferGeometry();
@@ -1487,12 +1773,13 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   scene.add(new THREE.Points(starGeo, starMat));
 
   // orbit rings
-  ORBIT_RADII.forEach(r=>{
+  const orbitRings = ORBIT_RADII.map(r=>{
     const ringGeo = new THREE.RingGeometry(r - 0.008, r + 0.008, 128);
     const ringMat = new THREE.MeshBasicMaterial({ color:0x8a84b8, transparent:true, opacity:0.16, side:THREE.DoubleSide });
     const ring = new THREE.Mesh(ringGeo, ringMat);
     ring.rotation.x = Math.PI/2;
     scene.add(ring);
+    return ring;
   });
 
   // sun
@@ -1557,6 +1844,65 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     planetMeshes.push({ mesh, group, index:i, spinSpeed: 0.004 + Math.random()*0.01 });
   });
 
+  // name labels (manually projected — avoids an extra CSS2DRenderer dependency)
+  const labelsWrap = document.getElementById('solarLabels');
+  const labelEls = PLANETS.map(p=>{
+    const el = document.createElement('div');
+    el.className = 'solar-planet-label';
+    el.textContent = p.name;
+    labelsWrap.appendChild(el);
+    return el;
+  });
+
+  // focus / follow chip row
+  const focusRow = document.getElementById('solarFocusRow');
+  const generalChip = document.createElement('button');
+  generalChip.type = 'button';
+  generalChip.className = 'solar-chip is-active';
+  generalChip.textContent = 'Vista general';
+  generalChip.addEventListener('click', ()=> setFocus(null));
+  focusRow.appendChild(generalChip);
+  const focusChips = PLANETS.map((p, i)=>{
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'solar-chip';
+    chip.innerHTML = `<span class="dot" style="color:${p.color}"></span>${p.name}`;
+    chip.addEventListener('click', ()=> setFocus(i));
+    focusRow.appendChild(chip);
+    return chip;
+  });
+
+  function setFocus(i){
+    focusIndex = i;
+    homing = false;
+    controls.autoRotate = !reduceMotion && focusIndex === null;
+    generalChip.classList.toggle('is-active', i === null);
+    focusChips.forEach((c, idx)=> c.classList.toggle('is-active', idx === i));
+  }
+
+  function resetView(){
+    setFocus(null);
+    homing = true;
+  }
+  document.getElementById('solarResetView').addEventListener('click', resetView);
+
+  const speedSlider = document.getElementById('solarSpeedSlider');
+  speedSlider.addEventListener('input', ()=>{ speedMultiplier = +speedSlider.value; });
+
+  const toggleOrbitsBtn = document.getElementById('toggleOrbits');
+  toggleOrbitsBtn.addEventListener('click', ()=>{
+    showOrbits = !showOrbits;
+    orbitRings.forEach(r=> r.visible = showOrbits);
+    toggleOrbitsBtn.classList.toggle('is-active', showOrbits);
+  });
+
+  const toggleNamesBtn = document.getElementById('toggleNames');
+  toggleNamesBtn.addEventListener('click', ()=>{
+    showNames = !showNames;
+    toggleNamesBtn.classList.toggle('is-active', showNames);
+    if(!showNames) labelEls.forEach(el=> el.classList.remove('is-visible'));
+  });
+
   function resize(){
     const w = stage.clientWidth, h = stage.clientHeight;
     if(w === 0 || h === 0) return;
@@ -1565,15 +1911,49 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     renderer.setSize(w, h, false);
   }
 
+  function projectToScreen(vec3){
+    const v = vec3.clone().project(camera);
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (v.x * 0.5 + 0.5) * rect.width,
+      y: (-v.y * 0.5 + 0.5) * rect.height,
+      inFront: v.z < 1
+    };
+  }
+
   let running = false, hasInited = false, raf;
   function frame(){
     ORBIT_RADII.forEach((r, i)=>{
       const d = planetMeshes[i].group.userData;
-      if(!reduceMotion) d.angle += d.speed * 0.0035;
+      if(!reduceMotion) d.angle += d.speed * 0.0035 * speedMultiplier;
       planetMeshes[i].group.position.set(Math.cos(d.angle)*d.radius, 0, Math.sin(d.angle)*d.radius);
-      if(!reduceMotion) planetMeshes[i].mesh.rotation.y += planetMeshes[i].spinSpeed;
+      if(!reduceMotion) planetMeshes[i].mesh.rotation.y += planetMeshes[i].spinSpeed * speedMultiplier;
     });
-    if(!reduceMotion) sun.rotation.y += 0.0009;
+    if(!reduceMotion) sun.rotation.y += 0.0009 * speedMultiplier;
+
+    if(focusIndex !== null){
+      const targetPos = planetMeshes[focusIndex].group.position;
+      const offset = camera.position.clone().sub(controls.target);
+      controls.target.lerp(targetPos, 0.08);
+      camera.position.copy(controls.target).add(offset);
+    } else if(homing){
+      controls.target.lerp(DEFAULT_TARGET, 0.06);
+      camera.position.lerp(DEFAULT_CAM_POS, 0.045);
+      if(controls.target.distanceTo(DEFAULT_TARGET) < 0.05 && camera.position.distanceTo(DEFAULT_CAM_POS) < 0.3){
+        controls.target.copy(DEFAULT_TARGET);
+        homing = false;
+      }
+    }
+
+    if(showNames){
+      planetMeshes.forEach((pm, i)=>{
+        const p = projectToScreen(pm.group.position);
+        const el = labelEls[i];
+        el.style.transform = `translate(${p.x}px, ${p.y}px)`;
+        el.classList.toggle('is-visible', p.inFront && p.x > -40 && p.x < canvas.clientWidth+40 && p.y > -20 && p.y < canvas.clientHeight+20);
+      });
+    }
+
     controls.update();
     renderer.render(scene, camera);
     if(running) raf = requestAnimationFrame(frame);
