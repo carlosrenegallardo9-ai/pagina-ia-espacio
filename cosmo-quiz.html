@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Cosmo Quiz: Rumbo a las Estrellas</title>
+<meta name="description" content="Un juego de preguntas tipo Kahoot ambientado en el espacio, presentado por el Capitán Nébula.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#050414;
+    --void-2:#0a0824;
+    --panel:rgba(18,16,46,0.72);
+    --panel-solid:#141034;
+    --hair:rgba(140,120,255,0.22);
+    --ink:#f4f1ff;
+    --ink-dim:#b6aee0;
+    --purple:#8a5cff;
+    --pink:#ff4da6;
+    --cyan:#2fe0ff;
+    --yellow:#ffd23f;
+    --green:#33e08a;
+    --red:#ff5470;
+    --blue:#3aa0ff;
+    --glow: 0 0 40px -8px rgba(138,92,255,0.65);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background: var(--void);
+    color: var(--ink);
+    font-family:'Nunito', sans-serif;
+    overflow:hidden;
+    position:relative;
+  }
+  h1,h2,h3,.display{ font-family:'Baloo 2', sans-serif; }
+  .mono{ font-family:'Space Mono', monospace; }
+  button{ font-family:'Nunito', sans-serif; cursor:pointer; }
+  ::selection{ background:var(--pink); color:var(--void); }
+
+  /* ---------- BACKGROUND ---------- */
+  #bg-canvas{ position:fixed; inset:0; width:100%; height:100%; z-index:0; }
+  .nebula-blob{
+    position:fixed; border-radius:50%; filter:blur(60px); opacity:0.35; z-index:0; pointer-events:none;
+    animation: drift 18s ease-in-out infinite alternate;
+  }
+  .nebula-blob.n1{ width:38vw; height:38vw; left:-8vw; top:-10vh; background:radial-gradient(circle, var(--purple), transparent 70%); }
+  .nebula-blob.n2{ width:32vw; height:32vw; right:-6vw; bottom:-8vh; background:radial-gradient(circle, var(--pink), transparent 70%); animation-delay:-6s; }
+  .nebula-blob.n3{ width:26vw; height:26vw; right:20vw; top:10vh; background:radial-gradient(circle, var(--cyan), transparent 70%); opacity:0.2; animation-delay:-11s; }
+  @keyframes drift{ from{ transform:translate(0,0) scale(1);} to{ transform:translate(3vw,4vh) scale(1.12);} }
+
+  .float-planet{ position:fixed; border-radius:50%; z-index:0; pointer-events:none; box-shadow: inset -10px -10px 24px rgba(0,0,0,0.55), 0 0 30px -6px currentColor; animation: bob 7s ease-in-out infinite; }
+  @keyframes bob{ 0%,100%{ transform:translateY(0px);} 50%{ transform:translateY(-18px);} }
+  .fp1{ width:70px; height:70px; left:6vw; top:18vh; background:radial-gradient(circle at 35% 30%, #ffb27a, #b1502a); color:#e08a4f; animation-delay:-1s; }
+  .fp2{ width:44px; height:44px; right:9vw; top:26vh; background:radial-gradient(circle at 35% 30%, #9fd6ff, #2a6fb1); color:#3aa0ff; animation-delay:-3.4s; }
+  .fp3{ width:30px; height:30px; left:12vw; bottom:14vh; background:radial-gradient(circle at 35% 30%, #ffe08a, #b18a2a); color:#ffd23f; animation-delay:-5s; }
+  @media (max-width: 760px){ .float-planet{ display:none; } }
+
+  .ship{ position:fixed; z-index:0; font-size:28px; opacity:0.55; pointer-events:none; animation: shipfly 22s linear infinite; }
+  @keyframes shipfly{ from{ transform: translate(-10vw, 70vh) rotate(8deg);} to{ transform: translate(110vw, 10vh) rotate(8deg);} }
+
+  /* ---------- LAYOUT / SCREENS ---------- */
+  .stage{ position:relative; z-index:1; width:100%; height:100vh; }
+  .screen{
+    position:absolute; inset:0;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding: 4vh 4vw;
+    overflow-y:auto;
+  }
+  .screen.active{ display:flex; }
+  .screen-inner{ width:100%; max-width:880px; margin:0 auto; }
+
+  .warp{ animation: warp-out 0.35s ease forwards; }
+  @keyframes warp-out{ to{ opacity:0; filter: blur(6px); transform: scale(0.94);} }
+  .warp-in{ animation: warp-in 0.4s ease; }
+  @keyframes warp-in{ from{ opacity:0; filter: blur(6px); transform: scale(1.05);} to{ opacity:1; filter:blur(0); transform:scale(1);} }
+
+  /* ---------- NEBULA AVATAR ---------- */
+  .nebula-figure{ position:relative; display:inline-block; line-height:0; }
+  .nebula-figure.sz-lg{ width:200px; height:200px; }
+  .nebula-figure.sz-md{ width:120px; height:120px; }
+  .nebula-figure.sz-sm{ width:64px; height:64px; }
+  .nebula-fallback, .nebula-photo{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
+  .nebula-photo{ z-index:1; }
+
+  /* ---------- MENU ---------- */
+  #screen-menu .screen-inner{ text-align:center; }
+  .logo-eyebrow{ font-family:'Space Mono', monospace; letter-spacing:0.22em; text-transform:uppercase; color:var(--cyan); font-size:12px; margin-bottom:0.6rem; }
+  .logo-title{ font-size:clamp(2.2rem, 6vw, 3.6rem); font-weight:800; margin:0; background:linear-gradient(90deg, var(--cyan), var(--pink) 55%, var(--yellow)); -webkit-background-clip:text; background-clip:text; color:transparent; text-shadow: var(--glow); }
+  .logo-sub{ color:var(--ink-dim); margin:0.6rem 0 1.6rem; font-size:1.02rem; }
+  .menu-grid{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; max-width:560px; margin:0 auto; }
+  @media (max-width:600px){ .menu-grid{ grid-template-columns:1fr; } }
+  .btn{
+    border:none; border-radius:16px; padding:1.1rem 1.2rem; font-weight:700; font-size:1.02rem; color:var(--ink);
+    background: var(--panel); border:1px solid var(--hair); backdrop-filter: blur(6px);
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    display:flex; flex-direction:column; align-items:center; gap:0.35rem;
+  }
+  .btn:hover{ transform: translateY(-3px); box-shadow: var(--glow); border-color: var(--purple); }
+  .btn:active{ transform: translateY(0); }
+  .btn .ico{ font-size:1.7rem; }
+  .btn-primary{ background:linear-gradient(135deg, var(--purple), var(--pink)); border:none; }
+  .btn-primary:hover{ box-shadow: 0 0 40px -6px var(--pink); }
+  .btn-wide{ grid-column:1/-1; }
+  .btn-ghost{ background:transparent; border:1px solid var(--hair); }
+  .btn-block{ width:100%; }
+
+  .field{ width:100%; padding:0.9rem 1rem; border-radius:12px; border:1px solid var(--hair); background:rgba(255,255,255,0.05); color:var(--ink); font-size:1.05rem; text-align:center; letter-spacing:0.04em; }
+  .field:focus{ outline:2px solid var(--purple); }
+  .field-row{ display:flex; flex-direction:column; gap:0.8rem; max-width:380px; margin:1.2rem auto; }
+
+  .panel-card{ background:var(--panel); border:1px solid var(--hair); border-radius:20px; padding:2rem; backdrop-filter: blur(8px); box-shadow: var(--glow); }
+
+  /* ---------- NEBULA DIALOGUE BUBBLE ---------- */
+  .nebula-row{ display:flex; align-items:center; gap:1rem; margin-bottom:1.2rem; text-align:left; }
+  .bubble{ position:relative; background:rgba(255,255,255,0.07); border:1px solid var(--hair); border-radius:16px; padding:0.9rem 1.1rem; font-size:0.98rem; color:var(--ink); flex:1; }
+  .bubble b{ color:var(--yellow); }
+  .bubble-name{ font-family:'Baloo 2',sans-serif; font-weight:700; color:var(--cyan); font-size:0.82rem; text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:0.2rem; }
+
+  /* ---------- LOBBY ---------- */
+  .room-code{ font-family:'Space Mono', monospace; font-size:clamp(2.4rem,7vw,3.6rem); letter-spacing:0.28em; text-align:center; color:var(--yellow); text-shadow:0 0 24px rgba(255,210,63,0.55); margin:0.6rem 0; }
+  .player-chips{ display:flex; flex-wrap:wrap; gap:0.6rem; justify-content:center; margin:1.4rem 0; min-height:2.6rem; }
+  .chip{ background:linear-gradient(135deg, var(--purple), var(--blue)); padding:0.5rem 1rem; border-radius:999px; font-weight:700; font-size:0.9rem; display:flex; align-items:center; gap:0.4rem; animation: pop .25s ease; }
+  @keyframes pop{ from{ transform:scale(0.6); opacity:0;} to{ transform:scale(1); opacity:1;} }
+
+  /* ---------- LAUNCH COUNTDOWN ---------- */
+  #screen-launch .rocket{ font-size:5rem; display:inline-block; transform-origin:center; animation: shake 0.25s infinite; }
+  #screen-launch.launching .rocket{ animation: liftoff 1s ease-in forwards; }
+  @keyframes shake{ 0%,100%{ transform: translateX(0) rotate(-45deg);} 50%{ transform: translateX(2px) rotate(-44deg);} }
+  @keyframes liftoff{ to{ transform: translateY(-70vh) rotate(-45deg) scale(0.5); opacity:0; } }
+  .launch-num{ font-family:'Space Mono', monospace; font-size:clamp(3rem,10vw,5rem); color:var(--cyan); text-shadow:0 0 30px var(--cyan); }
+  .launch-label{ font-family:'Space Mono', monospace; letter-spacing:0.2em; text-transform:uppercase; color:var(--ink-dim); font-size:0.85rem; margin-top:1rem; }
+
+  /* ---------- QUESTION ---------- */
+  .q-topbar{ display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1rem; flex-wrap:wrap; }
+  .q-meta{ font-family:'Space Mono', monospace; font-size:11px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.08em; }
+  .q-progress{ color:var(--cyan); }
+  .timer-wrap{ width:100%; height:14px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden; border:1px solid var(--hair); margin:0.6rem 0 1.2rem; }
+  .timer-bar{ height:100%; width:100%; background:linear-gradient(90deg, var(--green), var(--yellow) 60%, var(--red)); transition:width 0.2s linear; }
+  .timer-bar.urgent{ animation: pulse-red 0.4s infinite; }
+  @keyframes pulse-red{ 50%{ filter:brightness(1.5);} }
+
+  .bonus-banner{ display:none; align-items:center; justify-content:center; gap:0.5rem; background:linear-gradient(90deg, var(--yellow), var(--pink)); color:#1a0a2a; font-weight:800; padding:0.5rem 1rem; border-radius:999px; margin:0 auto 1rem; width:fit-content; animation: pulse-bonus 1s infinite; }
+  .bonus-banner.show{ display:flex; }
+  @keyframes pulse-bonus{ 50%{ transform:scale(1.05); } }
+
+  .q-text{ font-family:'Baloo 2',sans-serif; font-weight:700; font-size:clamp(1.3rem,3.4vw,2rem); text-align:center; margin:0.6rem 0 1.6rem; }
+  .meteor-track{ display:flex; gap:0.3rem; justify-content:center; margin-bottom:0.8rem; font-size:1.3rem; min-height:1.6rem; }
+  .meteor-track span{ opacity:0.25; }
+  .meteor-track span.hit{ opacity:1; filter: drop-shadow(0 0 6px var(--red)); }
+
+  .answers{ display:grid; grid-template-columns:1fr 1fr; gap:0.9rem; }
+  @media (max-width:600px){ .answers{ grid-template-columns:1fr; } }
+  .ans{
+    display:flex; align-items:center; gap:0.8rem; padding:1.1rem 1.2rem; border-radius:14px; border:none;
+    font-weight:700; font-size:1.05rem; color:#fff; text-align:left; transition: transform .12s ease, filter .12s ease; position:relative; overflow:hidden;
+  }
+  .ans:hover:not(:disabled){ transform: translateY(-2px) scale(1.015); filter:brightness(1.08); }
+  .ans:disabled{ opacity:0.55; cursor:default; }
+  .ans .shape{ font-size:1.3rem; flex:none; }
+  .ans.a0{ background:linear-gradient(135deg,#ff5470,#c22a49); }
+  .ans.a1{ background:linear-gradient(135deg,#3aa0ff,#1f5fb1); }
+  .ans.a2{ background:linear-gradient(135deg,#ffd23f,#c99a1a); color:#241900; }
+  .ans.a3{ background:linear-gradient(135deg,#33e08a,#1a9a5c); }
+  .ans.correct{ outline:4px solid #fff; box-shadow:0 0 30px #fff; }
+  .ans.wrong{ opacity:0.35; }
+  .ans.picked::after{ content:'✓'; position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:1.3rem; }
+
+  .locked-note{ text-align:center; color:var(--ink-dim); font-family:'Space Mono',monospace; font-size:0.85rem; margin-top:1rem; }
+
+  /* ---------- REVEAL ---------- */
+  .result-badge{ font-size:3.2rem; text-align:center; }
+  .result-title{ text-align:center; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:1.7rem; margin:0.3rem 0; }
+  .result-title.ok{ color:var(--green); }
+  .result-title.no{ color:var(--red); }
+  .result-points{ text-align:center; font-family:'Space Mono',monospace; font-size:1rem; color:var(--yellow); margin-bottom:0.8rem; }
+
+  /* ---------- SCOREBOARD ---------- */
+  .board-list{ display:flex; flex-direction:column; gap:0.6rem; margin:1rem 0; }
+  .board-row{ display:flex; align-items:center; gap:0.8rem; background:rgba(255,255,255,0.05); border:1px solid var(--hair); border-radius:12px; padding:0.7rem 1rem; }
+  .board-rank{ font-family:'Space Mono',monospace; color:var(--cyan); width:2rem; }
+  .board-name{ flex:1; font-weight:700; }
+  .board-score{ font-family:'Space Mono',monospace; color:var(--yellow); }
+  .board-delta{ font-family:'Space Mono',monospace; font-size:0.78rem; color:var(--green); }
+  .board-delta.neg{ color:var(--red); }
+  .board-row.me{ border-color:var(--pink); box-shadow:0 0 20px -6px var(--pink); }
+
+  /* ---------- FINAL ---------- */
+  .final-rank-badge{ text-align:center; }
+  .final-rank-name{ font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(1.6rem,4.5vw,2.4rem); background:linear-gradient(90deg,var(--cyan),var(--pink)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .final-score{ text-align:center; font-family:'Space Mono',monospace; font-size:1.1rem; color:var(--ink-dim); margin:0.4rem 0 1.2rem; }
+  .confetti{ position:fixed; inset:0; pointer-events:none; z-index:5; }
+
+  /* ---------- LEADERBOARD ---------- */
+  table.lb{ width:100%; border-collapse:collapse; font-size:0.92rem; }
+  table.lb th{ text-align:left; font-family:'Space Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-dim); padding:0.5rem 0.6rem; border-bottom:1px solid var(--hair); }
+  table.lb td{ padding:0.55rem 0.6rem; border-bottom:1px solid var(--hair); }
+  table.lb tr:first-child td{ color:var(--yellow); font-weight:800; }
+  .empty-note{ text-align:center; color:var(--ink-dim); padding:1.4rem 0; }
+
+  .top-close{ position:fixed; top:1.2rem; right:1.2rem; z-index:6; background:var(--panel); border:1px solid var(--hair); border-radius:999px; width:42px; height:42px; color:var(--ink); font-size:1.1rem; }
+
+  .footer-hint{ margin-top:1.4rem; text-align:center; font-family:'Space Mono',monospace; font-size:11px; color:var(--ink-dim); letter-spacing:0.04em; }
+
+  .scroll-y{ max-height:52vh; overflow-y:auto; }
+
+  @media (max-width: 520px){ .panel-card{ padding:1.3rem; } }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="nebula-blob n1"></div>
+<div class="nebula-blob n2"></div>
+<div class="nebula-blob n3"></div>
+<div class="float-planet fp1"></div>
+<div class="float-planet fp2"></div>
+<div class="float-planet fp3"></div>
+<div class="ship" style="top:0;">🛸</div>
+
+<div class="stage">
+
+  <!-- MENU -->
+  <section class="screen active" id="screen-menu">
+    <div class="screen-inner">
+      <div id="nebula-menu-slot" style="margin-bottom:0.6rem;"></div>
+      <p class="logo-eyebrow">Un juego de preguntas del espacio profundo</p>
+      <h1 class="logo-title">COSMO QUIZ</h1>
+      <p class="logo-sub">Rumbo a las Estrellas · con el <b style="color:var(--cyan)">Capitán Nébula</b></p>
+
+      <div class="menu-grid">
+        <button class="btn btn-primary btn-wide" id="btn-solo"><span class="ico">🚀</span> Jugar solo</button>
+        <button class="btn" id="btn-host"><span class="ico">🛰️</span> Crear sala</button>
+        <button class="btn" id="btn-join"><span class="ico">📡</span> Unirse a sala</button>
+        <button class="btn btn-wide" id="btn-top"><span class="ico">🏆</span> Top global</button>
+      </div>
+      <p class="footer-hint">Sala local: crea la sala y únete desde otras pestañas o dispositivos con este mismo navegador para probar el modo multijugador.</p>
+    </div>
+  </section>
+
+  <!-- SOLO SETUP -->
+  <section class="screen" id="screen-solo-setup">
+    <div class="screen-inner panel-card">
+      <div class="nebula-row">
+        <div class="nebula-figure sz-md" id="nebula-solo-slot"></div>
+        <div class="bubble"><span class="bubble-name">Capitán Nébula</span>¡Prepárate, cadete! Dime tu nombre y despegamos rumbo a las estrellas.</div>
+      </div>
+      <div class="field-row">
+        <input class="field" id="solo-name" maxlength="18" placeholder="Tu nombre de astronauta">
+        <button class="btn btn-primary btn-block" id="solo-start">Comenzar misión 🚀</button>
+        <button class="btn btn-ghost btn-block" data-back="screen-menu">← Volver</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOST LOBBY -->
+  <section class="screen" id="screen-host-lobby">
+    <div class="screen-inner panel-card">
+      <div class="nebula-row">
+        <div class="nebula-figure sz-md" id="nebula-host-slot"></div>
+        <div class="bubble"><span class="bubble-name">Capitán Nébula</span>Comparte este código con tu tripulación. ¡Que suban a bordo!</div>
+      </div>
+      <p class="q-meta" style="text-align:center;">CÓDIGO DE SALA</p>
+      <div class="room-code" id="host-code">------</div>
+      <p class="q-meta" style="text-align:center;" id="host-count">0 astronautas a bordo</p>
+      <p class="q-meta" id="host-error" style="display:none; color:var(--red); text-align:center;"></p>
+      <div class="player-chips" id="host-chips"></div>
+      <div class="field-row">
+        <button class="btn btn-primary btn-block" id="host-start" disabled>Iniciar misión 🚀</button>
+        <button class="btn btn-ghost btn-block" data-back="screen-menu">← Cancelar sala</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- JOIN -->
+  <section class="screen" id="screen-join">
+    <div class="screen-inner panel-card">
+      <div class="nebula-row">
+        <div class="nebula-figure sz-md" id="nebula-join-slot"></div>
+        <div class="bubble"><span class="bubble-name">Capitán Nébula</span>Introduce el código de la nave y tu nombre de astronauta.</div>
+      </div>
+      <div class="field-row">
+        <input class="field mono" id="join-code" maxlength="6" placeholder="CÓDIGO" style="text-transform:uppercase;">
+        <input class="field" id="join-name" maxlength="18" placeholder="Tu nombre de astronauta">
+        <p class="q-meta" id="join-error" style="display:none; color:var(--red); text-align:center;"></p>
+        <button class="btn btn-primary btn-block" id="join-submit">Embarcar 🛰️</button>
+        <button class="btn btn-ghost btn-block" data-back="screen-menu">← Volver</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAYER WAITING -->
+  <section class="screen" id="screen-player-wait">
+    <div class="screen-inner panel-card" style="text-align:center;">
+      <div class="nebula-figure sz-lg" id="nebula-wait-slot" style="margin:0 auto 1rem;"></div>
+      <h2 id="player-wait-title">A bordo. Esperando al Capitán Nébula…</h2>
+      <p class="q-meta" id="player-wait-sub">Sala <span id="player-wait-code" class="mono"></span></p>
+    </div>
+  </section>
+
+  <!-- LAUNCH COUNTDOWN -->
+  <section class="screen" id="screen-launch">
+    <div class="screen-inner" style="text-align:center;">
+      <div class="rocket">🚀</div>
+      <div class="launch-num" id="launch-num">3</div>
+      <div class="launch-label" id="launch-label">Preparando despegue</div>
+    </div>
+  </section>
+
+  <!-- QUESTION -->
+  <section class="screen" id="screen-question">
+    <div class="screen-inner">
+      <div class="bonus-banner" id="bonus-banner">🌠 ¡ESTRELLA FUGAZ! Puntaje x2 🌠</div>
+      <div class="q-topbar">
+        <span class="q-meta q-progress" id="q-progress">Pregunta 1/24</span>
+        <span class="q-meta" id="q-cat">Planetas · Fácil</span>
+      </div>
+      <div class="timer-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+      <div class="meteor-track" id="meteor-track"></div>
+      <div class="q-text" id="q-text">Cargando pregunta…</div>
+      <div class="answers" id="q-answers"></div>
+      <p class="locked-note" id="q-lock-note" style="display:none;">✅ Respuesta enviada. Esperando a la tripulación…</p>
+    </div>
+  </section>
+
+  <!-- HOST QUESTION VIEW (spectator, big screen) -->
+  <section class="screen" id="screen-host-question">
+    <div class="screen-inner">
+      <div class="bonus-banner" id="host-bonus-banner">🌠 ¡ESTRELLA FUGAZ! Puntaje x2 🌠</div>
+      <div class="q-topbar">
+        <span class="q-meta q-progress" id="host-q-progress">Pregunta 1/24</span>
+        <span class="q-meta" id="host-q-answered">0/0 respondieron</span>
+      </div>
+      <div class="timer-wrap"><div class="timer-bar" id="host-timer-bar"></div></div>
+      <div class="q-text" id="host-q-text">Cargando pregunta…</div>
+      <div class="answers" id="host-q-answers"></div>
+    </div>
+  </section>
+
+  <!-- REVEAL -->
+  <section class="screen" id="screen-reveal">
+    <div class="screen-inner panel-card">
+      <div class="nebula-row" id="reveal-nebula-row">
+        <div class="nebula-figure sz-md" id="nebula-reveal-slot"></div>
+        <div class="bubble" id="reveal-bubble"><span class="bubble-name">Capitán Nébula</span>…</div>
+      </div>
+      <div class="result-badge" id="reveal-badge">✅</div>
+      <div class="result-title ok" id="reveal-title">¡Correcto!</div>
+      <div class="result-points" id="reveal-points">+900 pts</div>
+      <div id="reveal-fact" class="bubble" style="text-align:center;"></div>
+      <div class="field-row" id="reveal-actions"></div>
+    </div>
+  </section>
+
+  <!-- SCOREBOARD (between questions, multiplayer) -->
+  <section class="screen" id="screen-scoreboard">
+    <div class="screen-inner panel-card">
+      <h2 style="text-align:center;">🛰️ Marcador en vivo</h2>
+      <div class="board-list scroll-y" id="board-list"></div>
+      <div class="field-row" id="board-actions"></div>
+    </div>
+  </section>
+
+  <!-- FINAL -->
+  <section class="screen" id="screen-final">
+    <div class="screen-inner panel-card">
+      <div class="nebula-figure sz-lg" id="nebula-final-slot" style="margin:0 auto 0.6rem; display:block;"></div>
+      <div class="final-rank-badge">
+        <div class="q-meta" style="text-align:center;">MISIÓN COMPLETADA</div>
+        <div class="final-rank-name" id="final-rank-name">Cadete Espacial</div>
+        <div class="final-score" id="final-score">0 puntos</div>
+      </div>
+      <div class="board-list scroll-y" id="final-board-list"></div>
+      <div class="field-row">
+        <button class="btn btn-primary btn-block" id="final-view-top">Ver top global 🏆</button>
+        <button class="btn btn-ghost btn-block" data-back="screen-menu" id="final-menu-btn">Volver al menú</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEADERBOARD -->
+  <section class="screen" id="screen-leaderboard">
+    <div class="screen-inner panel-card">
+      <h2 style="text-align:center;">🏆 Top global</h2>
+      <div class="scroll-y">
+        <table class="lb">
+          <thead><tr><th>#</th><th>Nombre</th><th>Puntaje</th><th>Rango</th><th>Fecha</th></tr></thead>
+          <tbody id="lb-body"></tbody>
+        </table>
+        <p class="empty-note" id="lb-empty" style="display:none;">Aún no hay puntajes. ¡Sé el primero en surcar la galaxia!</p>
+      </div>
+      <div class="field-row">
+        <button class="btn btn-ghost btn-block" data-back="screen-menu">← Volver al menú</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+'use strict';
+
+/* ============================= SUPABASE ============================= */
+const SUPABASE_URL = 'https://hblsjoxujpxopendvqki.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_YMppTOwVxBZSPevoyKem2A_7CuHz62_';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ============================= BACKGROUND STARFIELD ============================= */
+(function initBg(){
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let w,h,stars=[];
+  function resize(){
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  function initStars(){
+    stars = [];
+    const count = Math.floor((w*h)/9000);
+    for(let i=0;i<count;i++){
+      stars.push({
+        x: Math.random()*w, y: Math.random()*h,
+        r: Math.random()*1.6+0.3,
+        tw: Math.random()*Math.PI*2,
+        sp: 0.01+Math.random()*0.03,
+        vy: 0.04+Math.random()*0.1
+      });
+    }
+  }
+  window.addEventListener('resize', ()=>{ resize(); initStars(); });
+  resize(); initStars();
+
+  let warpBoost = 0; // increases briefly during transitions
+  window.__triggerWarp = function(){ warpBoost = 1; };
+
+  function frame(){
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = '#050414';
+    ctx.fillRect(0,0,w,h);
+    if(warpBoost>0.02) warpBoost *= 0.92; else warpBoost = 0;
+    for(const s of stars){
+      s.tw += s.sp;
+      const alpha = 0.4 + Math.sin(s.tw)*0.4;
+      s.y += s.vy + warpBoost*14;
+      if(s.y>h){ s.y=0; s.x=Math.random()*w; }
+      ctx.beginPath();
+      if(warpBoost>0.05){
+        ctx.strokeStyle = `rgba(244,241,255,${Math.min(1,alpha+0.3)})`;
+        ctx.lineWidth = s.r;
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(s.x, s.y - warpBoost*40);
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = `rgba(244,241,255,${alpha})`;
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+/* ============================= AUDIO (synthesized, no external files) ============================= */
+let audioCtx = null;
+function ensureAudio(){
+  if(!audioCtx){
+    try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+  }
+  if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function beep(freq, dur, type, vol){
+  if(!audioCtx) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type || 'square';
+  o.frequency.value = freq;
+  g.gain.value = vol==null?0.14:vol;
+  o.connect(g); g.connect(audioCtx.destination);
+  const t0 = audioCtx.currentTime;
+  o.start(t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + (dur||0.1));
+  o.stop(t0 + (dur||0.1) + 0.02);
+}
+function sfxTick(urgent){ beep(urgent?1350:820, 0.055, 'square', 0.11); }
+function sfxCorrect(){ [660,880,1108].forEach((f,i)=> setTimeout(()=>beep(f,0.14,'triangle',0.16), i*95)); }
+function sfxWrong(){ [380,300].forEach((f,i)=> setTimeout(()=>beep(f,0.2,'sawtooth',0.13), i*120)); }
+function sfxMeteor(){ [220,160,110].forEach((f,i)=> setTimeout(()=>beep(f,0.22,'sawtooth',0.18), i*90)); }
+function sfxBonus(){ [880,1108,1320,1760].forEach((f,i)=> setTimeout(()=>beep(f,0.12,'sine',0.15), i*70)); }
+function sfxLaunch(){
+  if(!audioCtx) return;
+  const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+  o.type='sawtooth'; g.gain.value=0.001;
+  o.connect(g); g.connect(audioCtx.destination);
+  const t0 = audioCtx.currentTime;
+  o.frequency.setValueAtTime(60,t0);
+  o.frequency.exponentialRampToValueAtTime(900, t0+0.9);
+  g.gain.exponentialRampToValueAtTime(0.18, t0+0.15);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0+1.0);
+  o.start(t0); o.stop(t0+1.05);
+}
+
+/* ============================= QUESTIONS ============================= */
+const QUESTIONS = [
+  // ---- FÁCIL (20s) ----
+  { cat:'Planetas', diff:'Fácil', time:20, bonus:false,
+    q:'¿Cuál es el planeta más cercano al Sol?',
+    options:['Venus','Mercurio','Tierra','Marte'], correct:1,
+    before:'Empecemos cerca de casa, tripulación. ¡El Sol calienta fuerte aquí!',
+    after:'Mercurio da la vuelta al Sol en solo 88 días. ¡Ni tiempo de deshacer las maletas!' },
+  { cat:'Planetas', diff:'Fácil', time:20, bonus:false,
+    q:'¿Cuál es el planeta más grande del sistema solar?',
+    options:['Saturno','Neptuno','Júpiter','Urano'], correct:2,
+    before:'Preparen los motores, este gigante no pasa desapercibido.',
+    after:'Júpiter es tan grande que caben más de 1.300 Tierras dentro de él.' },
+  { cat:'Curiosidades', diff:'Fácil', time:20, bonus:true,
+    q:'¿Cómo se llama nuestra galaxia?',
+    options:['Andrómeda','Vía Láctea','Triángulo','Molinete'], correct:1,
+    before:'🌠 ¡Estrella fugaz! Esta pregunta vale doble, astronauta.',
+    after:'Vivimos en uno de sus brazos espirales, a unos 27.000 años luz del centro.' },
+  { cat:'Astronautas', diff:'Fácil', time:20, bonus:false,
+    q:'¿Quién fue el primer humano en pisar la Luna?',
+    options:['Buzz Aldrin','Yuri Gagarin','Neil Armstrong','John Glenn'], correct:2,
+    before:'Un pequeño paso para el hombre… ¿recuerdas quién lo dio?',
+    after:'"Un pequeño paso para el hombre, un gran salto para la humanidad", dijo en 1969.' },
+  { cat:'Planetas', diff:'Fácil', time:20, bonus:false,
+    q:'¿Cuál es el planeta conocido como el "planeta rojo"?',
+    options:['Marte','Venus','Júpiter','Mercurio'], correct:0,
+    before:'Su color se ve incluso desde nuestro jardín, ¡miren al cielo nocturno!',
+    after:'Su color rojizo se debe al óxido de hierro en su superficie, ¡literalmente está oxidado!' },
+  { cat:'Estrellas', diff:'Fácil', time:20, bonus:false,
+    q:'¿Qué estrella está en el centro de nuestro sistema solar?',
+    options:['Sirio','El Sol','Próxima Centauri','Polaris'], correct:1,
+    before:'Sin ella no habría despegue posible: nos da luz y calor.',
+    after:'El Sol es tan grande que podría contener más de un millón de Tierras.' },
+  { cat:'Curiosidades', diff:'Fácil', time:20, bonus:false,
+    q:'¿Qué necesitas para respirar fuera de la Tierra?',
+    options:['Nada especial','Un traje espacial con oxígeno','Solo un casco','Un paraguas'], correct:1,
+    before:'Cuestión de supervivencia básica en el vacío, cadetes.',
+    after:'Sin oxígeno ni presión, el cuerpo humano no resiste ni dos minutos en el vacío.' },
+  { cat:'Misiones', diff:'Fácil', time:20, bonus:false,
+    q:'¿Qué agencia espacial llevó al hombre a la Luna en 1969?',
+    options:['ESA','NASA','Roscosmos','SpaceX'], correct:1,
+    before:'Todo comenzó con la misión Apolo 11.',
+    after:'La misión Apolo 11 despegó el 16 de julio de 1969 desde Cabo Cañaveral.' },
+
+  // ---- MEDIA (18s) ----
+  { cat:'Planetas', diff:'Media', time:18, bonus:false,
+    q:'¿Cuántas lunas tiene Marte?',
+    options:['0','1','2','4'], correct:2,
+    before:'Marte tiene compañía, pero muy pequeña.',
+    after:'Fobos y Deimos son dos lunas diminutas, probablemente asteroides capturados.' },
+  { cat:'Agujeros negros', diff:'Media', time:18, bonus:false,
+    q:'¿Qué es el "horizonte de sucesos" de un agujero negro?',
+    options:['Su núcleo','El límite del que nada escapa, ni la luz','Su anillo de polvo','Una estrella vecina'], correct:1,
+    before:'Cuidado, tripulación: pasado este punto no hay retorno.',
+    after:'Ni siquiera la luz puede escapar una vez que cruza el horizonte de sucesos.' },
+  { cat:'Galaxias', diff:'Media', time:18, bonus:true,
+    q:'¿Con qué galaxia chocará la Vía Láctea en miles de millones de años?',
+    options:['Andrómeda','Triángulo','Sombrero','Rueda de Carro'], correct:0,
+    before:'🌠 ¡Estrella fugaz! Doble puntaje para esta colisión cósmica.',
+    after:'Se espera esa fusión galáctica dentro de unos 4.500 millones de años.' },
+  { cat:'Estrellas', diff:'Media', time:18, bonus:false,
+    q:'¿Qué es una supernova?',
+    options:['Una estrella recién nacida','La explosión final de una estrella masiva','Un tipo de planeta','Una nave espacial'], correct:1,
+    before:'¡Sujétense fuerte, esto va a hacer mucho ruido cósmico!',
+    after:'Una supernova puede brillar más que una galaxia entera durante unas semanas.' },
+  { cat:'Misiones', diff:'Media', time:18, bonus:false,
+    q:'¿Cómo se llama el famoso telescopio espacial lanzado en 1990?',
+    options:['James Webb','Kepler','Hubble','Spitzer'], correct:2,
+    before:'Este telescopio nos regaló las fotos más icónicas del cosmos.',
+    after:'El Hubble sigue orbitando la Tierra y enviando imágenes tras más de 30 años.' },
+  { cat:'Astronautas', diff:'Media', time:18, bonus:false,
+    q:'¿Qué mujer fue la primera en viajar al espacio?',
+    options:['Sally Ride','Valentina Tereshkova','Mae Jemison','Peggy Whitson'], correct:1,
+    before:'Una pionera soviética abrió camino a las estrellas.',
+    after:'Valentina Tereshkova voló en 1963 a bordo de la Vostok 6.' },
+  { cat:'Planetas', diff:'Media', time:18, bonus:false,
+    q:'¿Qué planeta gira "acostado" casi de lado sobre su eje?',
+    options:['Neptuno','Saturno','Urano','Venus'], correct:2,
+    before:'Este planeta parece haber recibido un golpe cósmico gigante.',
+    after:'Urano está inclinado 98°, probablemente por un impacto hace miles de millones de años.' },
+  { cat:'Curiosidades', diff:'Media', time:18, bonus:false,
+    q:'¿Cuánto tarda la luz del Sol en llegar a la Tierra?',
+    options:['8 minutos','1 segundo','1 hora','8 segundos'], correct:0,
+    before:'Cuando ves el atardecer, en realidad ves el pasado.',
+    after:'Viajando a 300.000 km/s, la luz solar tarda unos 8 minutos y 20 segundos en llegar.' },
+
+  // ---- DIFÍCIL (15s) ----
+  { cat:'Agujeros negros', diff:'Difícil', time:15, bonus:false,
+    q:'¿Cómo se llama el agujero negro supermasivo en el centro de la Vía Láctea?',
+    options:['Cygnus X-1','Sagitario A*','M87*','TON 618'], correct:1,
+    before:'En el corazón de nuestra galaxia acecha un gigante invisible.',
+    after:'Sagitario A* tiene una masa de más de 4 millones de soles.' },
+  { cat:'Misiones', diff:'Difícil', time:15, bonus:true,
+    q:'¿Qué proyecto tomó la primera imagen real de un agujero negro en 2019?',
+    options:['Voyager 1','Event Horizon Telescope','New Horizons','Kepler'], correct:1,
+    before:'🌠 ¡Estrella fugaz! Un hito histórico vale doble puntaje.',
+    after:'El Event Horizon Telescope fotografió la sombra del agujero negro M87*.' },
+  { cat:'Estrellas', diff:'Difícil', time:15, bonus:false,
+    q:'¿Cómo se llaman las estrellas que giran muy rápido y emiten pulsos de radiación?',
+    options:['Cuásares','Púlsares','Cefeidas','Enanas blancas'], correct:1,
+    before:'Imaginen un faro cósmico girando miles de veces por segundo.',
+    after:'Algunos púlsares giran más de 700 veces por segundo. ¡Todo un espectáculo!' },
+  { cat:'Galaxias', diff:'Difícil', time:15, bonus:false,
+    q:'¿Qué tipo de galaxia es la Vía Láctea?',
+    options:['Elíptica','Irregular','Espiral barrada','Lenticular'], correct:2,
+    before:'Nuestro hogar galáctico tiene una forma muy particular.',
+    after:'Tiene una barra central de estrellas de la que emergen sus brazos espirales.' },
+  { cat:'Misiones', diff:'Difícil', time:15, bonus:false,
+    q:'¿Cuál fue la primera nave en salir del sistema solar hacia el espacio interestelar?',
+    options:['Voyager 1','Apollo 11','Cassini','Pioneer 10'], correct:0,
+    before:'Lanzada en 1977, sigue viajando más lejos que cualquier otra nave.',
+    after:'La Voyager 1 cruzó al espacio interestelar en 2012 y sigue enviando datos.' },
+  { cat:'Astronautas', diff:'Difícil', time:15, bonus:false,
+    q:'¿Aproximadamente cuánto tiempo pasó Valentina Tereshkova en órbita en 1963?',
+    options:['1 día','3 días','3 semanas','6 meses'], correct:1,
+    before:'Casi 3 días sola, dando vueltas a la Tierra a toda velocidad.',
+    after:'Orbitó la Tierra 48 veces en cerca de 3 días, un récord para la época.' },
+  { cat:'Curiosidades', diff:'Difícil', time:15, bonus:false,
+    q:'¿Cuál es la temperatura aproximada de la superficie del Sol?',
+    options:['500 °C','1.000 °C','5.500 °C','15.000 °C'], correct:2,
+    before:'Ni el mejor traje espacial aguantaría un abrazo solar.',
+    after:'Su núcleo, en cambio, alcanza unos 15 millones de grados centígrados.' },
+  { cat:'Planetas', diff:'Difícil', time:15, bonus:false,
+    q:'¿Qué planeta tiene actualmente más lunas confirmadas?',
+    options:['Júpiter','Saturno','Urano','Neptuno'], correct:1,
+    before:'Última pregunta de esta misión, ¡den lo mejor de ustedes!',
+    after:'Saturno superó a Júpiter con más de 140 lunas confirmadas y sigue sumando.' },
+];
+
+const CORRECT_LINES = [
+  '¡Impecable, astronauta! Ese acierto brilla más que una supernova. ✨',
+  '¡Directo al blanco! Hasta mi casco vibró de la emoción. 🪖',
+  '¡Excelente maniobra! Te ganaste una vuelta de honor alrededor de Saturno. 🪐',
+  '¡Certero como un cometa! Sigamos rumbo a las estrellas. ☄️',
+  '¡Bien hecho! Ese cerebro tuyo orbita a la velocidad de la luz. 🧠💫',
+  '¡Perfecto! Hasta los marcianos aplaudieron esa respuesta. 👽👏'
+];
+const WRONG_LINES = [
+  '¡Ups! Hasta yo choqué una vez contra un asteroide. Seguimos volando. 🌠',
+  'Casi, casi… te desviaste un par de años luz. ¡A por la próxima! 🛰️',
+  '¡No pasa nada! Hasta la Voyager se perdió alguna curva. Continuemos. 🚀',
+  'Esa respuesta se quedó flotando en el vacío. ¡Ánimo, tripulación! 🌌',
+  '¡Auch! Eso dolió menos que una lluvia de meteoritos. Sigue así. ☄️',
+  'Buen intento, cadete. Hasta las estrellas necesitan millones de años para brillar. ⭐'
+];
+const METEOR_WARN = '☄️ ¡Cuidado! Dos fallos seguidos… el próximo error te costará puntos.';
+const METEOR_HIT = '☄️ ¡Impacto de meteorito! Perdiste puntos por la racha de fallos.';
+
+const RANKS = [
+  { name:'Cadete Espacial', min:0 },
+  { name:'Piloto de Cohete', min:3000 },
+  { name:'Explorador Galáctico', min:8000 },
+  { name:'Comandante Estelar', min:14000 },
+  { name:'Leyenda Cósmica', min:20000 },
+];
+function rankFor(score){
+  let r = RANKS[0];
+  for(const x of RANKS){ if(score>=x.min) r = x; }
+  return r;
+}
+
+/* ============================= UTILITIES ============================= */
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function makeRoomCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s='';
+  for(let i=0;i<6;i++) s += chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+function fmtDate(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+function shuffledQuestion(src){
+  const order = shuffle([0,1,2,3]);
+  const options = order.map(i=>src.options[i]);
+  const correct = order.indexOf(src.correct);
+  return Object.assign({}, src, { options, correct });
+}
+const SHAPES = ['▲','◆','●','■'];
+
+/* ============================= NEBULA AVATAR ============================= */
+function nebulaAvatarHTML(){
+  return '' +
+    '<svg class="nebula-fallback" viewBox="0 0 200 200" aria-hidden="true">' +
+      '<defs>' +
+        '<radialGradient id="visor" cx="35%" cy="30%" r="75%">' +
+          '<stop offset="0%" stop-color="#4fd6ff"/>' +
+          '<stop offset="100%" stop-color="#0a3d66"/>' +
+        '</radialGradient>' +
+      '</defs>' +
+      '<circle cx="100" cy="100" r="92" fill="#eef1f8"/>' +
+      '<circle cx="100" cy="100" r="92" fill="none" stroke="#8a5cff" stroke-width="6"/>' +
+      '<circle cx="100" cy="106" r="62" fill="url(#visor)"/>' +
+      '<circle cx="80" cy="90" r="8" fill="#fff" opacity="0.6"/>' +
+      '<path d="M40 150 q60 40 120 0" fill="none" stroke="#8a5cff" stroke-width="8" stroke-linecap="round"/>' +
+      '<circle cx="100" cy="24" r="10" fill="#ff4da6"/>' +
+    '</svg>' +
+    '<img class="nebula-photo" src="assets/capitan-nebula.png" alt="Capitán Nébula" onerror="this.remove()">';
+}
+document.querySelectorAll('[id^="nebula-"][id$="-slot"]').forEach(el=>{ el.innerHTML = nebulaAvatarHTML(); });
+document.getElementById('nebula-menu-slot').innerHTML = '<div class="nebula-figure sz-lg" style="margin:0 auto;">'+nebulaAvatarHTML()+'</div>';
+
+/* ============================= LEADERBOARD (Supabase) ============================= */
+async function loadLB(){
+  const { data, error } = await sb.from('leaderboard')
+    .select('name,score,rank,created_at')
+    .order('score', { ascending:false })
+    .limit(50);
+  if(error){ console.error('[cosmoquiz] loadLB error', error); return []; }
+  return (data||[]).map(r=> ({ name:r.name, score:r.score, rank:r.rank, date:new Date(r.created_at).getTime() }));
+}
+async function saveLBEntry(entry){
+  const { error } = await sb.from('leaderboard').insert({ name:entry.name, score:entry.score, rank:entry.rank });
+  if(error) console.error('[cosmoquiz] saveLBEntry error', error);
+}
+async function renderLeaderboard(){
+  const body = document.getElementById('lb-body');
+  const empty = document.getElementById('lb-empty');
+  empty.style.display = 'none';
+  body.innerHTML = '<tr><td colspan="5" class="empty-note">Cargando…</td></tr>';
+  const lb = await loadLB();
+  if(!lb.length){ body.innerHTML=''; empty.style.display='block'; return; }
+  body.innerHTML = lb.slice(0,20).map((e,i)=>
+    `<tr><td>${i+1}</td><td>${escapeHtml(e.name)}</td><td class="mono">${e.score}</td><td>${escapeHtml(e.rank)}</td><td class="mono">${fmtDate(e.date)}</td></tr>`
+  ).join('');
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ============================= SCREEN NAV ============================= */
+function showScreen(id, warp){
+  const cur = document.querySelector('.screen.active');
+  const next = document.getElementById(id);
+  if(cur === next) return;
+  if(warp) window.__triggerWarp();
+  if(cur){ cur.classList.remove('active'); }
+  next.classList.add('active');
+  next.classList.remove('warp-in');
+  void next.offsetWidth;
+  next.classList.add('warp-in');
+}
+document.querySelectorAll('[data-back]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    App.teardownRoom();
+    showScreen(btn.getAttribute('data-back'));
+  });
+});
+
+/* ============================= APP STATE ============================= */
+const App = {
+  mode:null, // 'solo' | 'host' | 'player'
+  channel:null, // supabase realtime channel
+  code:null,
+  playerId:null,
+  playerName:'',
+  order:[],
+  qIndex:-1,
+  currentQuestion:null,
+  deadline:0,
+  timerHandle:null,
+  tickSecondsLeft:-1,
+  answered:false,
+  score:0,
+  failStreak:0,
+  hostPlayers: new Map(), // id -> {name, score, failStreak, answered}
+  hostAnswersThisQ: new Map(),
+  _launching:false,
+  _finalized:false,
+  teardownRoom(){
+    if(this.channel){ sb.removeChannel(this.channel); this.channel=null; }
+    this.mode=null; this.code=null; this.hostPlayers.clear();
+    this._launching=false; this._finalized=false;
+  }
+};
+
+function buildProgressiveOrder(){
+  const easy = shuffle(QUESTIONS.filter(q=>q.diff==='Fácil'));
+  const med = shuffle(QUESTIONS.filter(q=>q.diff==='Media'));
+  const hard = shuffle(QUESTIONS.filter(q=>q.diff==='Difícil'));
+  return easy.concat(med, hard).map(shuffledQuestion);
+}
+
+/* Deterministic per-room question order + option shuffle, seeded by the room
+   code, so every device that joins the same room independently computes the
+   exact same sequence (question content never needs to travel through the
+   database — only the current question index + deadline do). */
+function seedFromCode(code){
+  let h = 0;
+  for(let i=0;i<code.length;i++){ h = (Math.imul(31,h) + code.charCodeAt(i))|0; }
+  return h>>>0;
+}
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = (seed + 0x6D2B79F5)|0;
+    let t = Math.imul(seed ^ seed>>>15, 1 | seed);
+    t = (t + Math.imul(t ^ t>>>7, 61 | t)) ^ t;
+    return ((t ^ t>>>14) >>> 0) / 4294967296;
+  };
+}
+function shuffleSeeded(arr, rnd){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j = Math.floor(rnd()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function buildProgressiveOrderForRoom(code){
+  const rnd = mulberry32(seedFromCode(code));
+  const easy = shuffleSeeded(QUESTIONS.filter(q=>q.diff==='Fácil'), rnd);
+  const med  = shuffleSeeded(QUESTIONS.filter(q=>q.diff==='Media'), rnd);
+  const hard = shuffleSeeded(QUESTIONS.filter(q=>q.diff==='Difícil'), rnd);
+  return easy.concat(med, hard).map(q=>{
+    const order = shuffleSeeded([0,1,2,3], rnd);
+    const options = order.map(i=>q.options[i]);
+    const correct = order.indexOf(q.correct);
+    return Object.assign({}, q, { options, correct });
+  });
+}
+
+/* ============================= MENU HANDLERS ============================= */
+document.getElementById('btn-solo').addEventListener('click', ()=>{ ensureAudio(); showScreen('screen-solo-setup', true); });
+document.getElementById('btn-host').addEventListener('click', ()=>{ ensureAudio(); startHostLobby(); });
+document.getElementById('btn-join').addEventListener('click', ()=>{ ensureAudio(); showScreen('screen-join', true); });
+document.getElementById('btn-top').addEventListener('click', ()=>{ renderLeaderboard(); showScreen('screen-leaderboard', true); });
+document.getElementById('final-view-top').addEventListener('click', ()=>{ renderLeaderboard(); showScreen('screen-leaderboard', true); });
+
+/* ============================= SOLO MODE ============================= */
+document.getElementById('solo-start').addEventListener('click', ()=>{
+  const name = document.getElementById('solo-name').value.trim() || 'Cadete';
+  App.mode = 'solo';
+  App.playerName = name;
+  App.score = 0;
+  App.failStreak = 0;
+  App.order = buildProgressiveOrder();
+  App.qIndex = -1;
+  runLaunchCountdown(()=> soloNext());
+});
+
+function soloNext(){
+  App.qIndex++;
+  if(App.qIndex >= App.order.length){ return soloFinish(); }
+  App.currentQuestion = App.order[App.qIndex];
+  App.answered = false;
+  showScreen('screen-question', true);
+  renderQuestion(App.currentQuestion, 'solo');
+  startTimer(App.currentQuestion.time, onSoloTimeout);
+}
+function onSoloTimeout(){
+  if(App.answered) return;
+  handleSoloAnswer(-1);
+}
+function soloAnswerClick(idx){
+  if(App.answered) return;
+  App.answered = true;
+  handleSoloAnswer(idx);
+}
+function handleSoloAnswer(idx){
+  stopTimer();
+  const q = App.currentQuestion;
+  const correct = idx === q.correct;
+  const timeLeftMs = Math.max(0, App.deadline - Date.now());
+  const result = scoreAnswer(correct, timeLeftMs, q.time*1000, q.bonus, App.failStreak);
+  App.score += result.points;
+  App.failStreak = correct ? 0 : (result.meteor ? 0 : App.failStreak+1);
+  markAnswerButtons(idx, q.correct);
+  setTimeout(()=>{
+    renderReveal({ correct, points:result.points, meteor:result.meteor, question:q, totalScore:App.score, onNext:()=> soloNext() });
+    showScreen('screen-reveal', true);
+  }, 700);
+}
+async function soloFinish(){
+  const rank = rankFor(App.score);
+  showScreen('screen-final', true);
+  document.getElementById('final-rank-name').textContent = rank.name;
+  document.getElementById('final-score').textContent = App.score + ' puntos';
+  document.getElementById('nebula-final-slot').innerHTML = nebulaAvatarHTML();
+  document.getElementById('final-board-list').innerHTML = '<p class="q-meta" style="text-align:center;">Guardando puntaje…</p>';
+  launchConfetti();
+  await saveLBEntry({ name:App.playerName, score:App.score, rank:rank.name });
+  const lb = (await loadLB()).slice(0,5);
+  const list = document.getElementById('final-board-list');
+  list.innerHTML = '<p class="q-meta" style="text-align:center;">Top 5 global</p>' + lb.map((e,i)=>
+    `<div class="board-row"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(e.name)}</span><span class="board-score">${e.score}</span></div>`
+  ).join('');
+}
+
+/* ============================= HOST MODE (Supabase) ============================= */
+async function startHostLobby(){
+  App.teardownRoom();
+  App.mode = 'host';
+  App.code = makeRoomCode();
+  App.order = buildProgressiveOrderForRoom(App.code);
+  App.qIndex = -1;
+  App.hostPlayers.clear();
+  document.getElementById('host-code').textContent = App.code;
+  document.getElementById('host-chips').innerHTML = '';
+  document.getElementById('host-count').textContent = '0 astronautas a bordo';
+  document.getElementById('host-start').disabled = true;
+  document.getElementById('host-error').style.display = 'none';
+  showScreen('screen-host-lobby', true);
+
+  const { error } = await sb.from('rooms').insert({ code:App.code, status:'waiting', question_index:-1 });
+  if(error){
+    console.error('[cosmoquiz] create room error', error);
+    const errEl = document.getElementById('host-error');
+    errEl.textContent = 'No se pudo crear la sala (revisa que las tablas de Supabase existan). ' + error.message;
+    errEl.style.display = 'block';
+    return;
+  }
+
+  App.channel = sb.channel('room-'+App.code)
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'players', filter:`room_code=eq.${App.code}` }, (payload)=>{
+      const p = payload.new;
+      if(!App.hostPlayers.has(p.id)) App.hostPlayers.set(p.id, { name:p.name, score:0, failStreak:0, answered:false });
+      renderHostLobby();
+    })
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'answers', filter:`room_code=eq.${App.code}` }, (payload)=>{
+      const a = payload.new;
+      if(a.question_index !== App.qIndex) return;
+      App.hostAnswersThisQ.set(a.player_id, true);
+      const p = App.hostPlayers.get(a.player_id);
+      if(p) p.answered = true;
+      updateHostAnsweredCount();
+    })
+    .subscribe();
+
+  // Catch up on anyone who joined in the instant before the subscription was live.
+  const { data: existingPlayers } = await sb.from('players').select('id,name').eq('room_code', App.code);
+  (existingPlayers||[]).forEach(p=>{ if(!App.hostPlayers.has(p.id)) App.hostPlayers.set(p.id, { name:p.name, score:0, failStreak:0, answered:false }); });
+  renderHostLobby();
+}
+function renderHostLobby(){
+  const chips = document.getElementById('host-chips');
+  chips.innerHTML = Array.from(App.hostPlayers.values()).map(p=>`<span class="chip">🧑‍🚀 ${escapeHtml(p.name)}</span>`).join('');
+  document.getElementById('host-count').textContent = App.hostPlayers.size + ' astronauta' + (App.hostPlayers.size===1?'':'s') + ' a bordo';
+  document.getElementById('host-start').disabled = App.hostPlayers.size === 0;
+}
+document.getElementById('host-start').addEventListener('click', async ()=>{
+  document.getElementById('host-start').disabled = true;
+  await sb.from('rooms').update({ status:'launch' }).eq('code', App.code);
+  runLaunchCountdown(()=> hostNext());
+});
+
+async function hostNext(){
+  App.qIndex++;
+  if(App.qIndex >= App.order.length){ return hostFinish(); }
+  App.currentQuestion = App.order[App.qIndex];
+  App.hostAnswersThisQ = new Map();
+  App.hostPlayers.forEach(p=> p.answered=false);
+  const deadline = Date.now() + App.currentQuestion.time*1000 + 400; // buffer for network latency
+  App.deadline = deadline;
+  showScreen('screen-host-question', true);
+  renderHostQuestion(App.currentQuestion);
+  startTimer(App.currentQuestion.time, ()=> hostReveal());
+  await sb.from('rooms').update({ status:'playing', question_index:App.qIndex, question_deadline:new Date(deadline).toISOString() }).eq('code', App.code);
+}
+function updateHostAnsweredCount(){
+  const el = document.getElementById('host-q-answered');
+  if(el) el.textContent = App.hostAnswersThisQ.size + '/' + App.hostPlayers.size + ' respondieron';
+}
+async function hostReveal(){
+  stopTimer();
+  const { data: playersRows, error: pErr } = await sb.from('players').select('id,name,score').eq('room_code', App.code);
+  if(pErr) console.error('[cosmoquiz] fetch players error', pErr);
+  const scoreboard = (playersRows||[]).map(p=>({ id:p.id, name:p.name, score:p.score })).sort((a,b)=> b.score-a.score);
+
+  renderHostScoreboard(scoreboard);
+  showScreen('screen-scoreboard', true);
+  await sb.from('rooms').update({ status:'scoreboard' }).eq('code', App.code);
+
+  const actions = document.getElementById('board-actions');
+  const isLast = App.qIndex >= App.order.length-1;
+  actions.innerHTML = '';
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-primary btn-block';
+  btn.textContent = isLast ? 'Ver resultados finales 🏁' : 'Siguiente pregunta ➜';
+  btn.addEventListener('click', ()=> isLast ? hostFinish() : hostNext());
+  actions.appendChild(btn);
+}
+function renderHostScoreboard(scoreboard){
+  const list = document.getElementById('board-list');
+  list.innerHTML = scoreboard.map((p,i)=>
+    `<div class="board-row"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(p.name)}</span><span class="board-score">${p.score}</span></div>`
+  ).join('') || '<p class="empty-note">Sin jugadores.</p>';
+}
+async function hostFinish(){
+  const { data: playersRows } = await sb.from('players').select('id,name,score').eq('room_code', App.code);
+  const scoreboard = (playersRows||[]).map(p=>({ id:p.id, name:p.name, score:p.score })).sort((a,b)=> b.score-a.score);
+  await sb.from('rooms').update({ status:'finished' }).eq('code', App.code);
+
+  document.getElementById('final-rank-name').textContent = 'Misión de tripulación finalizada';
+  document.getElementById('final-score').textContent = scoreboard.length + ' astronautas completaron la misión';
+  document.getElementById('nebula-final-slot').innerHTML = nebulaAvatarHTML();
+  const list = document.getElementById('final-board-list');
+  list.innerHTML = scoreboard.map((p,i)=>{
+    const rank = rankFor(p.score);
+    return `<div class="board-row"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(p.name)} — ${escapeHtml(rank.name)}</span><span class="board-score">${p.score}</span></div>`;
+  }).join('');
+  launchConfetti();
+  showScreen('screen-final', true);
+}
+function renderHostQuestion(q){
+  document.getElementById('host-q-progress').textContent = `Pregunta ${App.qIndex+1}/${App.order.length}`;
+  document.getElementById('host-q-text').textContent = q.q;
+  document.getElementById('host-bonus-banner').classList.toggle('show', !!q.bonus);
+  updateHostAnsweredCount();
+  const wrap = document.getElementById('host-q-answers');
+  wrap.innerHTML = '';
+  q.options.forEach((opt,i)=>{
+    const b = document.createElement('div');
+    b.className = 'ans a'+i;
+    b.innerHTML = `<span class="shape">${SHAPES[i]}</span><span>${escapeHtml(opt)}</span>`;
+    wrap.appendChild(b);
+  });
+}
+
+/* ============================= JOIN / PLAYER MODE (Supabase) ============================= */
+document.getElementById('join-submit').addEventListener('click', async ()=>{
+  const codeInput = document.getElementById('join-code');
+  const errEl = document.getElementById('join-error');
+  const code = codeInput.value.trim().toUpperCase();
+  const name = document.getElementById('join-name').value.trim() || 'Cadete';
+  errEl.style.display = 'none';
+  if(code.length < 4){ codeInput.focus(); return; }
+
+  const submitBtn = document.getElementById('join-submit');
+  submitBtn.disabled = true;
+  try{
+    const { data: room, error: roomErr } = await sb.from('rooms').select('*').eq('code', code).maybeSingle();
+    if(roomErr || !room){
+      errEl.textContent = 'No encontramos esa sala. Verifica el código con tu Capitán Nébula.';
+      errEl.style.display = 'block';
+      return;
+    }
+    const { data: playerRow, error: joinErr } = await sb.from('players')
+      .insert({ room_code:code, name })
+      .select('id')
+      .single();
+    if(joinErr){
+      console.error('[cosmoquiz] join error', joinErr);
+      errEl.textContent = 'No se pudo unir a la sala. Intenta de nuevo.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    App.teardownRoom();
+    App.mode = 'player';
+    App.code = code;
+    App.playerId = playerRow.id;
+    App.playerName = name;
+    App.score = 0;
+    App.failStreak = 0;
+    App.order = buildProgressiveOrderForRoom(code);
+    App.qIndex = -1;
+
+    App.channel = sb.channel('room-'+code)
+      .on('postgres_changes', { event:'UPDATE', schema:'public', table:'rooms', filter:`code=eq.${code}` }, (payload)=> handleRoomUpdate(payload.new))
+      .subscribe();
+
+    document.getElementById('player-wait-code').textContent = code;
+    document.getElementById('player-wait-title').textContent = `¡Hola, ${name}! A bordo.`;
+    showScreen('screen-player-wait', true);
+
+    // In case the room already moved past "waiting" before we subscribed.
+    handleRoomUpdate(room);
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
+function handleRoomUpdate(room){
+  if(room.status === 'launch' && App.qIndex === -1 && !App._launching){
+    App._launching = true;
+    runLaunchCountdown(()=>{ App._launching = false; showScreen('screen-player-wait', true); });
+    return;
+  }
+  if(room.status === 'playing' && room.question_index != null && room.question_index !== App.qIndex && room.question_index < App.order.length){
+    App.qIndex = room.question_index;
+    App.currentQuestion = App.order[App.qIndex];
+    App.deadline = new Date(room.question_deadline).getTime();
+    App.answered = false;
+    showScreen('screen-question', true);
+    renderQuestion(App.currentQuestion, 'player', App.qIndex, App.order.length);
+    startTimer(App.currentQuestion.time, ()=>{ if(!App.answered) playerTimeout(); }, App.deadline);
+    return;
+  }
+  if(room.status === 'finished'){
+    finalizeForPlayer();
+  }
+}
+
+async function playerAnswerClick(idx){
+  if(App.answered) return;
+  App.answered = true;
+  markLocked();
+  document.getElementById('q-lock-note').style.display = 'block';
+  await submitPlayerAnswer(idx);
+}
+async function playerTimeout(){
+  if(App.answered) return;
+  App.answered = true;
+  await submitPlayerAnswer(-1);
+}
+async function submitPlayerAnswer(idx){
+  stopTimer();
+  const q = App.currentQuestion;
+  const correct = idx === q.correct;
+  const timeLeftMs = Math.max(0, App.deadline - Date.now());
+  const result = scoreAnswer(correct, timeLeftMs, q.time*1000, q.bonus, App.failStreak);
+
+  const { error: ansErr } = await sb.from('answers').insert({
+    room_code: App.code, player_id: App.playerId, question_index: App.qIndex,
+    option_index: idx, is_correct: correct, points: result.points
+  });
+  if(ansErr) console.error('[cosmoquiz] submit answer error', ansErr);
+
+  App.score += result.points;
+  App.failStreak = correct ? 0 : (result.meteor ? 0 : App.failStreak+1);
+  const { error: updErr } = await sb.from('players').update({ score:App.score, fail_streak:App.failStreak }).eq('id', App.playerId);
+  if(updErr) console.error('[cosmoquiz] update score error', updErr);
+
+  markAnswerButtons(idx, q.correct);
+
+  const { data: playersRows } = await sb.from('players').select('id,score').eq('room_code', App.code);
+  const scoreboard = (playersRows||[]).sort((a,b)=> b.score-a.score);
+  const position = scoreboard.findIndex(p=>p.id===App.playerId)+1;
+
+  setTimeout(()=>{
+    renderReveal({
+      correct, points: result.points, meteor: result.meteor, question: q, totalScore: App.score,
+      position, totalPlayers: scoreboard.length, waitingForHost: true
+    });
+    showScreen('screen-reveal', true);
+  }, 400);
+}
+
+async function finalizeForPlayer(){
+  if(App._finalized) return;
+  App._finalized = true;
+  const { data: playersRows } = await sb.from('players').select('id,name,score').eq('room_code', App.code);
+  const scoreboard = (playersRows||[]).sort((a,b)=> b.score-a.score);
+  const rank = rankFor(App.score);
+
+  document.getElementById('final-rank-name').textContent = rank.name;
+  document.getElementById('final-score').textContent = App.score + ' puntos';
+  document.getElementById('nebula-final-slot').innerHTML = nebulaAvatarHTML();
+  const list = document.getElementById('final-board-list');
+  list.innerHTML = scoreboard.map((p,i)=>
+    `<div class="board-row ${p.id===App.playerId?'me':''}"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(p.name)}</span><span class="board-score">${p.score}</span></div>`
+  ).join('');
+  launchConfetti();
+  showScreen('screen-final', true);
+
+  await saveLBEntry({ name:App.playerName, score:App.score, rank:rank.name });
+}
+
+/* ============================= SHARED SCORING ============================= */
+function scoreAnswer(correct, timeLeftMs, timeLimitMs, bonus, failStreakBefore){
+  if(!correct){
+    if(failStreakBefore >= 2){
+      sfxMeteor();
+      return { points:-300, meteor:true };
+    }
+    return { points:0, meteor:false };
+  }
+  const frac = Math.max(0, Math.min(1, timeLeftMs/timeLimitMs));
+  let pts = Math.round(500 + 500*frac);
+  if(bonus) pts *= 2;
+  return { points:pts, meteor:false };
+}
+
+/* ============================= QUESTION RENDERING ============================= */
+function renderQuestion(q, role, qIndexOverride, totalOverride){
+  const qi = qIndexOverride!=null ? qIndexOverride : App.qIndex;
+  const total = totalOverride!=null ? totalOverride : App.order.length;
+  document.getElementById('q-progress').textContent = `Pregunta ${qi+1}/${total}`;
+  document.getElementById('q-cat').textContent = `${q.cat} · ${q.diff}`;
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('bonus-banner').classList.toggle('show', !!q.bonus);
+  document.getElementById('q-lock-note').style.display = 'none';
+
+  const meteorTrack = document.getElementById('meteor-track');
+  meteorTrack.innerHTML = [0,1].map(i=> `<span class="${App.failStreak>i?'hit':''}">☄️</span>`).join('');
+
+  const wrap = document.getElementById('q-answers');
+  wrap.innerHTML = '';
+  q.options.forEach((opt,i)=>{
+    const b = document.createElement('button');
+    b.className = 'ans a'+i;
+    b.innerHTML = `<span class="shape">${SHAPES[i]}</span><span>${escapeHtml(opt)}</span>`;
+    b.addEventListener('click', ()=>{
+      if(role==='solo') soloAnswerClick(i);
+      else if(role==='player') { playerAnswerClick(i); markPicked(i); }
+    });
+    wrap.appendChild(b);
+  });
+}
+function markPicked(idx){
+  document.querySelectorAll('#q-answers .ans').forEach((b,i)=>{
+    b.disabled = true;
+    if(i===idx) b.classList.add('picked');
+  });
+}
+function markLocked(){
+  document.querySelectorAll('#q-answers .ans').forEach(b=> b.disabled = true);
+}
+function markAnswerButtons(pickedIdx, correctIdx){
+  document.querySelectorAll('#q-answers .ans').forEach((b,i)=>{
+    b.disabled = true;
+    if(i===correctIdx) b.classList.add('correct');
+    else if(i===pickedIdx) b.classList.add('wrong');
+  });
+  if(pickedIdx === correctIdx) sfxCorrect(); else if(pickedIdx!==-2) sfxWrong();
+}
+
+/* ============================= TIMER ============================= */
+function startTimer(seconds, onTimeout, absoluteDeadline){
+  stopTimer();
+  App.deadline = absoluteDeadline || (Date.now() + seconds*1000);
+  const total = App.deadline - Date.now();
+  const bar = document.getElementById('timer-bar');
+  const hostBar = document.getElementById('host-timer-bar');
+  App.tickSecondsLeft = Math.ceil(total/1000);
+  App.timerHandle = setInterval(()=>{
+    const remain = App.deadline - Date.now();
+    const frac = Math.max(0, Math.min(1, remain/total));
+    if(bar) bar.style.width = (frac*100)+'%';
+    if(hostBar) hostBar.style.width = (frac*100)+'%';
+    const urgent = frac < 0.3;
+    if(bar) bar.classList.toggle('urgent', urgent);
+    if(hostBar) hostBar.classList.toggle('urgent', urgent);
+    const secLeft = Math.ceil(remain/1000);
+    if(secLeft !== App.tickSecondsLeft && secLeft>=0){
+      App.tickSecondsLeft = secLeft;
+      sfxTick(urgent);
+    }
+    if(remain<=0){
+      stopTimer();
+      onTimeout && onTimeout();
+    }
+  }, 100);
+}
+function stopTimer(){ if(App.timerHandle){ clearInterval(App.timerHandle); App.timerHandle=null; } }
+
+/* ============================= LAUNCH COUNTDOWN ============================= */
+function runLaunchCountdown(cb){
+  const screen = document.getElementById('screen-launch');
+  const num = document.getElementById('launch-num');
+  const label = document.getElementById('launch-label');
+  screen.classList.remove('launching');
+  showScreen('screen-launch', true);
+  let n = 3;
+  num.textContent = n;
+  label.textContent = 'Preparando despegue';
+  sfxTick(false);
+  const iv = setInterval(()=>{
+    n--;
+    if(n>0){ num.textContent = n; sfxTick(n===1); }
+    else {
+      clearInterval(iv);
+      num.textContent = '¡Despegue!';
+      label.textContent = 'Rumbo a las estrellas';
+      sfxLaunch();
+      screen.classList.add('launching');
+      setTimeout(()=>{ cb(); }, 900);
+    }
+  }, 700);
+}
+
+/* ============================= REVEAL RENDERING ============================= */
+function renderReveal(opts){
+  const { correct, points, meteor, question, totalScore, onNext, position, totalPlayers, waitingForHost } = opts;
+  document.getElementById('nebula-reveal-slot').innerHTML = nebulaAvatarHTML();
+  document.getElementById('reveal-badge').textContent = correct ? '✅' : (meteor ? '☄️' : '❌');
+  const title = document.getElementById('reveal-title');
+  title.textContent = correct ? '¡Correcto!' : (meteor ? '¡Impacto de meteorito!' : 'Incorrecto');
+  title.className = 'result-title ' + (correct ? 'ok' : 'no');
+  const ptsEl = document.getElementById('reveal-points');
+  ptsEl.textContent = (points>=0?'+':'') + points + ' pts · Total: ' + totalScore;
+  if(question.bonus && correct) ptsEl.textContent += '  🌠 x2';
+
+  const bubble = document.getElementById('reveal-bubble');
+  let line = correct ? pick(CORRECT_LINES) : pick(WRONG_LINES);
+  if(meteor) line = METEOR_HIT;
+  else if(!correct && App.failStreak===2) line = METEOR_WARN;
+  bubble.innerHTML = '<span class="bubble-name">Capitán Nébula</span>' + escapeHtml(line);
+
+  const factEl = document.getElementById('reveal-fact');
+  factEl.textContent = '💫 ' + question.after;
+
+  const actions = document.getElementById('reveal-actions');
+  actions.innerHTML = '';
+  if(waitingForHost){
+    const p = document.createElement('p');
+    p.className = 'q-meta';
+    p.style.textAlign = 'center';
+    p.textContent = position ? `Vas en la posición #${position} de ${totalPlayers}. Esperando al Capitán Nébula…` : 'Esperando al Capitán Nébula…';
+    actions.appendChild(p);
+  } else {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-primary btn-block';
+    btn.textContent = 'Siguiente pregunta ➜';
+    btn.addEventListener('click', onNext);
+    actions.appendChild(btn);
+  }
+  if(question.bonus) sfxBonus();
+}
+
+/* ============================= CONFETTI ============================= */
+function launchConfetti(){
+  const canvas = document.createElement('canvas');
+  canvas.className = 'confetti';
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  const colors = ['#8a5cff','#ff4da6','#2fe0ff','#ffd23f','#33e08a'];
+  const pieces = Array.from({length:120}, ()=>({
+    x: Math.random()*canvas.width, y: -20-Math.random()*canvas.height,
+    r: 3+Math.random()*4, c: colors[Math.floor(Math.random()*colors.length)],
+    vy: 2+Math.random()*3, vx: -1+Math.random()*2, rot: Math.random()*Math.PI, vr:(-0.1+Math.random()*0.2)
+  }));
+  let frames = 0;
+  function step(){
+    frames++;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p=>{
+      p.y += p.vy; p.x += p.vx; p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c;
+      ctx.fillRect(-p.r,-p.r,p.r*2,p.r*2);
+      ctx.restore();
+    });
+    if(frames < 220) requestAnimationFrame(step);
+    else canvas.remove();
+  }
+  step();
+}
+
+/* ============================= INIT ============================= */
+renderLeaderboard();
+
+})();
+</script>
+</body>
+</html>
