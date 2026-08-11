@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CosmoNet — La red social del espacio</title>
+<meta name="description" content="CosmoNet: una comunidad tipo Reddit dedicada única y exclusivamente al espacio exterior.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%236a5cff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#050308;
+    --void-2:#0a0714;
+    --void-3:#130e24;
+    --surface: rgba(255,255,255,0.045);
+    --surface-strong: rgba(255,255,255,0.09);
+    --line: rgba(255,255,255,0.13);
+    --line-soft: rgba(255,255,255,0.07);
+    --ink:#f5f3f7;
+    --ink-dim:#a8a3ba;
+    --ink-faint:#726c88;
+    --indigo:#6a5cff;
+    --violet:#9b7bff;
+    --ember:#ff6a3d;
+    --gold:#e8c07d;
+    --teal:#33c9b0;
+    --danger:#ff5470;
+    --gold-dim: rgba(232,192,125,0.4);
+    --radius-lg: 22px;
+    --radius-full: 999px;
+    --ease: cubic-bezier(.16,1,.3,1);
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  a{ color:inherit; text-decoration:none; }
+
+  body{
+    margin:0;
+    background: var(--void);
+    color: var(--ink);
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+
+  body::before{
+    content:'';
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(ellipse 60vw 40vh at 15% -5%, rgba(106,92,255,0.16), transparent 60%),
+      radial-gradient(ellipse 50vw 40vh at 100% 10%, rgba(255,106,61,0.10), transparent 60%),
+      var(--void);
+  }
+
+  ::selection{ background: var(--indigo); color:#fff; }
+
+  h1,h2,h3{ font-family:'Unbounded', sans-serif; font-weight:700; letter-spacing:-0.01em; margin:0; }
+  .mono{ font-family:'Space Mono', monospace; }
+
+  /* ---------- BUTTONS ---------- */
+  .btn{
+    position:relative;
+    display:inline-flex; align-items:center; justify-content:center; gap:0.4rem;
+    height:44px; padding:0 1.4rem;
+    border-radius:var(--radius-full);
+    font-family:'Manrope',sans-serif;
+    font-size:0.85rem; font-weight:700;
+    white-space:nowrap;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition: transform .3s var(--ease), background-color .3s var(--ease), border-color .3s var(--ease);
+  }
+  .btn:active{ transform:scale(0.96); }
+  .btn-fill{ background:var(--ink); color:#0b0716; }
+  .btn-fill:hover{ background:#fff; }
+  .btn-accent{ background: linear-gradient(135deg, var(--indigo), var(--violet)); color:#fff; box-shadow:0 10px 24px -12px rgba(106,92,255,0.7); }
+  .btn-accent:hover{ transform:translateY(-2px); }
+  .btn-outline{
+    background:rgba(255,255,255,0.05);
+    border-color:var(--line);
+    color:var(--ink);
+  }
+  .btn-outline:hover{ background:rgba(255,255,255,0.12); border-color:rgba(255,255,255,0.35); }
+  .btn-sm{ height:36px; padding:0 1.1rem; font-size:0.78rem; }
+  .btn:disabled{ opacity:0.45; cursor:not-allowed; transform:none !important; }
+
+  /* ---------- NAV ---------- */
+  .nav{
+    position:sticky; top:0; z-index:200;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0.9rem clamp(1.2rem, 4vw, 3rem);
+    background:rgba(6,4,12,0.82);
+    backdrop-filter:blur(20px) saturate(160%);
+    -webkit-backdrop-filter:blur(20px) saturate(160%);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .nav-brand{
+    display:flex; align-items:center; gap:0.6rem;
+    font-family:'Unbounded', sans-serif; font-weight:700; font-size:1.05rem;
+  }
+  .nav-mark{
+    width:24px; height:24px; border-radius:50%;
+    background: radial-gradient(circle at 32% 30%, #cfc4ff, var(--indigo) 55%, #241a5c 100%);
+    box-shadow:0 0 16px -2px var(--indigo);
+  }
+  .nav-links{ display:flex; align-items:center; gap:1.6rem; font-size:0.83rem; font-weight:600; color:var(--ink-dim); }
+  .nav-links a{ transition:color .25s var(--ease); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-links a.home-link{ display:flex; align-items:center; gap:0.35rem; }
+  @media (max-width: 640px){ .nav-links span.sep{ display:none; } }
+
+  main{ position:relative; z-index:1; max-width:760px; margin:0 auto; padding: 2.4rem 1.2rem 6rem; }
+
+  /* ---------- INTRO / RULE BANNER ---------- */
+  .intro{
+    background: linear-gradient(160deg, rgba(106,92,255,0.14), rgba(255,106,61,0.06));
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    padding:1.8rem 1.8rem;
+    margin-bottom:1.8rem;
+  }
+  .intro-eyebrow{
+    font-family:'Space Mono', monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--gold); display:flex; align-items:center; gap:0.6rem; margin-bottom:0.7rem;
+  }
+  .intro-eyebrow::before{ content:''; width:18px; height:1px; background:var(--gold); }
+  .intro h1{ font-size:clamp(1.5rem, 4vw, 2rem); margin-bottom:0.6rem; }
+  .intro p{ color:var(--ink-dim); font-size:0.92rem; line-height:1.65; margin:0; }
+  .intro .rule{
+    margin-top:1rem; padding:0.85rem 1rem;
+    background:rgba(255,84,112,0.08); border:1px solid rgba(255,84,112,0.3);
+    border-radius:14px; font-size:0.85rem; color:#ffb4c2; line-height:1.6;
+  }
+  .intro .rule b{ color:#fff; }
+
+  /* ---------- TOOLBAR ---------- */
+  .toolbar{
+    display:flex; align-items:center; justify-content:space-between; gap:1rem;
+    margin-bottom:1.4rem; flex-wrap:wrap;
+  }
+  .toolbar-title{ font-size:0.82rem; color:var(--ink-dim); font-family:'Space Mono',monospace; letter-spacing:0.04em; }
+  .toolbar-actions{ display:flex; gap:0.6rem; flex-wrap:wrap; }
+
+  /* ---------- FEED ---------- */
+  .feed-list{ display:flex; flex-direction:column; gap:1rem; }
+
+  .post-card{
+    background: var(--surface);
+    border:1px solid var(--line-soft);
+    border-radius:var(--radius-lg);
+    padding:1.4rem 1.5rem;
+    cursor:pointer;
+    transition: background .3s var(--ease), border-color .3s var(--ease), transform .3s var(--ease);
+  }
+  .post-card:hover{ background:var(--surface-strong); border-color:var(--line); transform:translateY(-2px); }
+
+  .tag{
+    display:inline-flex; align-items:center; gap:0.35rem;
+    font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase;
+    padding:0.32rem 0.7rem; border-radius:var(--radius-full);
+    border:1px solid;
+  }
+  .tag.cat-Fotografia{ color:var(--violet); border-color:rgba(155,123,255,0.4); background:rgba(155,123,255,0.08); }
+  .tag.cat-Pregunta{ color:var(--gold); border-color:rgba(232,192,125,0.4); background:rgba(232,192,125,0.08); }
+  .tag.cat-Debate{ color:var(--ember); border-color:rgba(255,106,61,0.4); background:rgba(255,106,61,0.08); }
+  .tag.cat-Noticia{ color:var(--indigo); border-color:rgba(106,92,255,0.45); background:rgba(106,92,255,0.1); }
+  .tag.cat-DatoCurioso{ color:var(--teal); border-color:rgba(51,201,176,0.4); background:rgba(51,201,176,0.08); }
+
+  .post-meta{ display:flex; align-items:center; gap:0.6rem; margin-top:0.7rem; }
+  .post-author{ font-size:0.8rem; color:var(--ink-dim); font-weight:600; }
+  .post-title{ font-size:1.08rem; margin:0.55rem 0 0.4rem; line-height:1.4; }
+  .post-content{ font-size:0.9rem; color:var(--ink-dim); line-height:1.65; }
+  .post-content.image-desc{
+    font-style:italic; color:var(--ink-dim);
+    border-left:2px solid var(--line); padding-left:0.9rem;
+  }
+
+  .post-footer{ display:flex; align-items:center; gap:1rem; margin-top:1rem; }
+  .vote-btn{
+    display:flex; align-items:center; gap:0.4rem;
+    background:rgba(255,255,255,0.05); border:1px solid var(--line-soft);
+    border-radius:var(--radius-full); padding:0.4rem 0.85rem;
+    font-family:'Space Mono', monospace; font-size:0.8rem; font-weight:700;
+    color:var(--ink-dim); cursor:pointer; transition:all .25s var(--ease);
+  }
+  .vote-btn:hover{ border-color:var(--gold-dim); color:var(--gold); background:rgba(232,192,125,0.08); }
+  .vote-btn.voted{ color:var(--gold); border-color:var(--gold-dim); background:rgba(232,192,125,0.12); }
+  .comment-count{ font-family:'Space Mono', monospace; font-size:0.8rem; color:var(--ink-faint); }
+
+  /* ---------- MODAL OVERLAY ---------- */
+  .overlay{
+    position:fixed; inset:0; z-index:500;
+    background:rgba(3,2,8,0.78);
+    backdrop-filter:blur(6px);
+    display:none; align-items:flex-start; justify-content:center;
+    padding: 4vh 1.2rem; overflow-y:auto;
+  }
+  .overlay.open{ display:flex; }
+  .modal{
+    background: var(--void-3);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    max-width:620px; width:100%;
+    padding:1.8rem;
+    animation: pop .35s var(--ease);
+  }
+  @keyframes pop{ from{ opacity:0; transform:translateY(14px) scale(0.98);} to{ opacity:1; transform:none; } }
+  .modal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:1.2rem; }
+  .modal-close{
+    background:none; border:none; color:var(--ink-dim); font-size:1.3rem; cursor:pointer; line-height:1;
+    width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  }
+  .modal-close:hover{ background:rgba(255,255,255,0.08); color:var(--ink); }
+
+  /* ---------- POST DETAIL ---------- */
+  .detail-post .post-title{ font-size:1.3rem; }
+  .detail-post .post-content{ font-size:0.96rem; margin-top:0.4rem; }
+  .comments-section{ margin-top:1.6rem; border-top:1px solid var(--line-soft); padding-top:1.4rem; }
+  .comments-section h3{ font-size:0.95rem; margin-bottom:1rem; color:var(--ink-dim); font-family:'Manrope',sans-serif; font-weight:700; }
+  .comment{ padding:0.85rem 0; border-bottom:1px solid var(--line-soft); }
+  .comment:last-child{ border-bottom:none; }
+  .comment-author{ font-size:0.82rem; font-weight:700; color:var(--violet); }
+  .comment-author.self{ color:var(--gold); }
+  .comment-text{ font-size:0.88rem; color:var(--ink-dim); line-height:1.6; margin-top:0.25rem; }
+
+  .reply-box{ margin-top:1.2rem; display:flex; flex-direction:column; gap:0.7rem; }
+  textarea, input[type=text], select{
+    width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--line);
+    border-radius:12px; padding:0.75rem 0.9rem; color:var(--ink); font-family:'Manrope',sans-serif;
+    font-size:0.9rem; resize:vertical; outline:none; transition:border-color .25s var(--ease);
+  }
+  textarea:focus, input[type=text]:focus, select:focus{ border-color:var(--violet); }
+  label{ font-family:'Space Mono',monospace; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-faint); }
+  .field{ display:flex; flex-direction:column; gap:0.4rem; margin-bottom:1rem; }
+
+  /* ---------- AUTOMOD ---------- */
+  .automod{
+    display:none;
+    margin-top:0.9rem;
+    padding:1rem 1.1rem;
+    background:rgba(255,84,112,0.1);
+    border:1px solid rgba(255,84,112,0.4);
+    border-radius:14px;
+  }
+  .automod.show{ display:flex; gap:0.7rem; align-items:flex-start; animation:shake .4s var(--ease); }
+  @keyframes shake{ 0%,100%{ transform:translateX(0);} 25%{ transform:translateX(-4px);} 75%{ transform:translateX(4px);} }
+  .automod-icon{ font-size:1.2rem; }
+  .automod b{ color:#ffb4c2; display:block; margin-bottom:0.2rem; font-size:0.85rem; }
+  .automod span{ font-size:0.82rem; color:#e8b8c2; line-height:1.55; display:block; }
+
+  .fab{
+    position:fixed; right:1.4rem; bottom:1.4rem; z-index:150;
+  }
+
+  .empty-hint{ text-align:center; color:var(--ink-faint); font-size:0.85rem; padding:3rem 1rem; }
+
+  footer.foot{
+    max-width:760px; margin:2rem auto 0; padding:2rem 1.2rem;
+    border-top:1px solid var(--line-soft);
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;
+    font-family:'Space Mono', monospace; font-size:10.5px; color:var(--ink-faint); letter-spacing:0.04em;
+  }
+
+  @media (max-width:600px){
+    .nav-links{ gap:1rem; }
+    .toolbar{ flex-direction:column; align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-brand"><span class="nav-mark"></span>CosmoNet</a>
+  <div class="nav-links">
+    <a href="index.html" class="home-link">🌍 Nébula</a>
+    <span class="sep">·</span>
+    <a href="cosmo-quiz.html">🚀 Cosmo Quiz</a>
+  </div>
+</nav>
+
+<main>
+
+  <div class="intro">
+    <p class="intro-eyebrow">r/CosmoNet · Comunidad orbital</p>
+    <h1>Bienvenido a CosmoNet</h1>
+    <p>La única red social dedicada por completo al universo: astronomía, astrofísica, cohetes, misiones y exploración espacial. Publica fotos, preguntas, debates, noticias y datos curiosos sobre el cosmos.</p>
+    <div class="rule">
+      🛰️ <b>Regla de Oro — Solo Espacio:</b> el único tema permitido aquí es el espacio exterior. Cualquier publicación o comentario que no tenga relación directa con astronomía, cohetes o exploración espacial será eliminado por el <b>AutoModerador</b>.
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <span class="toolbar-title" id="feedStamp">FEED · CARGANDO…</span>
+    <div class="toolbar-actions">
+      <button class="btn btn-accent btn-sm" id="btnCreate">✏️ Crear publicación</button>
+      <button class="btn btn-outline btn-sm" id="btnRefresh">🔄 Refrescar feed</button>
+    </div>
+  </div>
+
+  <div class="feed-list" id="feedList"></div>
+
+</main>
+
+<footer class="foot">
+  <span>CosmoNet — solo hablamos del espacio 🛸</span>
+  <span>MODERADO POR AUTOMOD-9000</span>
+</footer>
+
+<!-- Create Post Modal -->
+<div class="overlay" id="createOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Crear publicación</h2>
+      <button class="modal-close" id="closeCreate">✕</button>
+    </div>
+    <div class="field">
+      <label>Categoría</label>
+      <select id="newCategory">
+        <option value="Fotografia">📷 Fotografía</option>
+        <option value="Pregunta">❓ Pregunta</option>
+        <option value="Debate">💬 Debate</option>
+        <option value="Noticia">📰 Noticia</option>
+        <option value="DatoCurioso">✨ Dato Curioso</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Título</label>
+      <input type="text" id="newTitle" placeholder="Ej: Capté una tormenta de meteoros anoche...">
+    </div>
+    <div class="field">
+      <label>Contenido</label>
+      <textarea id="newContent" rows="4" placeholder="Describe tu foto, pregunta, teoría o noticia sobre el espacio..."></textarea>
+    </div>
+    <div class="automod" id="createAutomod">
+      <span class="automod-icon">🤖</span>
+      <div>
+        <b>AutoModerador ha eliminado tu publicación</b>
+        <span id="createAutomodMsg"></span>
+      </div>
+    </div>
+    <div style="margin-top:1.2rem; display:flex; gap:0.7rem; justify-content:flex-end;">
+      <button class="btn btn-outline btn-sm" id="cancelCreate">Cancelar</button>
+      <button class="btn btn-accent btn-sm" id="submitCreate">Publicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Post Detail Modal -->
+<div class="overlay" id="detailOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="toolbar-title">PUBLICACIÓN</span>
+      <button class="modal-close" id="closeDetail">✕</button>
+    </div>
+    <div id="detailBody"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---------------- DATA ----------------
+  const USERNAMES = [
+    'u/CazadorDeCometas','u/SaganFan99','u/AstroFisicaFacil','u/OrbitaExtrana',
+    'u/NebulosaViajera','u/CapitanKepler','u/LunaLlenaOK','u/ExoplanetaX',
+    'u/RoverMartis','u/PolvoDeEstrellas','u/HubbleForever','u/CosmosCurioso',
+    'u/VoyagerFan','u/AgujeroNegro42','u/GalaxiaLejana','u/TelescopioCasero'
+  ];
+
+  const REACTION_POOL = [
+    { author:'u/NebulosaViajera', text:'Increíble aporte, esto es justo lo que me gusta ver en este sub. ¡Gracias por compartir!' },
+    { author:'u/CapitanKepler', text:'¿Tienes fuente o instrumento usado? Me encantaría replicar esto.' },
+    { author:'u/PolvoDeEstrellas', text:'El espacio nunca deja de sorprenderme. Publicaciones como esta son las que hacen grande a CosmoNet.' },
+    { author:'u/CosmosCurioso', text:'Esto me recuerda a un dato que leí sobre la escala del universo. Todo está conectado ahí afuera.' },
+    { author:'u/HubbleForever', text:'Guardado para releer con calma. Excelente publicación sobre el cosmos.' },
+    { author:'u/ExoplanetaX', text:'¿Alguien más piensa que esto merece ir directo a los favoritos del sub?' }
+  ];
+
+  const POST_POOL = [
+    {
+      category:'Fotografia',
+      author:'u/CazadorDeCometas',
+      title:'Capturé esto anoche con mi telescopio casero, ¡no puedo creer el detalle!',
+      content:'[Imagen ligeramente granulada tomada con un telescopio reflector de 200mm: la Nebulosa de Orión (M42) mostrando tonos violáceos y rosados en el centro, con un halo azulado tenue de gas ionizado extendiéndose hacia los bordes. Se distinguen cuatro estrellas jóvenes agrupadas en el núcleo, el Trapecio.]',
+      isImage:true,
+      upvotes:2847, comments:[
+        { author:'u/SaganFan99', text:'El Trapecio se ve nítido incluso desde un telescopio casero, gran trabajo con el enfoque.' },
+        { author:'u/AstroFisicaFacil', text:'¿Cuánto tiempo de exposición usaste? Los tonos violáceos están espectaculares.' },
+        { author:'u/OrbitaExtrana', text:'M42 siempre es agradecida con equipos pequeños, es de mis objetivos favoritos para principiantes.' }
+      ]
+    },
+    {
+      category:'Debate',
+      author:'u/AstroFisicaFacil',
+      title:'¿Deberíamos priorizar Marte o las lunas heladas de Júpiter y Saturno en la búsqueda de vida?',
+      content:'Sé que Marte tiene toda la atención mediática, pero Europa y Encélado tienen océanos líquidos bajo el hielo con posible actividad hidrotermal. ¿No sería más lógico invertir en una misión tipo Europa Clipper a gran escala en vez de seguir mandando rovers marcianos? Debatan.',
+      upvotes:1563, comments:[
+        { author:'u/CazadorDeCometas', text:'Europa tiene mejores condiciones químicas, pero Marte es mucho más accesible logísticamente. Es un balance costo-beneficio.' },
+        { author:'u/RoverMartis', text:'Como fan de los rovers, discrepo: Marte todavía no lo hemos explorado ni al 1%. Encélado puede esperar una década más.' },
+        { author:'u/GalaxiaLejana', text:'¿Por qué no ambos? La NASA y la ESA ya coordinan misiones paralelas, no es excluyente.' }
+      ]
+    },
+    {
+      category:'Noticia',
+      author:'u/SaganFan99',
+      title:'SE CONFIRMA: nueva ventana de lanzamiento para la misión de retorno de muestras de Marte',
+      content:'La agencia acaba de anunciar que ajustaron la trayectoria de reentrada y el cohete portador ya pasó las pruebas de vibración. Se espera que las muestras recolectadas por Perseverance lleguen a la Tierra antes de lo previsto originalmente. Esto podría ser el primer paso hacia confirmar o descartar vida microbiana pasada en Marte.',
+      upvotes:4102, comments:[
+        { author:'u/TelescopioCasero', text:'Llevo años esperando esta noticia, ojalá esta vez no haya retrasos presupuestarios.' },
+        { author:'u/ExoplanetaX', text:'El cápsulas de reentrada siempre es la parte más tensa de estas misiones.' }
+      ]
+    },
+    {
+      category:'DatoCurioso',
+      author:'u/OrbitaExtrana',
+      title:'Un día en Venus dura más que un año en Venus',
+      content:'Venus tarda 243 días terrestres en rotar sobre su propio eje, pero solo 225 días en orbitar al Sol. Además, gira en sentido retrógrado (al revés que la mayoría de los planetas), por lo que si pudieras sobrevivir ahí, verías salir el sol por el oeste.',
+      upvotes:980, comments:[
+        { author:'u/CosmosCurioso', text:'Y encima su atmósfera es tan densa que un día "despejado" allí seguiría siendo naranja opaco.' },
+        { author:'u/VoyagerFan', text:'Dato curioso extra: la sonda Magallanes cartografió el 98% de su superficie con radar por culpa de esas nubes.' }
+      ]
+    },
+    {
+      category:'Pregunta',
+      author:'u/LunaLlenaOK',
+      title:'¿Por qué siempre vemos la misma cara de la Luna?',
+      content:'Sé que tiene que ver con la rotación síncrona, pero ¿alguien puede explicarlo de forma simple? ¿Por qué la Luna no "gira" frente a nosotros como lo haría cualquier otro objeto en órbita?',
+      upvotes:721, comments:[
+        { author:'u/CapitanKepler', text:'La Luna sí rota, pero su periodo de rotación es exactamente igual a su periodo orbital (~27.3 días), así que siempre nos muestra la misma cara. Se llama acoplamiento de marea.' },
+        { author:'u/HubbleForever', text:'Es un efecto gravitacional acumulado durante millones de años. La Tierra hizo lo mismo, frenando la rotación lunar poco a poco.' },
+        { author:'u/PolvoDeEstrellas', text:'Por eso la "cara oculta" solo la hemos visto con sondas, nunca a simple vista desde la Tierra.' }
+      ]
+    },
+    {
+      category:'Noticia',
+      author:'u/AgujeroNegro42',
+      title:'Nuevo telescopio detecta la galaxia más antigua observada hasta ahora',
+      content:'Un equipo internacional usando datos del telescopio espacial confirmó una galaxia formada apenas 300 millones de años después del Big Bang. Su luz ha viajado más de 13.4 mil millones de años para llegar hasta nosotros.',
+      upvotes:3350, comments:[
+        { author:'u/GalaxiaLejana', text:'Cada vez que anuncian una de estas rompen el récord anterior por semanas. Es una carrera fascinante.' },
+        { author:'u/ExoplanetaX', text:'Literalmente estamos viendo el pasado del universo en tiempo real, sigue sin dejar de asombrarme.' }
+      ]
+    },
+    {
+      category:'Fotografia',
+      author:'u/VoyagerFan',
+      title:'Comparación: el mismo cúmulo estelar visto con luz visible vs infrarroja',
+      content:'[Panel dividido en dos imágenes del mismo cúmulo estelar: a la izquierda, luz visible mostrando estrellas azules brillantes rodeadas de polvo oscuro que bloquea la vista; a la derecha, luz infrarroja penetrando el polvo y revelando cientos de estrellas jóvenes ocultas antes invisibles.]',
+      isImage:true,
+      upvotes:1902, comments:[
+        { author:'u/TelescopioCasero', text:'El infrarrojo cambia completamente la lectura del campo estelar, es como ver una fotografía secreta.' },
+        { author:'u/AstroFisicaFacil', text:'Esto demuestra por qué combinar instrumentos es tan valioso para la astronomía moderna.' }
+      ]
+    },
+    {
+      category:'DatoCurioso',
+      author:'u/RoverMartis',
+      title:'En Marte los atardeceres son azules',
+      content:'Al contrario que en la Tierra, en Marte el polvo fino en suspensión dispersa la luz de tal forma que el cielo diurno es anaranjado, pero durante el atardecer se torna azulado alrededor del Sol. Las cámaras de Curiosity y Perseverance lo han fotografiado varias veces.',
+      upvotes:2210, comments:[
+        { author:'u/LunaLlenaOK', text:'Vi esas fotos, es un efecto precioso y totalmente contraintuitivo la primera vez que lo lees.' },
+        { author:'u/CosmosCurioso', text:'La física de dispersión de partículas finas es literalmente al revés que en la atmósfera terrestre.' }
+      ]
+    }
+  ];
+
+  const IMAGE_REACTIONS = [
+    { author:'u/HubbleForever', text:'La resolución de esta captura es impresionante, ¿la procesaste tú mismo?' },
+    { author:'u/GalaxiaLejana', text:'El contraste de colores en esta imagen del espacio es precioso, gracias por compartirlo aquí.' }
+  ];
+  const TEXT_REACTIONS = [
+    { author:'u/CapitanKepler', text:'Muy buen punto sobre el tema, me hace pensar distinto sobre la exploración espacial.' },
+    { author:'u/PolvoDeEstrellas', text:'Justo el tipo de discusión astronómica que busco en este sub, gracias por publicarlo.' }
+  ];
+
+  // ---------------- MODERATION ----------------
+  const SPACE_KEYWORDS = [
+    'espacio','espacial','cosmos','cosmico','cosmica','universo','galaxia','galaxias','estrella','estrellas',
+    'planeta','planetas','luna','lunar','marte','marciano','venus','jupiter','saturno','urano','neptuno',
+    'mercurio','pluton','cometa','asteroide','asteroides','meteorito','meteoro','meteoros','nebulosa',
+    'agujero negro','supernova','telescopio','hubble','webb','jwst','nasa','esa','spacex','roscosmos',
+    'cohete','cohetes','satelite','satelites','orbita','orbital','astronauta','astronautas','cosmonauta',
+    'iss','estacion espacial','exoplaneta','exoplanetas','via lactea','big bang','materia oscura',
+    'energia oscura','sol','solar','eclipse','aurora boreal','gravedad','gravitacional','astrofisica',
+    'astronomia','astronomo','astronoma','lanzamiento','mision espacial','europa','encelado','titan',
+    'kuiper','cinturon de asteroides','radiacion cosmica','exploracion espacial','rover','sonda',
+    'artemis','apolo','gemini','starship','falcon','año luz','anos luz','parsec','constelacion',
+    'zodiaco','cuasar','pulsar','enana blanca','gigante roja','cumulo estelar','relatividad',
+    'einstein','kepler','copernico','galileo','sagan','hawking','ovni','extraterrestre','alienigena',
+    'seti','cielo estrellado','cielo nocturno','planetario','observatorio','cometas','ison',
+    'perseverance','curiosity','voyager','cassini','tierra','atmosfera','meteorologia espacial'
+  ];
+
+  function normalize(str){
+    return str.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  }
+  function isSpaceRelated(text){
+    const n = normalize(text);
+    return SPACE_KEYWORDS.some(k => n.includes(k));
+  }
+
+  const REJECTIONS = [
+    'Esto no tiene relación directa con el espacio. Recuerda: en r/CosmoNet solo hablamos de astronomía, cohetes y exploración espacial.',
+    'Tu contenido fue marcado como fuera de tema. Menciona planetas, estrellas, misiones espaciales o algo relacionado con el cosmos para poder publicarlo.',
+    'No detecté ningún término relacionado con el universo en tu publicación. Edítala e inténtalo de nuevo.'
+  ];
+  function randomRejection(){ return REJECTIONS[Math.floor(Math.random()*REJECTIONS.length)]; }
+
+  // ---------------- STATE ----------------
+  let posts = [];
+  let nextId = 1;
+  let userVoted = new Set();
+  let activeDetailId = null;
+
+  function shuffledSample(arr, n){
+    const copy = arr.slice();
+    for(let i=copy.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [copy[i],copy[j]] = [copy[j],copy[i]];
+    }
+    return copy.slice(0, n);
+  }
+
+  function categoryLabel(cat){
+    return { Fotografia:'📷 Fotografía', Pregunta:'❓ Pregunta', Debate:'💬 Debate', Noticia:'📰 Noticia', DatoCurioso:'✨ Dato Curioso' }[cat] || cat;
+  }
+
+  function loadFeed(){
+    const picks = shuffledSample(POST_POOL, 3 + (Math.random() < 0.5 ? 1 : 0));
+    posts = picks.map(p => ({
+      id: nextId++,
+      category: p.category,
+      author: p.author,
+      title: p.title,
+      content: p.content,
+      isImage: !!p.isImage,
+      upvotes: p.upvotes,
+      comments: p.comments.map(c => ({ author:c.author, text:c.text }))
+    }));
+    document.getElementById('feedStamp').textContent = 'FEED · ' + posts.length + ' PUBLICACIONES · ACTUALIZADO';
+    renderFeed();
+  }
+
+  function renderFeed(){
+    const list = document.getElementById('feedList');
+    if(posts.length === 0){
+      list.innerHTML = '<div class="empty-hint">No hay publicaciones. Refresca el feed o crea la primera.</div>';
+      return;
+    }
+    list.innerHTML = posts.map(post => renderPostCard(post)).join('');
+    list.querySelectorAll('.post-card').forEach(el => {
+      el.addEventListener('click', (e) => {
+        if(e.target.closest('.vote-btn')) return;
+        openDetail(Number(el.dataset.id));
+      });
+    });
+    list.querySelectorAll('.vote-btn').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleVote(Number(el.dataset.id));
+      });
+    });
+  }
+
+  function renderPostCard(post){
+    const voted = userVoted.has(post.id);
+    return `
+      <article class="post-card" data-id="${post.id}">
+        <span class="tag cat-${post.category}">${categoryLabel(post.category)}</span>
+        <div class="post-meta"><span class="post-author">${post.author}</span></div>
+        <h2 class="post-title">${escapeHtml(post.title)}</h2>
+        <p class="post-content ${post.isImage ? 'image-desc' : ''}">${escapeHtml(post.content)}</p>
+        <div class="post-footer">
+          <button class="vote-btn ${voted?'voted':''}" data-id="${post.id}">⬆️ ${(post.upvotes + (voted?1:0)).toLocaleString('es-ES')}</button>
+          <span class="comment-count">💬 ${post.comments.length} comentarios</span>
+        </div>
+      </article>`;
+  }
+
+  function toggleVote(id){
+    if(userVoted.has(id)) userVoted.delete(id); else userVoted.add(id);
+    renderFeed();
+    if(activeDetailId === id) renderDetail(id);
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ---------------- DETAIL / COMMENTS ----------------
+  function openDetail(id){
+    activeDetailId = id;
+    renderDetail(id);
+    document.getElementById('detailOverlay').classList.add('open');
+  }
+  function closeDetail(){
+    document.getElementById('detailOverlay').classList.remove('open');
+    activeDetailId = null;
+  }
+
+  function renderDetail(id){
+    const post = posts.find(p => p.id === id);
+    if(!post) return;
+    const voted = userVoted.has(id);
+    const body = document.getElementById('detailBody');
+    body.innerHTML = `
+      <div class="detail-post">
+        <span class="tag cat-${post.category}">${categoryLabel(post.category)}</span>
+        <div class="post-meta"><span class="post-author">${post.author}</span></div>
+        <h2 class="post-title">${escapeHtml(post.title)}</h2>
+        <p class="post-content ${post.isImage ? 'image-desc' : ''}">${escapeHtml(post.content)}</p>
+        <div class="post-footer">
+          <button class="vote-btn ${voted?'voted':''}" id="detailVoteBtn">⬆️ ${(post.upvotes + (voted?1:0)).toLocaleString('es-ES')}</button>
+          <span class="comment-count">💬 ${post.comments.length} comentarios</span>
+        </div>
+      </div>
+      <div class="comments-section">
+        <h3>Comentarios</h3>
+        <div id="commentsList">
+          ${post.comments.map(c => `
+            <div class="comment">
+              <span class="comment-author ${c.author==='u/Tú'?'self':''}">${c.author}</span>
+              <p class="comment-text">${escapeHtml(c.text)}</p>
+            </div>`).join('')}
+        </div>
+        <div class="reply-box">
+          <label>Añade tu comentario</label>
+          <textarea id="newCommentText" rows="3" placeholder="Comparte tu opinión sobre esta publicación espacial..."></textarea>
+          <div class="automod" id="commentAutomod">
+            <span class="automod-icon">🤖</span>
+            <div>
+              <b>AutoModerador ha eliminado tu comentario</b>
+              <span id="commentAutomodMsg"></span>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:flex-end;">
+            <button class="btn btn-accent btn-sm" id="submitComment">Comentar</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.getElementById('detailVoteBtn').addEventListener('click', () => toggleVote(id));
+    document.getElementById('submitComment').addEventListener('click', () => submitComment(id));
+  }
+
+  function submitComment(id){
+    const post = posts.find(p => p.id === id);
+    const textarea = document.getElementById('newCommentText');
+    const text = textarea.value.trim();
+    const automod = document.getElementById('commentAutomod');
+    const automodMsg = document.getElementById('commentAutomodMsg');
+
+    if(text.length === 0) return;
+
+    if(!isSpaceRelated(text)){
+      automodMsg.textContent = randomRejection();
+      automod.classList.add('show');
+      return;
+    }
+
+    automod.classList.remove('show');
+    post.comments.push({ author:'u/Tú', text });
+    renderDetail(id);
+    renderFeed();
+
+    setTimeout(() => {
+      const reactionSource = post.isImage ? IMAGE_REACTIONS : REACTION_POOL;
+      const reaction = reactionSource[Math.floor(Math.random()*reactionSource.length)];
+      post.comments.push({ author: reaction.author, text: reaction.text });
+      if(activeDetailId === id) renderDetail(id);
+      renderFeed();
+    }, 900);
+  }
+
+  // ---------------- CREATE POST ----------------
+  function openCreate(){
+    document.getElementById('createOverlay').classList.add('open');
+    document.getElementById('newTitle').value = '';
+    document.getElementById('newContent').value = '';
+    document.getElementById('createAutomod').classList.remove('show');
+  }
+  function closeCreate(){
+    document.getElementById('createOverlay').classList.remove('open');
+  }
+
+  function submitCreate(){
+    const category = document.getElementById('newCategory').value;
+    const title = document.getElementById('newTitle').value.trim();
+    const content = document.getElementById('newContent').value.trim();
+    const automod = document.getElementById('createAutomod');
+    const automodMsg = document.getElementById('createAutomodMsg');
+
+    if(title.length === 0 || content.length === 0){
+      automodMsg.textContent = 'Completa el título y el contenido antes de publicar.';
+      automod.classList.add('show');
+      return;
+    }
+
+    const combined = title + ' ' + content;
+    if(!isSpaceRelated(combined)){
+      automodMsg.textContent = randomRejection();
+      automod.classList.add('show');
+      return;
+    }
+
+    automod.classList.remove('show');
+    const isImage = category === 'Fotografia';
+    const newPost = {
+      id: nextId++,
+      category, author: 'u/Tú',
+      title, content, isImage,
+      upvotes: 1,
+      comments: []
+    };
+    posts.unshift(newPost);
+    renderFeed();
+    closeCreate();
+    document.getElementById('feedStamp').textContent = 'FEED · ' + posts.length + ' PUBLICACIONES · ACTUALIZADO';
+
+    setTimeout(() => {
+      const reactionSource = isImage ? IMAGE_REACTIONS : TEXT_REACTIONS;
+      const picks = shuffledSample(reactionSource.concat(REACTION_POOL), 2);
+      picks.forEach(r => newPost.comments.push({ author:r.author, text:r.text }));
+      renderFeed();
+      if(activeDetailId === newPost.id) renderDetail(newPost.id);
+    }, 1100);
+  }
+
+  // ---------------- WIRE UP ----------------
+  document.getElementById('btnCreate').addEventListener('click', openCreate);
+  document.getElementById('closeCreate').addEventListener('click', closeCreate);
+  document.getElementById('cancelCreate').addEventListener('click', closeCreate);
+  document.getElementById('submitCreate').addEventListener('click', submitCreate);
+  document.getElementById('createOverlay').addEventListener('click', (e) => { if(e.target.id === 'createOverlay') closeCreate(); });
+
+  document.getElementById('closeDetail').addEventListener('click', closeDetail);
+  document.getElementById('detailOverlay').addEventListener('click', (e) => { if(e.target.id === 'detailOverlay') closeDetail(); });
+
+  document.getElementById('btnRefresh').addEventListener('click', loadFeed);
+
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape'){ closeCreate(); closeDetail(); }
+  });
+
+  loadFeed();
+})();
+</script>
+
+</body>
+</html>
