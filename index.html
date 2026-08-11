@@ -475,6 +475,26 @@
   .sacred.is-paused .sacred-glow{ animation-play-state:paused; opacity:0.4; transition:opacity .8s var(--ease); }
   @media (prefers-reduced-motion: reduce){ .sacred-glow{ animation:none; opacity:0.7; } }
 
+  .sacred-sparkles{
+    position:absolute; inset:-10% -10%; z-index:0; pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22380%22%20height%3D%22380%22%3E%3Ccircle%20cx%3D%22123.1%22%20cy%3D%2257.3%22%20r%3D%220.5%22%20fill%3D%22%23fff%22%20opacity%3D%220.35%22/%3E%3Ccircle%20cx%3D%22203.6%22%20cy%3D%22139.0%22%20r%3D%220.5%22%20fill%3D%22%23fff%22%20opacity%3D%220.89%22/%3E%3Ccircle%20cx%3D%2281.6%22%20cy%3D%2232.7%22%20r%3D%221.2%22%20fill%3D%22%23fff%22%20opacity%3D%220.35%22/%3E%3Ccircle%20cx%3D%2234.5%22%20cy%3D%22161.3%22%20r%3D%221.6%22%20fill%3D%22%23fff%22%20opacity%3D%220.38%22/%3E%3Ccircle%20cx%3D%2284.8%22%20cy%3D%22238.4%22%20r%3D%220.5%22%20fill%3D%22%23fff%22%20opacity%3D%220.68%22/%3E%3Ccircle%20cx%3D%22150.7%22%20cy%3D%22371.0%22%20r%3D%220.5%22%20fill%3D%22%23fff%22%20opacity%3D%220.66%22/%3E%3Ccircle%20cx%3D%2250.6%22%20cy%3D%22159.3%22%20r%3D%221.6%22%20fill%3D%22%23fff%22%20opacity%3D%220.38%22/%3E%3Ccircle%20cx%3D%22117.2%22%20cy%3D%22310.1%22%20r%3D%220.7%22%20fill%3D%22%23fff%22%20opacity%3D%220.37%22/%3E%3Ccircle%20cx%3D%22217.1%22%20cy%3D%2271.4%22%20r%3D%220.5%22%20fill%3D%22%23fff%22%20opacity%3D%220.66%22/%3E%3Ccircle%20cx%3D%2223.9%22%20cy%3D%2222.6%22%20r%3D%220.7%22%20fill%3D%22%23fff%22%20opacity%3D%220.62%22/%3E%3Ccircle%20cx%3D%22202.1%22%20cy%3D%22295.3%22%20r%3D%221.2%22%20fill%3D%22%23fff%22%20opacity%3D%220.68%22/%3E%3Ccircle%20cx%3D%22172.2%22%20cy%3D%22113.9%22%20r%3D%220.7%22%20fill%3D%22%23fff%22%20opacity%3D%220.75%22/%3E%3Ccircle%20cx%3D%2292.8%22%20cy%3D%22218.3%22%20r%3D%221.6%22%20fill%3D%22%23fff%22%20opacity%3D%220.62%22/%3E%3Ccircle%20cx%3D%22130.5%22%20cy%3D%22170.6%22%20r%3D%221.6%22%20fill%3D%22%23fff%22%20opacity%3D%220.94%22/%3E%3Ccircle%20cx%3D%2244.9%22%20cy%3D%22158.9%22%20r%3D%220.9%22%20fill%3D%22%23fff%22%20opacity%3D%220.4%22/%3E%3Ccircle%20cx%3D%22185.8%22%20cy%3D%2214.9%22%20r%3D%220.5%22%20fill%3D%22%23fff%22%20opacity%3D%220.8%22/%3E%3Ccircle%20cx%3D%22217.7%22%20cy%3D%22332.7%22%20r%3D%220.9%22%20fill%3D%22%23fff%22%20opacity%3D%220.52%22/%3E%3Ccircle%20cx%3D%22133.1%22%20cy%3D%22188.7%22%20r%3D%221.2%22%20fill%3D%22%23fff%22%20opacity%3D%220.34%22/%3E%3Ccircle%20cx%3D%2235.6%22%20cy%3D%22102.6%22%20r%3D%220.5%22%20fill%3D%22%23fff%22%20opacity%3D%220.34%22/%3E%3Ccircle%20cx%3D%22266.6%22%20cy%3D%22245.9%22%20r%3D%221.2%22%20fill%3D%22%23fff%22%20opacity%3D%220.48%22/%3E%3Ccircle%20cx%3D%22146.6%22%20cy%3D%22254.1%22%20r%3D%220.5%22%20fill%3D%22%23fff%22%20opacity%3D%220.91%22/%3E%3Ccircle%20cx%3D%22135.1%22%20cy%3D%22232.1%22%20r%3D%221.2%22%20fill%3D%22%23fff%22%20opacity%3D%220.34%22/%3E%3Ccircle%20cx%3D%22291.9%22%20cy%3D%2249.1%22%20r%3D%220.7%22%20fill%3D%22%23fff%22%20opacity%3D%220.56%22/%3E%3Ccircle%20cx%3D%22348.4%22%20cy%3D%22188.7%22%20r%3D%220.7%22%20fill%3D%22%23fff%22%20opacity%3D%220.59%22/%3E%3Ccircle%20cx%3D%22208.8%22%20cy%3D%22335.7%22%20r%3D%221.2%22%20fill%3D%22%23fff%22%20opacity%3D%220.86%22/%3E%3Ccircle%20cx%3D%22105.8%22%20cy%3D%22157.8%22%20r%3D%220.9%22%20fill%3D%22%23fff%22%20opacity%3D%220.74%22/%3E%3Ccircle%20cx%3D%22144.6%22%20cy%3D%2287.7%22%20r%3D%220.5%22%20fill%3D%22%23fff%22%20opacity%3D%220.41%22/%3E%3Ccircle%20cx%3D%2288.1%22%20cy%3D%2288.7%22%20r%3D%221.2%22%20fill%3D%22%23fff%22%20opacity%3D%220.84%22/%3E%3Ccircle%20cx%3D%2269.3%22%20cy%3D%22107.1%22%20r%3D%220.7%22%20fill%3D%22%23fff%22%20opacity%3D%220.57%22/%3E%3Ccircle%20cx%3D%22140.3%22%20cy%3D%22215.2%22%20r%3D%220.7%22%20fill%3D%22%23fff%22%20opacity%3D%220.75%22/%3E%3Ccircle%20cx%3D%22195.9%22%20cy%3D%22234.7%22%20r%3D%220.5%22%20fill%3D%22%23fff%22%20opacity%3D%220.6%22/%3E%3Ccircle%20cx%3D%22331.0%22%20cy%3D%22361.7%22%20r%3D%221.6%22%20fill%3D%22%23fff%22%20opacity%3D%220.56%22/%3E%3Ccircle%20cx%3D%22151.6%22%20cy%3D%2239.3%22%20r%3D%221.2%22%20fill%3D%22%23fff%22%20opacity%3D%220.34%22/%3E%3Ccircle%20cx%3D%2225.6%22%20cy%3D%2279.3%22%20r%3D%220.7%22%20fill%3D%22%23fff%22%20opacity%3D%220.37%22/%3E%3Ccircle%20cx%3D%22228.3%22%20cy%3D%2238.9%22%20r%3D%221.6%22%20fill%3D%22%23fff%22%20opacity%3D%220.4%22/%3E%3Ccircle%20cx%3D%2238.6%22%20cy%3D%22138.2%22%20r%3D%220.5%22%20fill%3D%22%23fff%22%20opacity%3D%220.35%22/%3E%3Ccircle%20cx%3D%2279.0%22%20cy%3D%22143.0%22%20r%3D%220.9%22%20fill%3D%22%23fff%22%20opacity%3D%220.92%22/%3E%3Ccircle%20cx%3D%22228.9%22%20cy%3D%22180.2%22%20r%3D%220.5%22%20fill%3D%22%23fff%22%20opacity%3D%220.85%22/%3E%3Ccircle%20cx%3D%22377.4%22%20cy%3D%22177.1%22%20r%3D%221.2%22%20fill%3D%22%23fff%22%20opacity%3D%220.5%22/%3E%3Ccircle%20cx%3D%2254.8%22%20cy%3D%22284.9%22%20r%3D%220.9%22%20fill%3D%22%23fff%22%20opacity%3D%220.61%22/%3E%3Ccircle%20cx%3D%22263.0%22%20cy%3D%22196.2%22%20r%3D%220.7%22%20fill%3D%22%23fff%22%20opacity%3D%220.92%22/%3E%3Ccircle%20cx%3D%22200.7%22%20cy%3D%2255.7%22%20r%3D%221.6%22%20fill%3D%22%23fff%22%20opacity%3D%220.89%22/%3E%3Cpath%20d%3D%22M277.8%20116.80000000000001L278.812%20120.388L282.40000000000003%20121.4L278.812%20122.412L277.8%20126.0L276.788%20122.412L273.2%20121.4L276.788%20120.388Z%22%20fill%3D%22%23fff%22%20opacity%3D%220.58%22/%3E%3Cpath%20d%3D%22M307.5%20191.0L308.666%20195.13400000000001L312.8%20196.3L308.666%20197.466L307.5%20201.60000000000002L306.334%20197.466L302.2%20196.3L306.334%20195.13400000000001Z%22%20fill%3D%22%23fff%22%20opacity%3D%220.66%22/%3E%3Cpath%20d%3D%22M95.7%20199.79999999999998L96.646%20203.154L100.0%20204.1L96.646%20205.046L95.7%20208.4L94.754%20205.046L91.4%20204.1L94.754%20203.154Z%22%20fill%3D%22%23fff%22%20opacity%3D%220.74%22/%3E%3Cpath%20d%3D%22M228.5%20283.20000000000005L229.578%20287.02200000000005L233.4%20288.1L229.578%20289.178L228.5%20293.0L227.422%20289.178L223.6%20288.1L227.422%20287.02200000000005Z%22%20fill%3D%22%23fff%22%20opacity%3D%220.61%22/%3E%3C/svg%3E");
+    background-repeat:repeat; background-size:380px 380px;
+    opacity:0.4;
+    animation: sacredDrift 90s linear infinite;
+  }
+  @keyframes sacredDrift{ from{ background-position:0 0; } to{ background-position:-380px -380px; } }
+  .sacred-sweep{
+    position:absolute; left:-20%; top:-10%; width:70%; height:70%; z-index:0; pointer-events:none;
+    background:radial-gradient(circle, rgba(232,226,255,0.16), transparent 65%);
+    animation: sacredSweep 26s ease-in-out infinite;
+  }
+  @keyframes sacredSweep{
+    0%,100%{ transform:translate(0,0) scale(1); opacity:0.5; }
+    50%{ transform:translate(38vw,22vh) scale(1.25); opacity:0.85; }
+  }
+  .sacred.is-paused .sacred-sparkles, .sacred.is-paused .sacred-sweep{ animation-play-state:paused; }
+  @media (prefers-reduced-motion: reduce){ .sacred-sparkles, .sacred-sweep{ animation:none; } }
+
   /* ---------- MODALS / PANELS (selective disclosure) ---------- */
   .veil{
     position:fixed; inset:0; z-index:500;
@@ -589,10 +609,14 @@
   .pv-comp-legend{ display:flex; flex-wrap:wrap; gap:0.9rem; margin-bottom:1.6rem; }
   .pv-comp-legend span{ display:inline-flex; align-items:center; gap:0.4rem; font-size:0.78rem; color:var(--pv-ink-dim); }
   .pv-comp-dot{ width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
-  .pv-sim label{ display:block; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--pv-ink-faint); margin-bottom:0.7rem; }
-  .pv-sim input[type=range]{ width:100%; accent-color:var(--pv-accent); margin-bottom:1.1rem; }
-  .pv-sim-result{ font-size:0.85rem; color:var(--pv-ink-dim); }
-  .pv-sim-result b{ display:block; font-family:'Unbounded',sans-serif; font-weight:700; font-size:1.9rem; color:var(--pv-accent); margin-top:0.2rem; }
+  .pv-model-canvas{
+    width:100%; height:190px; border-radius:14px; overflow:hidden; margin-bottom:1.1rem;
+    background:radial-gradient(circle at 50% 45%, rgba(150,190,210,0.08), transparent 70%);
+    border:1px solid var(--pv-line-soft);
+  }
+  .pv-model-canvas canvas{ display:block; width:100%; height:100%; }
+  .pv-model label{ display:block; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--pv-ink-faint); margin-bottom:0.7rem; }
+  .pv-model input[type=range]{ width:100%; accent-color:var(--pv-accent); }
 
   /* lightbox for gallery */
   .lightbox{
@@ -603,7 +627,12 @@
     padding:2rem;
   }
   .lightbox.is-open{ opacity:1; pointer-events:auto; }
-  .lightbox-card{ max-width:1000px; width:100%; }
+  .lightbox-card{
+    max-width:1000px; width:100%;
+    transform:scale(0.92) translateY(22px);
+    transition:transform .55s var(--ease);
+  }
+  .lightbox.is-open .lightbox-card{ transform:scale(1) translateY(0); }
   .lightbox-visual{
     width:100%; aspect-ratio:16/9; border-radius:24px; margin-bottom:0;
     position:relative; overflow:hidden;
@@ -713,19 +742,58 @@
   .book-corner.br{ bottom:-1px; right:-1px; border-left:none; border-top:none; }
   .book-cross{ font-size:2.6rem; color:#c9a25c; line-height:1; margin-bottom:0.4rem; text-shadow:0 2px 10px rgba(0,0,0,0.5); }
   .book-cover-title{
-    font-family:'Cormorant Garamond',serif; font-weight:600; letter-spacing:0.06em; text-transform:uppercase;
-    font-size:clamp(1.5rem,4vw,2.1rem); color:#e9d6ac;
+    font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:600; letter-spacing:0.02em;
+    font-size:clamp(1.6rem,4.4vw,2.3rem); color:#e9d6ac;
     text-shadow:0 1px 0 rgba(255,235,190,0.15), 0 2px 3px rgba(0,0,0,0.65);
   }
-  .book-cover-sub{ font-family:'Space Mono',monospace; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:#a9866f; }
+  .book-cover-sub{ font-family:'Cormorant Garamond',serif; font-style:italic; font-size:13px; letter-spacing:0.1em; color:#a9866f; }
   .book-cover-hint{ font-family:'Space Mono',monospace; font-size:9.5px; letter-spacing:0.18em; text-transform:uppercase; color:#7a6248; margin-top:1.4rem; animation:bookHint 2.6s ease-in-out infinite; }
   @keyframes bookHint{ 0%,100%{ opacity:0.45; } 50%{ opacity:0.95; } }
+  .ink-glyph{ display:inline-block; transform:rotate(var(--r,0deg)) translateY(var(--y,0px)); }
+
+  /* ---- cover lie-down + golden burst transition ---- */
+  .book{ perspective:1600px; }
+  .book-cover{ transform-style:preserve-3d; transition:transform .95s cubic-bezier(.6,0,.4,1), opacity .5s ease .55s; }
+  .book.is-opening .book-cover{ transform:rotateX(82deg) translateY(60px) scale(0.92); opacity:0; pointer-events:none; }
+  .book-burst{
+    position:absolute; left:50%; top:50%; width:10px; height:10px; margin:-5px 0 0 -5px;
+    border-radius:50%; z-index:4; opacity:0; pointer-events:none;
+    background:radial-gradient(circle, rgba(255,248,224,1) 0%, rgba(255,214,140,0.9) 20%, rgba(255,176,84,0.4) 45%, transparent 72%);
+  }
+  .book-burst::before{
+    content:''; position:absolute; inset:-600px; border-radius:50%;
+    background:conic-gradient(from 0deg,
+      rgba(255,222,152,0.4) 0deg 4deg, transparent 4deg 26deg,
+      rgba(255,222,152,0.34) 26deg 30deg, transparent 30deg 55deg,
+      rgba(255,222,152,0.38) 55deg 60deg, transparent 60deg 84deg,
+      rgba(255,222,152,0.3) 84deg 90deg, transparent 90deg 115deg,
+      rgba(255,222,152,0.4) 115deg 120deg, transparent 120deg 148deg,
+      rgba(255,222,152,0.34) 148deg 154deg, transparent 154deg 180deg,
+      rgba(255,222,152,0.38) 180deg 186deg, transparent 186deg 210deg,
+      rgba(255,222,152,0.3) 210deg 216deg, transparent 216deg 245deg,
+      rgba(255,222,152,0.4) 245deg 250deg, transparent 250deg 278deg,
+      rgba(255,222,152,0.34) 278deg 284deg, transparent 284deg 312deg,
+      rgba(255,222,152,0.38) 312deg 318deg, transparent 318deg 345deg,
+      rgba(255,222,152,0.3) 345deg 350deg, transparent 350deg 360deg);
+    -webkit-mask-image:radial-gradient(circle, black 0%, black 26%, transparent 68%);
+    mask-image:radial-gradient(circle, black 0%, black 26%, transparent 68%);
+  }
+  .book.is-opening .book-burst{ animation:bookBurst 1.6s cubic-bezier(.2,.7,.3,1) forwards; }
+  @keyframes bookBurst{
+    0%{ opacity:0; transform:scale(0.15); }
+    38%{ opacity:1; transform:scale(1); }
+    100%{ opacity:0; transform:scale(2.2); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .book-cover{ transition:opacity .3s ease; }
+    .book.is-opening .book-cover{ transform:none; }
+    .book.is-opening .book-burst{ animation:none; opacity:0; }
+  }
 
   /* ---- open book / spread ---- */
   .book-open{ display:none; width:100%; height:100%; align-items:center; justify-content:center; }
   .book.is-index .book-open, .book.is-page .book-open{ display:flex; }
-  .book.is-cover .book-cover, .book:not(.is-cover) .book-cover{ }
-  .book:not(.is-cover) .book-cover{ display:none; }
+  .book:not(.is-cover):not(.is-opening) .book-cover{ display:none; }
   .book-spread{
     width:min(1080px,100%); max-height:88vh; aspect-ratio:16/10;
     display:grid; grid-template-columns:1fr 1fr;
@@ -779,7 +847,7 @@
   .book-pill.is-primary{ background:rgba(122,53,36,0.12); border-style:solid; }
 
   /* ---- index page ---- */
-  .book-index-title{ font-family:'Unbounded',sans-serif; font-weight:700; font-size:1.5rem; color:#3a2413; margin-bottom:1rem; text-transform:none; }
+  .book-index-title{ font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:600; font-size:1.7rem; color:#3a2413; margin-bottom:1rem; }
   .book-continue{
     display:inline-flex; align-items:center; gap:0.5rem; margin-bottom:1.6rem;
     font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase;
@@ -1099,6 +1167,8 @@
   <section class="cinematic sacred reveal" id="dorado">
     <img class="cinematic-photo" id="sacredPhoto" alt="" aria-hidden="true" loading="lazy" decoding="async">
     <canvas class="cinematic-canvas" id="sacredCanvas"></canvas>
+    <div class="sacred-sparkles" aria-hidden="true"></div>
+    <div class="sacred-sweep" aria-hidden="true"></div>
     <div class="cinematic-scrim"></div>
     <div class="sacred-glow" aria-hidden="true"></div>
     <div class="cinematic-content">
@@ -1220,6 +1290,8 @@
     </div>
   </div>
 
+  <div class="book-burst" id="bookBurst" aria-hidden="true"></div>
+
   <div class="book-open" id="bookOpen">
     <div class="book-spread">
       <div class="book-page book-page-left parchment" id="bookPageLeft"></div>
@@ -1265,6 +1337,9 @@
   /* Curated high-resolution imagery (Wikimedia Commons hotlink-friendly "Special:FilePath" redirects).
      Every consumer below fails gracefully to the existing gradient/canvas treatment if a URL 404s or is blocked. */
   const WM = (file) => `https://commons.wikimedia.org/wiki/Special:FilePath/${file}?width=1600`;
+  // last-resort fallback: resolves to whatever lead image Wikipedia currently has for the
+  // article, so a card never ends up with only the gradient treatment.
+  const WIKI = (lang, title) => ({ wiki: `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}` });
   const IMG = {
     nebulaPillars: WM('Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg'),
     carinaGold: WM('Carina_Nebula_JWST.jpg'),
@@ -1279,10 +1354,10 @@
     constellations: WM('Orion_Constellation.jpg'),
     // multi-candidate slots: several images kept broken in earlier testing, so these
     // try more than one Commons filename before falling back to the gradient treatment.
-    gagarin: [ WM('Yuri_Gagarin_Colour.jpg'), WM('RIAN_archive_25981_Yuri_Gagarin.jpg'), WM('Bundesarchiv_Bild_Yuri_Gagarin.jpg') ],
-    curiosity: [ WM('Mars_Curiosity_Rover.jpg'), WM("Curiosity_Self-Portrait_at_'Big_Sky'_Drilling_Site.jpg"), WM('Curiosity_Self-Portrait_at_Big_Sky_Drilling_Site.jpg') ],
-    paleBlueDot: [ WM('Pale_Blue_Dot.png'), WM('Pale_Blue_Dot.jpg') ],
-    venusSurface: [ WM('Venera_13_photo.jpg'), WM('Venera_13.jpg') ]
+    gagarin: [ WM('Yuri_Gagarin_Colour.jpg'), WM('RIAN_archive_25981_Yuri_Gagarin.jpg'), WM('Bundesarchiv_Bild_Yuri_Gagarin.jpg'), WM('Yuri_Gagarin.jpg'), WIKI('en','Yuri Gagarin') ],
+    curiosity: [ WM('Mars_Curiosity_Rover.jpg'), WM("Curiosity_Self-Portrait_at_'Big_Sky'_Drilling_Site.jpg"), WM('Curiosity_Self-Portrait_at_Big_Sky_Drilling_Site.jpg'), WIKI('en','Curiosity (rover)') ],
+    paleBlueDot: [ WM('Pale_Blue_Dot.png'), WM('Pale_Blue_Dot.jpg'), WIKI('en','Pale Blue Dot') ],
+    venusSurface: [ WM('Venera_13_photo.jpg'), WM('Venera_13.jpg'), WIKI('en','Venera 13') ]
   };
 
   function loadImageInto(imgEl, urlOrList, onSuccess){
@@ -1292,6 +1367,16 @@
     function tryNext(){
       const next = candidates.shift();
       if(!next){ imgEl.removeAttribute('src'); return; }
+      if(typeof next === 'object' && next.wiki){
+        fetch(next.wiki).then(r=> r.ok ? r.json() : Promise.reject())
+          .then(data=>{
+            const src = (data.originalimage && data.originalimage.source) || (data.thumbnail && data.thumbnail.source);
+            if(src) candidates.unshift(src);
+            tryNext();
+          })
+          .catch(tryNext);
+        return;
+      }
       const onLoad = ()=>{ imgEl.classList.add('is-loaded'); cleanup(); if(onSuccess) onSuccess(); };
       const onError = ()=>{ cleanup(); tryNext(); };
       function cleanup(){ imgEl.removeEventListener('load', onLoad); imgEl.removeEventListener('error', onError); }
@@ -1498,6 +1583,7 @@
     </a>`;
   }
 
+  let currentPvPreview = null;
   const PV_MAX_GRAVITY = Math.max(...PLANETS.map(p=>p.gravity));
   const PV_MAX_DIAMETER = Math.max(...PLANETS.map(p=>p.diameterKm));
   const PV_EARTH = PLANETS.find(p=>p.name==='Tierra');
@@ -1565,21 +1651,28 @@
               <div class="pv-comp-bar">${comp.segs}</div>
               <div class="pv-comp-legend">${comp.legend}</div>
             </div>
-            <div class="pv-card pv-sim">
-              <h4>Simulador de peso</h4>
-              <label>Tu peso en la Tierra (kg)</label>
-              <input type="range" id="pvWeightSlider" min="10" max="150" value="70" step="1">
-              <p class="pv-sim-result">En ${p.name} pesarías<b id="pvWeightResult">${(70*p.gravity/9.8).toFixed(1)} kg</b></p>
+            <div class="pv-card pv-model">
+              <h4>Estructura interna</h4>
+              <div class="pv-model-canvas" id="pvModelCanvas"></div>
+              <label for="pvXraySlider" id="pvXrayLabel">Corte interno · Superficie</label>
+              <input type="range" id="pvXraySlider" min="0" max="1" step="0.01" value="0">
             </div>
           </div>
         </div>
       </div>`;
     openPanel();
     const pvRoot = panelBody.querySelector('.pv');
-    const weightSlider = document.getElementById('pvWeightSlider');
-    const weightResult = document.getElementById('pvWeightResult');
-    weightSlider.addEventListener('input', ()=>{
-      weightResult.textContent = `${(+weightSlider.value * p.gravity/9.8).toFixed(1)} kg`;
+    if(currentPvPreview){ currentPvPreview.dispose(); currentPvPreview = null; }
+    const modelCanvas = document.getElementById('pvModelCanvas');
+    if(window.Nebula && window.Nebula.mountPlanetPreview){
+      currentPvPreview = window.Nebula.mountPlanetPreview(modelCanvas, i);
+    }
+    const xraySlider = document.getElementById('pvXraySlider');
+    const xrayLabel = document.getElementById('pvXrayLabel');
+    xraySlider.addEventListener('input', ()=>{
+      const t = +xraySlider.value;
+      if(currentPvPreview) currentPvPreview.setXray(t);
+      xrayLabel.textContent = `Corte interno · ${t < 0.34 ? 'Superficie' : (t < 0.67 ? 'Manto' : 'Núcleo')}`;
     });
     document.getElementById('pvCloseBtn').addEventListener('click', closePanel);
     document.getElementById('pvBackBtn').addEventListener('click', closePanel);
@@ -1630,6 +1723,7 @@
     panelVeil.classList.remove('is-open');
     planetPanel.setAttribute('aria-hidden','true');
     setTimeout(()=> planetPanel.classList.remove('is-planet'), 600);
+    if(currentPvPreview){ currentPvPreview.dispose(); currentPvPreview = null; }
   }
   panelClose.addEventListener('click', closePanel);
   panelVeil.addEventListener('click', closePanel);
@@ -1700,6 +1794,20 @@
   let bookIndex = 0;
   let lastPageIndex = -1;
 
+  // wraps each character in a jittered span so the antique text reads as hand-inked, not typeset
+  function inkHtml(text){
+    return [...text].map(ch=>{
+      if(ch === ' ') return ' ';
+      const r = (Math.random()*3.4 - 1.7).toFixed(2);
+      const y = (Math.random()*2.6 - 1.3).toFixed(2);
+      const safe = ch.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return `<span class="ink-glyph" style="--r:${r}deg;--y:${y}px">${safe}</span>`;
+    }).join('');
+  }
+  function inkifyEl(el){ if(el) el.innerHTML = inkHtml(el.textContent); }
+  inkifyEl(document.querySelector('.book-cover-title'));
+  inkifyEl(document.querySelector('.book-cover-sub'));
+
   function bookSeal(icon){
     const rings = `<circle cx="100" cy="100" r="94" fill="none" stroke="#7a3524" stroke-width="1" opacity="0.55"/>
       <circle cx="100" cy="100" r="74" fill="none" stroke="#7a3524" stroke-width="1" stroke-dasharray="2 6" opacity="0.5"/>`;
@@ -1761,10 +1869,10 @@
       <p class="book-left-tag ink-label">${p.tag}</p>`;
     bookPageRight.innerHTML = `
       <p class="book-page-tag ink-label">${p.tag}</p>
-      <p class="book-verse ink">${p.verse}</p>
+      <p class="book-verse ink">${inkHtml(p.verse)}</p>
       <div class="book-divider"></div>
-      <div class="book-gloss-block"><h5 class="ink-label">Interpretación espiritual</h5><p class="ink">${p.spirit}</p></div>
-      <div class="book-gloss-block"><h5 class="ink-label">Contexto científico</h5><p class="ink">${p.science}</p></div>
+      <div class="book-gloss-block"><h5 class="ink-label">Interpretación espiritual</h5><p class="ink">${inkHtml(p.spirit)}</p></div>
+      <div class="book-gloss-block"><h5 class="ink-label">Contexto científico</h5><p class="ink">${inkHtml(p.science)}</p></div>
       <div class="book-page-nav">
         <button class="book-pill" ${prevAttrs} type="button">${prevLabel}</button>
         <button class="book-pill is-primary" data-action="open-index" type="button">Índice</button>
@@ -1778,29 +1886,38 @@
     const continueTarget = hasProgress ? (lastPageIndex+1) % BOOK_PAGES.length : 0;
     bookPageLeft.innerHTML = `
       ${bookSeal(intro.icon)}
-      <p class="book-left-title ink">${intro.section}</p>
-      <p class="book-left-quote ink">«${intro.verse.replace(/[«»]/g,'')}»</p>`;
+      <p class="book-left-title ink">${inkHtml(intro.section)}</p>
+      <p class="book-left-quote ink">${inkHtml('«' + intro.verse.replace(/[«»]/g,'') + '»')}</p>`;
     bookPageRight.innerHTML = `
-      <h3 class="book-index-title">${intro.section}</h3>
+      <h3 class="book-index-title ink">${inkHtml(intro.section)}</h3>
       ${hasProgress ? `<button class="book-continue" data-action="open-page" data-index="${continueTarget}" type="button">↺ Continuar en ${BOOK_PAGES[continueTarget].tag}</button>` : ''}
       <div class="book-index-list">
         ${BOOK_PAGES.map((pg,idx)=> `<button class="book-index-row" data-action="open-page" data-index="${idx}" type="button"><span>${pg.tag}</span><span class="book-index-num">${String(idx+1).padStart(2,'0')}</span></button>`).join('')}
       </div>`;
   }
 
-  function showCover(){ book.classList.remove('is-index','is-page'); book.classList.add('is-cover'); }
-  function showIndex(){ book.classList.remove('is-cover','is-page'); book.classList.add('is-index'); renderIndexPage(); }
+  function showCover(){ book.classList.remove('is-index','is-page','is-opening'); book.classList.add('is-cover'); }
+  function showIndex(){ book.classList.remove('is-cover','is-page','is-opening'); book.classList.add('is-index'); renderIndexPage(); }
   function showPage(i){
     bookIndex = (i + BOOK_PAGES.length) % BOOK_PAGES.length;
     lastPageIndex = bookIndex;
-    book.classList.remove('is-cover','is-index');
+    book.classList.remove('is-cover','is-index','is-opening');
     book.classList.add('is-page');
     renderBookPage(bookIndex);
   }
   function closeBook(){ book.classList.remove('is-open'); setTimeout(showCover, 550); }
 
+  let openingBook = false;
+  function beginOpening(){
+    if(openingBook) return;
+    openingBook = true;
+    book.classList.remove('is-cover');
+    book.classList.add('is-opening');
+    setTimeout(()=>{ openingBook = false; showIndex(); }, 1550);
+  }
+
   document.getElementById('sacredOpenBtn').addEventListener('click', ()=>{ showCover(); book.classList.add('is-open'); });
-  bookCover.addEventListener('click', showIndex);
+  bookCover.addEventListener('click', beginOpening);
   document.getElementById('bookClose').addEventListener('click', closeBook);
   book.addEventListener('click', (e)=>{
     const t = e.target.closest('[data-action]');
@@ -2211,6 +2328,82 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   const textureLoader = new THREE.TextureLoader();
   textureLoader.crossOrigin = 'anonymous';
   loadPlanetTexture(SUN_TEXTURE_URL, ['#ffdf9e', '#ff8a3d'], textureLoader).then(tex=>{ sun.material.map = tex; sun.material.needsUpdate = true; });
+
+  // ---- small standalone preview used inside the planet detail panel (surface → atmosphere → manto → núcleo) ----
+  function mountPlanetPreview(container, i){
+    const p = PLANETS[i];
+    const w = container.clientWidth || 220, h = container.clientHeight || 220;
+    const scene2 = new THREE.Scene();
+    const camera2 = new THREE.PerspectiveCamera(38, w / h, 0.1, 20);
+    camera2.position.set(0, 0, 3.1);
+    const renderer2 = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+    renderer2.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer2.outputColorSpace = THREE.SRGBColorSpace;
+    renderer2.setSize(w, h, false);
+    container.appendChild(renderer2.domElement);
+
+    scene2.add(new THREE.HemisphereLight(0xffffff, 0x1a1430, 1.1));
+    const dl = new THREE.DirectionalLight(0xffffff, 1.4);
+    dl.position.set(2.5, 2, 3);
+    scene2.add(dl);
+
+    const surfMat = new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.85, metalness:0.05, transparent:true, opacity:1 });
+    const surf = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 40), surfMat);
+    scene2.add(surf);
+    loadPlanetTexture(TEXTURE_URLS[i], p.grad, textureLoader).then(tex=>{ surfMat.map = tex; surfMat.needsUpdate = true; });
+
+    const atmoMat = new THREE.MeshBasicMaterial({ color:new THREE.Color(p.grad[0]), transparent:true, opacity:0.16, side:THREE.BackSide });
+    const atmo = new THREE.Mesh(new THREE.SphereGeometry(1.14, 32, 32), atmoMat);
+    scene2.add(atmo);
+
+    const mantleMat = new THREE.MeshStandardMaterial({ color:0xff7a3d, emissive:0xff4d1a, emissiveIntensity:0.6, roughness:0.5, transparent:true, opacity:0 });
+    const mantle = new THREE.Mesh(new THREE.SphereGeometry(0.66, 28, 28), mantleMat);
+    scene2.add(mantle);
+
+    const coreMat = new THREE.MeshStandardMaterial({ color:0xfff2c0, emissive:0xffe08a, emissiveIntensity:1, roughness:0.3, transparent:true, opacity:0 });
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.32, 24, 24), coreMat);
+    scene2.add(core);
+
+    let ring2 = null;
+    if(p.name === 'Saturno'){
+      ring2 = new THREE.Mesh(
+        new THREE.RingGeometry(1.35, 2.05, 64),
+        new THREE.MeshBasicMaterial({ color:0xd9c398, transparent:true, opacity:0.55, side:THREE.DoubleSide })
+      );
+      ring2.rotation.x = Math.PI / 2.4;
+      scene2.add(ring2);
+    }
+
+    let running2 = true, raf2;
+    function frame2(){
+      surf.rotation.y += 0.0035;
+      atmo.rotation.y += 0.0018;
+      mantle.rotation.y -= 0.0022;
+      core.rotation.y += 0.003;
+      renderer2.render(scene2, camera2);
+      if(running2) raf2 = requestAnimationFrame(frame2);
+    }
+    frame2();
+
+    function setXray(t){
+      surfMat.opacity = 1 - t * 0.85;
+      atmoMat.opacity = 0.16 + t * 0.22;
+      mantleMat.opacity = Math.min(0.9, Math.max(0, (t - 0.08) * 1.5));
+      coreMat.opacity = Math.min(1, Math.max(0, (t - 0.45) * 2.2));
+    }
+
+    function dispose(){
+      running2 = false;
+      cancelAnimationFrame(raf2);
+      [surfMat, atmoMat, mantleMat, coreMat].forEach(m=> m.dispose());
+      [surf, atmo, mantle, core, ring2].forEach(o=> o && o.geometry && o.geometry.dispose());
+      renderer2.dispose();
+      container.innerHTML = '';
+    }
+
+    return { setXray, dispose };
+  }
+  window.Nebula.mountPlanetPreview = mountPlanetPreview;
 
   const planetMeshes = [];
   const raycaster = new THREE.Raycaster();
