@@ -616,7 +616,24 @@
   }
   .pv-model-canvas canvas{ display:block; width:100%; height:100%; }
   .pv-model label{ display:block; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--pv-ink-faint); margin-bottom:0.7rem; }
-  .pv-model input[type=range]{ width:100%; accent-color:var(--pv-accent); }
+  .pv-model input[type=range]{ width:100%; accent-color:var(--pv-accent); margin-bottom:1.2rem; }
+  .pv-accordion-toggle{
+    display:flex; align-items:center; justify-content:space-between; width:100%;
+    background:none; border:none; padding:0; cursor:pointer;
+    font-family:'Unbounded',sans-serif; font-weight:700; font-size:1.05rem; color:var(--pv-ink);
+  }
+  .pv-accordion-chev{ font-size:0.9rem; color:var(--pv-accent); transition:transform .35s var(--ease); }
+  .pv-accordion-toggle[aria-expanded="true"] .pv-accordion-chev{ transform:rotate(180deg); }
+  .pv-accordion{ max-height:0; overflow:hidden; transition:max-height .45s var(--ease); }
+  .pv-accordion-inner{ padding-top:1.2rem; }
+  .pv-layer-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0.5rem; }
+  .pv-layer-list li{
+    display:flex; align-items:center; gap:0.6rem; padding:0.55rem 0.7rem; border-radius:10px;
+    background:var(--pv-panel); border:1px solid transparent; font-size:0.84rem; color:var(--pv-ink-dim);
+    transition:background-color .3s var(--ease), border-color .3s var(--ease), color .3s var(--ease);
+  }
+  .pv-layer-list li.is-active{ background:var(--pv-panel-strong); border-color:var(--pv-accent-dim); color:var(--pv-ink); }
+  .pv-layer-dot{ width:8px; height:8px; border-radius:50%; flex:0 0 auto; background:var(--pv-accent); }
 
   /* lightbox for gallery */
   .lightbox{
@@ -694,7 +711,9 @@
   .ink{
     font-family:'Cormorant Garamond', serif; font-style:italic; font-weight:600;
     color:#2c1c10; text-shadow:0.3px 0.3px 0 rgba(60,35,10,0.28), 0 0 1px rgba(60,35,10,0.12);
+    filter:url(#inkBleed);
   }
+  @media (max-width:760px){ .ink{ filter:none; } } /* the displacement filter is costly on low-power/mobile GPUs */
   .ink-label{
     font-family:'Space Mono',monospace; font-weight:700; letter-spacing:0.16em; text-transform:uppercase;
     color:#7a3524; font-style:normal;
@@ -1304,6 +1323,13 @@
   </div>
 </div>
 
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true" focusable="false">
+  <filter id="inkBleed" x="-8%" y="-15%" width="116%" height="130%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.9 1.4" numOctaves="2" seed="7" result="noise"/>
+    <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.15" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
 <!-- ================= DORADO CELESTIAL — SAGRADA BIBLIA ================= -->
 <div class="book is-cover" id="book" role="dialog" aria-modal="true" aria-label="Sagrada Biblia — Aprendiendo con Jesús">
   <button class="btn-icon book-close" id="bookClose" aria-label="Cerrar lectura">✕</button>
@@ -1431,6 +1457,18 @@
     { name:"Saturno", color:"#d4b876", grad:["#e0cf9e","#a68e5a"], fact:"Sus anillos son fragmentos de hielo y roca de apenas metros de espesor.", diameter:"116 460 km", diameterKm:116460, day:"10.7 h", orbit:"29.5 años", moons:"146", mass:"5,68×10²⁶ kg", gravity:10.4, temp:"-139°C (nubes)", distance:"9,5 UA", composition:[{label:"H₂",pct:96},{label:"He",pct:3},{label:"Otros",pct:1}], link:{ label:"NASA · Saturno", url:"https://solarsystem.nasa.gov/planets/saturn/overview/" } },
     { name:"Urano", color:"#5aa9a3", grad:["#8fd0d6","#3a7a80"], fact:"Gira casi de lado, con un eje inclinado 98 grados sobre su órbita.", diameter:"50 724 km", diameterKm:50724, day:"17.2 h", orbit:"84 años", moons:"27", mass:"8,68×10²⁵ kg", gravity:8.7, temp:"-197°C", distance:"19,8 UA", composition:[{label:"H₂",pct:83},{label:"He",pct:15},{label:"CH₄",pct:2}], link:{ label:"NASA · Urano", url:"https://solarsystem.nasa.gov/planets/uranus/overview/" } },
     { name:"Neptuno", color:"#4a6ac9", grad:["#6f8fd6","#2c3f8a"], fact:"Los vientos más rápidos del sistema solar, hasta 2 100 km/h.", diameter:"49 244 km", diameterKm:49244, day:"16.1 h", orbit:"165 años", moons:"14", mass:"1,02×10²⁶ kg", gravity:11.2, temp:"-201°C", distance:"30,1 UA", composition:[{label:"H₂",pct:80},{label:"He",pct:19},{label:"Otros",pct:1}], link:{ label:"NASA · Neptuno", url:"https://solarsystem.nasa.gov/planets/neptune/overview/" } }
+  ];
+
+  // Layer breakdown shown in the "Ver Estructura Interna" accordion, inner→outer, one entry per planet.
+  const PLANET_LAYER_NAMES = [
+    ["Núcleo metálico gigante", "Manto de silicato", "Corteza fina"], // Mercurio
+    ["Núcleo de hierro", "Manto rocoso", "Corteza de silicato", "Atmósfera densa de CO₂"], // Venus
+    ["Núcleo interno sólido", "Núcleo externo líquido", "Manto inferior/superior", "Corteza"], // Tierra
+    ["Núcleo de hierro/azufre", "Manto de silicato", "Corteza rica en basalto e hierro"], // Marte
+    ["Núcleo rocoso/metálico", "Hidrógeno metálico líquido", "Hidrógeno molecular", "Atmósfera superior"], // Júpiter
+    ["Núcleo denso", "Hidrógeno metálico", "Manto de hidrógeno líquido y helio", "Atmósfera"], // Saturno
+    ["Núcleo rocoso", "Manto helado (agua, amoníaco, metano)", "Atmósfera de H/He/Metano"], // Urano
+    ["Núcleo rocoso", "Manto de fluido denso/hielo", "Atmósfera profunda"] // Neptuno
   ];
 
   const MILESTONES = [
@@ -1687,10 +1725,20 @@
               <div class="pv-comp-legend">${comp.legend}</div>
             </div>
             <div class="pv-card pv-model">
-              <h4>Estructura interna</h4>
-              <div class="pv-model-canvas" id="pvModelCanvas"></div>
-              <label for="pvXraySlider" id="pvXrayLabel">Corte interno · Superficie</label>
-              <input type="range" id="pvXraySlider" min="0" max="1" step="0.01" value="0">
+              <button class="pv-accordion-toggle" id="pvStructureToggle" type="button" aria-expanded="false" aria-controls="pvStructurePanel">
+                <span>✦ Ver Estructura Interna</span>
+                <span class="pv-accordion-chev">⌄</span>
+              </button>
+              <div class="pv-accordion" id="pvStructurePanel">
+                <div class="pv-accordion-inner">
+                  <div class="pv-model-canvas" id="pvModelCanvas"></div>
+                  <label for="pvXraySlider" id="pvXrayLabel">Corte interno · Superficie</label>
+                  <input type="range" id="pvXraySlider" min="0" max="1" step="0.01" value="0">
+                  <ul class="pv-layer-list" id="pvLayerList">
+                    ${PLANET_LAYER_NAMES[i].map(name=> `<li><span class="pv-layer-dot"></span>${name}</li>`).join('')}
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1699,15 +1747,40 @@
     const pvRoot = panelBody.querySelector('.pv');
     if(currentPvPreview){ currentPvPreview.dispose(); currentPvPreview = null; }
     const modelCanvas = document.getElementById('pvModelCanvas');
-    if(window.Nebula && window.Nebula.mountPlanetPreview){
-      currentPvPreview = window.Nebula.mountPlanetPreview(modelCanvas, i);
-    }
     const xraySlider = document.getElementById('pvXraySlider');
     const xrayLabel = document.getElementById('pvXrayLabel');
+    const layerItems = [...document.querySelectorAll('#pvLayerList li')];
+    function highlightLayer(t){
+      // PLANET_LAYER_NAMES lists layers inner→outer: idx 0 = núcleo, idx n-1 = corteza/atmósfera
+      const n = layerItems.length;
+      const stage = t < 0.34 ? 0 : (t < 0.67 ? 1 : 2); // 0=superficie, 1=manto, 2=núcleo
+      layerItems.forEach((li, idx)=>{
+        const isActive = stage === 0 ? idx === n - 1 : stage === 2 ? idx === 0 : (idx > 0 && idx < n - 1);
+        li.classList.toggle('is-active', isActive);
+      });
+    }
     xraySlider.addEventListener('input', ()=>{
       const t = +xraySlider.value;
       if(currentPvPreview) currentPvPreview.setXray(t);
       xrayLabel.textContent = `Corte interno · ${t < 0.34 ? 'Superficie' : (t < 0.67 ? 'Manto' : 'Núcleo')}`;
+      highlightLayer(t);
+    });
+    const structureToggle = document.getElementById('pvStructureToggle');
+    const structurePanel = document.getElementById('pvStructurePanel');
+    structureToggle.addEventListener('click', ()=>{
+      const isOpen = structureToggle.getAttribute('aria-expanded') === 'true';
+      if(isOpen){
+        structurePanel.style.maxHeight = '0px';
+        structureToggle.setAttribute('aria-expanded','false');
+      } else {
+        if(!currentPvPreview && window.Nebula && window.Nebula.mountPlanetPreview){
+          currentPvPreview = window.Nebula.mountPlanetPreview(modelCanvas, i);
+          currentPvPreview.setXray(+xraySlider.value);
+          highlightLayer(+xraySlider.value);
+        }
+        structurePanel.style.maxHeight = structurePanel.scrollHeight + 'px';
+        structureToggle.setAttribute('aria-expanded','true');
+      }
     });
     document.getElementById('pvCloseBtn').addEventListener('click', closePanel);
     document.getElementById('pvBackBtn').addEventListener('click', closePanel);
@@ -1830,66 +1903,91 @@
   let lastPageIndex = -1;
 
   // wraps each character in a jittered span so the antique text reads as hand-inked, not typeset
+  const INK_TONES = ['#2c1c10', '#1a1008']; // calamo brown / near-black — pen-pressure variation
   function inkHtml(text){
     return [...text].map(ch=>{
       if(ch === ' ') return ' ';
       const r = (Math.random()*3.4 - 1.7).toFixed(2);
       const y = (Math.random()*2.6 - 1.3).toFixed(2);
+      const o = (0.82 + Math.random()*0.18).toFixed(2);
+      const tone = INK_TONES[Math.random() < 0.78 ? 0 : 1];
       const safe = ch.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      return `<span class="ink-glyph" style="--r:${r}deg;--y:${y}px">${safe}</span>`;
+      return `<span class="ink-glyph" style="--r:${r}deg;--y:${y}px;color:${tone};opacity:${o}">${safe}</span>`;
     }).join('');
   }
   function inkifyEl(el){ if(el) el.innerHTML = inkHtml(el.textContent); }
   inkifyEl(document.querySelector('.book-cover-title'));
   inkifyEl(document.querySelector('.book-cover-sub'));
 
+  let bookSealUid = 0;
+  // Renaissance woodcut/etching aesthetic: monochrome ink, fine strokes, cross-hatching or
+  // stippling standing in for shading — never a flat, solid-colour fill.
   function bookSeal(icon){
-    const rings = `<circle cx="100" cy="100" r="94" fill="none" stroke="#7a3524" stroke-width="1" opacity="0.55"/>
-      <circle cx="100" cy="100" r="74" fill="none" stroke="#7a3524" stroke-width="1" stroke-dasharray="2 6" opacity="0.5"/>`;
+    const uid = bookSealUid++;
+    const INK = '#3a2413';
+    const hatchId = `bsHatch${uid}`, stippleId = `bsStipple${uid}`;
+    const defs = `<defs>
+      <pattern id="${hatchId}" width="4.2" height="4.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="4.2" stroke="${INK}" stroke-width="0.55" opacity="0.55"/>
+        <line x1="2.1" y1="0" x2="2.1" y2="4.2" stroke="${INK}" stroke-width="0.32" opacity="0.32"/>
+      </pattern>
+      <pattern id="${stippleId}" width="5" height="5" patternUnits="userSpaceOnUse">
+        <circle cx="1.3" cy="1.3" r="0.55" fill="${INK}" opacity="0.55"/>
+        <circle cx="3.6" cy="3.4" r="0.4" fill="${INK}" opacity="0.4"/>
+      </pattern>
+    </defs>`;
+    const rings = `<circle cx="100" cy="100" r="94" fill="none" stroke="${INK}" stroke-width="1" opacity="0.55"/>
+      <circle cx="100" cy="100" r="74" fill="none" stroke="${INK}" stroke-width="1" stroke-dasharray="2 6" opacity="0.5"/>`;
     const ticks = Array.from({length:12}).map((_,i)=>{
       const a = (i/12)*Math.PI*2;
       const x1=100+Math.cos(a)*88, y1=100+Math.sin(a)*88, x2=100+Math.cos(a)*96, y2=100+Math.sin(a)*96;
-      return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#7a3524" stroke-width="1" opacity="0.5"/>`;
+      return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${INK}" stroke-width="1" opacity="0.5"/>`;
     }).join('');
+    const hatchFill = `url(#${hatchId})`, stippleFill = `url(#${stippleId})`;
     let inner;
     switch(icon){
-      case 'genesis':
-        inner = `<circle cx="100" cy="100" r="46" fill="#c9a25c" opacity="0.16"/><circle cx="100" cy="100" r="26" fill="#e8c07d"/>`;
+      case 'genesis': { // light breaking from the dark — an engraved sunburst nimbus
+        const rays = Array.from({length:16}).map((_,i)=>{
+          const a=(i/16)*Math.PI*2; const x2=100+Math.cos(a)*44, y2=100+Math.sin(a)*44;
+          return `<line x1="${(100+Math.cos(a)*22).toFixed(1)}" y1="${(100+Math.sin(a)*22).toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${INK}" stroke-width="${i%2?0.6:1}" opacity="0.6"/>`;
+        }).join('');
+        inner = `<circle cx="100" cy="100" r="21" fill="${stippleFill}"/><circle cx="100" cy="100" r="21" fill="none" stroke="${INK}" stroke-width="1.2"/>${rays}`;
         break;
+      }
       case 'salmos':
         inner = [[70,72],[128,64],[112,96],[86,118],[132,120],[100,100],[64,108]]
-          .map(([x,y],i)=> `<circle cx="${x}" cy="${y}" r="${i===5?3.5:2.4}" fill="#e8c07d"/>`).join('')
-          + `<line x1="70" y1="72" x2="112" y2="96" stroke="#c9a25c" stroke-width="0.8" opacity="0.6"/>
-             <line x1="112" y1="96" x2="132" y2="120" stroke="#c9a25c" stroke-width="0.8" opacity="0.6"/>
-             <line x1="112" y1="96" x2="128" y2="64" stroke="#c9a25c" stroke-width="0.8" opacity="0.6"/>
-             <line x1="86" y1="118" x2="64" y2="108" stroke="#c9a25c" stroke-width="0.8" opacity="0.6"/>`;
+          .map(([x,y],i)=> `<circle cx="${x}" cy="${y}" r="${i===5?3.2:2.1}" fill="${INK}"/>`).join('')
+          + `<line x1="70" y1="72" x2="112" y2="96" stroke="${INK}" stroke-width="0.7" opacity="0.6"/>
+             <line x1="112" y1="96" x2="132" y2="120" stroke="${INK}" stroke-width="0.7" opacity="0.6"/>
+             <line x1="112" y1="96" x2="128" y2="64" stroke="${INK}" stroke-width="0.7" opacity="0.6"/>
+             <line x1="86" y1="118" x2="64" y2="108" stroke="${INK}" stroke-width="0.7" opacity="0.6"/>`;
         break;
       case 'job':
-        inner = `<line x1="100" y1="34" x2="100" y2="70" stroke="#7a3524" stroke-width="1" stroke-dasharray="1 5" opacity="0.5"/>
-          <circle cx="100" cy="108" r="20" fill="#e8c07d" opacity="0.14"/><circle cx="100" cy="108" r="20" fill="none" stroke="#c9a25c" stroke-width="1.4"/>`;
+        inner = `<line x1="100" y1="34" x2="100" y2="70" stroke="${INK}" stroke-width="1" stroke-dasharray="1 5" opacity="0.5"/>
+          <circle cx="100" cy="108" r="20" fill="${hatchFill}"/><circle cx="100" cy="108" r="20" fill="none" stroke="${INK}" stroke-width="1.4"/>`;
         break;
       case 'isaias':
-        inner = `<path d="M56 122 Q100 148 144 122" fill="none" stroke="#7a3524" stroke-width="1" opacity="0.55"/>
-          <circle cx="100" cy="98" r="24" fill="none" stroke="#c9a25c" stroke-width="1.6"/>`;
+        inner = `<path d="M56 122 Q100 148 144 122" fill="none" stroke="${INK}" stroke-width="1" opacity="0.55"/>
+          <circle cx="100" cy="98" r="24" fill="${hatchFill}"/><circle cx="100" cy="98" r="24" fill="none" stroke="${INK}" stroke-width="1.6"/>`;
         break;
       case 'juan':
         inner = Array.from({length:8}).map((_,i)=>{
           const a=(i/8)*Math.PI*2; const x2=100+Math.cos(a)*40, y2=100+Math.sin(a)*40;
-          return `<line x1="100" y1="100" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#e8c07d" stroke-width="1.3" opacity="0.75"/>`;
-        }).join('') + `<circle cx="100" cy="100" r="10" fill="#e8c07d"/>`;
+          return `<line x1="100" y1="100" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${INK}" stroke-width="1.1" opacity="0.75"/>`;
+        }).join('') + `<circle cx="100" cy="100" r="10" fill="${stippleFill}"/><circle cx="100" cy="100" r="10" fill="none" stroke="${INK}" stroke-width="1"/>`;
         break;
       case 'colosenses':
-        inner = `<circle cx="88" cy="94" r="24" fill="none" stroke="#c9a25c" stroke-width="1.3" opacity="0.85"/>
-          <circle cx="114" cy="94" r="24" fill="none" stroke="#c9a25c" stroke-width="1.3" opacity="0.85"/>
-          <circle cx="101" cy="116" r="24" fill="none" stroke="#c9a25c" stroke-width="1.3" opacity="0.85"/>`;
+        inner = `<circle cx="88" cy="94" r="24" fill="none" stroke="${INK}" stroke-width="1.1" opacity="0.85"/>
+          <circle cx="114" cy="94" r="24" fill="none" stroke="${INK}" stroke-width="1.1" opacity="0.85"/>
+          <circle cx="101" cy="116" r="24" fill="none" stroke="${INK}" stroke-width="1.1" opacity="0.85"/>`;
         break;
       case 'hebreos':
-        inner = `<path d="M100 74 A26 26 0 0 1 100 126 Z" fill="#e8c07d" opacity="0.85"/><circle cx="100" cy="100" r="26" fill="none" stroke="#7a3524" stroke-width="1.3"/>`;
+        inner = `<path d="M100 74 A26 26 0 0 1 100 126 Z" fill="${hatchFill}"/><circle cx="100" cy="100" r="26" fill="none" stroke="${INK}" stroke-width="1.3"/>`;
         break;
       default:
-        inner = `<circle cx="100" cy="100" r="22" fill="#e8c07d" opacity="0.7"/>`;
+        inner = `<circle cx="100" cy="100" r="22" fill="${stippleFill}"/><circle cx="100" cy="100" r="22" fill="none" stroke="${INK}" stroke-width="1.1"/>`;
     }
-    return `<svg class="book-seal" viewBox="0 0 200 200" aria-hidden="true">${rings}${ticks}${inner}</svg>`;
+    return `<svg class="book-seal" viewBox="0 0 200 200" aria-hidden="true">${defs}${rings}${ticks}${inner}</svg>`;
   }
 
   function renderBookPage(i){
@@ -2390,14 +2488,29 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   const WEDGE_CAP_THETA = Math.PI * 0.6; // the lower ~40% of every layer stays a solid, uncut "floor"
   const WEDGE_MAX_ANGLE = Math.PI * 0.56; // ~100° — how wide the missing wedge gets once a layer is fully cut
 
-  // A layer is two meshes sharing one material: an upper patch whose missing
-  // longitude wedge grows with the cut, and a lower cap that is never cut —
-  // so whatever layer sits beneath always shows through as a solid "floor".
+  // Orients a flat disc so it lies in the vertical meridian plane at azimuth psi (a "cut wall").
+  function orientMeridianWall(mesh, psi){
+    const xAxis = new THREE.Vector3(Math.cos(psi), 0, Math.sin(psi));
+    const yAxis = new THREE.Vector3(0, 1, 0);
+    const zAxis = new THREE.Vector3().crossVectors(xAxis, yAxis).normalize();
+    mesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis));
+  }
+
+  // A layer is a curved patch (whose missing longitude wedge grows with the cut) plus a lower
+  // cap that is never cut — so whatever sits beneath always shows through as a solid "floor" —
+  // plus two flat disc-sector "walls" filling the wedge's straight edges, so the excavation
+  // always reads as solid cut material rather than a gap through to the background.
   function buildWedgeLayer(scene2, radius, material){
     const wedgeMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 28, 18, 0, Math.PI*2, 0, WEDGE_CAP_THETA), material);
     const capMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 28, 10, 0, Math.PI*2, WEDGE_CAP_THETA, Math.PI - WEDGE_CAP_THETA), material);
-    scene2.add(wedgeMesh, capMesh);
-    return { wedgeMesh, capMesh, radius, material, wedgeAngle:0 };
+    const wallGeo = new THREE.CircleGeometry(radius, 24, Math.PI/2 - WEDGE_CAP_THETA, WEDGE_CAP_THETA);
+    const wallMat = material.clone();
+    wallMat.side = THREE.DoubleSide;
+    const wallA = new THREE.Mesh(wallGeo, wallMat);
+    const wallB = new THREE.Mesh(wallGeo, wallMat);
+    wallA.visible = wallB.visible = false;
+    scene2.add(wedgeMesh, capMesh, wallA, wallB);
+    return { wedgeMesh, capMesh, wallA, wallB, wallGeo, wallMat, radius, material, wedgeAngle:0 };
   }
   function setWedgeAngle(layer, angle){
     if(Math.abs(angle - layer.wedgeAngle) < 0.005) return;
@@ -2408,6 +2521,12 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     // before it — so to center the missing wedge on phi=π/2 (which faces the camera here),
     // the kept range must start at π/2 + angle/2.
     layer.wedgeMesh.geometry = new THREE.SphereGeometry(layer.radius, 28, 18, Math.PI/2 + angle/2, phiLen, 0, WEDGE_CAP_THETA);
+    const hasCut = angle > 0.01;
+    layer.wallA.visible = layer.wallB.visible = hasCut;
+    if(hasCut){
+      orientMeridianWall(layer.wallA, Math.PI/2 - angle/2);
+      orientMeridianWall(layer.wallB, Math.PI/2 + angle/2);
+    }
   }
 
   function mountPlanetPreview(container, i){
@@ -2433,8 +2552,13 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     scene2.add(dl);
 
     const surfMat = new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.85, metalness:0.05 });
-    loadPlanetTexture(TEXTURE_URLS[i], p.grad, textureLoader).then(tex=>{ surfMat.map = tex; surfMat.needsUpdate = true; });
     const crust = buildWedgeLayer(rig, 1, surfMat);
+    // the wall material is a *clone* of surfMat (so it can force DoubleSide independently),
+    // so the loaded texture has to be applied to both once it arrives.
+    loadPlanetTexture(TEXTURE_URLS[i], p.grad, textureLoader).then(tex=>{
+      surfMat.map = tex; surfMat.needsUpdate = true;
+      crust.wallMat.map = tex; crust.wallMat.needsUpdate = true;
+    });
 
     const matProps = (def)=>{ const { radiusFactor, ...rest } = def; return rest; };
 
@@ -2494,6 +2618,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
       [crust, mantle, hasInnerCore ? core : null].filter(Boolean).forEach(layer=>{
         layer.wedgeMesh.geometry.dispose();
         if(layer.capMesh) layer.capMesh.geometry.dispose();
+        if(layer.wallGeo) layer.wallGeo.dispose();
+        if(layer.wallMat) layer.wallMat.dispose();
       });
       if(!hasInnerCore) core.wedgeMesh.geometry.dispose();
       if(innerCore) innerCore.mesh.geometry.dispose();
