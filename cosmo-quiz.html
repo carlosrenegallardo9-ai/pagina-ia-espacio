@@ -129,6 +129,7 @@
     flex-direction:column; white-space:normal; gap:0.4rem;
   }
   .btn-tile .ico{ font-size:1.7rem; }
+  a.btn{ text-decoration:none; }
 
   .field{ width:100%; padding:0.9rem 1.2rem; border-radius:var(--radius-full); border:1px solid var(--hair); background:rgba(255,255,255,0.05); color:var(--ink); font-size:1.05rem; text-align:center; letter-spacing:0.04em; font-family:'Manrope',sans-serif; }
   .field:focus{ outline:2px solid var(--purple); }
@@ -209,7 +210,7 @@
   .result-title{ text-align:center; font-family:'Unbounded',sans-serif; font-weight:700; font-size:1.5rem; margin:0.3rem 0; }
   .result-title.ok{ color:var(--green); }
   .result-title.no{ color:var(--red); }
-  .result-points{ text-align:center; font-family:'Space Mono',monospace; font-size:1rem; color:var(--yellow); margin-bottom:0.8rem; }
+  .result-points{ text-align:center; font-family:'Space Mono',monospace; font-size:1rem; color:var(--yellow); margin:0 0 0.8rem; }
 
   /* ---------- SCOREBOARD ---------- */
   .board-list{ display:flex; flex-direction:column; gap:0.6rem; margin:1rem 0; }
@@ -241,27 +242,82 @@
   .scroll-y{ max-height:52vh; overflow-y:auto; }
 
   @media (max-width: 520px){ .panel-card{ padding:1.3rem; } }
+
+  /* ---------- ACCESSIBILITY FOUNDATION ---------- */
+  .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+  .skip-link{
+    position:absolute; left:1rem; top:-4rem; z-index:1000;
+    background:var(--panel-solid); color:var(--ink); border:1px solid var(--hair);
+    border-radius:10px; padding:0.7rem 1.1rem; font-weight:700; text-decoration:none;
+    transition: top .2s var(--ease);
+  }
+  .skip-link:focus{ top:1rem; }
+
+  :focus-visible{
+    outline:3px solid var(--cyan);
+    outline-offset:3px;
+    border-radius:4px;
+  }
+  .chip:focus-visible, .ans:focus-visible, .btn:focus-visible, .count-btn:focus-visible{
+    outline-offset:2px;
+  }
+
+  /* plain lists used as accessible groups (player chips, board rows) */
+  .player-chips, .board-list{ list-style:none; padding:0; }
+
+  .field-error{
+    color:var(--red); font-size:0.85rem; margin:0.3rem 0 0; text-align:center;
+    display:flex; align-items:center; justify-content:center; gap:0.35rem;
+  }
+  .field-error::before{ content:'⚠'; }
+  .field-hint{ color:var(--ink-dim); font-size:0.8rem; text-align:center; margin:0.3rem 0 0; }
+  .required-note{ color:var(--ink-dim); font-size:0.78rem; }
+
+  label{ display:block; text-align:left; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-dim); margin:0 0 0.35rem; }
+
+  fieldset{ border:none; margin:0; padding:0; }
+
+  /* screen headings: several screens repurpose a visible label or a
+     previously-inline span/div as their single per-view <h1>; these reset
+     the default UA heading font-size/margin so the tag swap is visually
+     silent (each element already carries its own visual class otherwise). */
+  .screen-heading{ font-size:1.4rem; margin:0 0 1.2rem; text-align:center; }
+  .q-topbar h1{ margin:0; }
+  #final-rank-name{ margin:0; }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important; }
+    .nebula-blob, .float-planet, .ship, .rocket{ animation:none !important; }
+  }
 </style>
 </head>
 <body>
 
-<canvas id="bg-canvas"></canvas>
-<div class="nebula-blob n1"></div>
-<div class="nebula-blob n2"></div>
-<div class="nebula-blob n3"></div>
-<div class="float-planet fp1"></div>
-<div class="float-planet fp2"></div>
-<div class="float-planet fp3"></div>
-<div class="ship" style="top:0;">🛸</div>
+<a class="skip-link" href="#main-content">Saltar al contenido</a>
 
-<div class="stage">
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+<div class="nebula-blob n1" aria-hidden="true"></div>
+<div class="nebula-blob n2" aria-hidden="true"></div>
+<div class="nebula-blob n3" aria-hidden="true"></div>
+<div class="float-planet fp1" aria-hidden="true"></div>
+<div class="float-planet fp2" aria-hidden="true"></div>
+<div class="float-planet fp3" aria-hidden="true"></div>
+<div class="ship" style="top:0;" aria-hidden="true">🛸</div>
+
+<p class="sr-only" id="live-polite" aria-live="polite" aria-atomic="true"></p>
+<p class="sr-only" id="live-assertive" aria-live="assertive" aria-atomic="true"></p>
+
+<main class="stage" id="main-content">
 
   <!-- MENU -->
   <section class="screen active" id="screen-menu">
     <div class="screen-inner">
       <div id="nebula-menu-slot" style="margin-bottom:0.6rem;"></div>
       <p class="logo-eyebrow">Un juego de preguntas del espacio profundo</p>
-      <h1 class="logo-title">COSMO QUIZ</h1>
+      <h1 class="logo-title" id="menu-heading" tabindex="-1" data-a11y-focus>COSMO QUIZ</h1>
       <p class="logo-sub">Rumbo a las Estrellas · con el <b style="color:var(--cyan)">Capitán Nébula</b></p>
 
       <div class="menu-grid">
@@ -269,6 +325,7 @@
         <button class="btn btn-tile" id="btn-host"><span class="ico">🛰️</span> Crear sala</button>
         <button class="btn btn-tile" id="btn-join"><span class="ico">📡</span> Unirse a sala</button>
         <button class="btn btn-tile btn-wide" id="btn-top"><span class="ico">🏆</span> Top global</button>
+        <a class="btn btn-tile btn-wide btn-ghost" href="community.html"><span class="ico">📰</span> Feed de comunidad</a>
       </div>
       <p class="footer-hint">Sala local: crea la sala y únete desde otras pestañas o dispositivos con este mismo navegador para probar el modo multijugador.</p>
     </div>
@@ -277,19 +334,23 @@
   <!-- SOLO SETUP -->
   <section class="screen" id="screen-solo-setup">
     <div class="screen-inner panel-card">
+      <h1 class="sr-only" id="solo-setup-heading" tabindex="-1" data-a11y-focus>Configurar misión en solitario</h1>
       <div class="nebula-row">
         <div class="nebula-figure sz-md" id="nebula-solo-slot"></div>
         <div class="bubble"><span class="bubble-name">Capitán Nébula</span>¡Prepárate, cadete! Dime tu nombre y despegamos rumbo a las estrellas.</div>
       </div>
       <div class="field-row">
+        <label class="sr-only" for="solo-name">Tu nombre de astronauta</label>
         <input class="field" id="solo-name" maxlength="18" placeholder="Tu nombre de astronauta">
-        <p class="q-meta" style="text-align:center; margin:0.2rem 0 0;">Número de preguntas</p>
-        <div class="count-picker" id="solo-count-picker">
-          <button type="button" class="count-btn" data-count="10">10</button>
-          <button type="button" class="count-btn" data-count="15">15</button>
-          <button type="button" class="count-btn is-active" data-count="20">20</button>
-          <button type="button" class="count-btn" data-count="24">Todas</button>
-        </div>
+        <fieldset style="margin:0.2rem 0 0;">
+          <legend class="q-meta" style="display:block; width:100%; text-align:center;">Número de preguntas</legend>
+          <div class="count-picker" id="solo-count-picker">
+            <button type="button" class="count-btn" data-count="10" aria-pressed="false">10</button>
+            <button type="button" class="count-btn" data-count="15" aria-pressed="false">15</button>
+            <button type="button" class="count-btn is-active" data-count="20" aria-pressed="true">20</button>
+            <button type="button" class="count-btn" data-count="24" aria-pressed="false">Todas</button>
+          </div>
+        </fieldset>
         <button class="btn btn-primary btn-block" id="solo-start">Comenzar misión 🚀</button>
         <button class="btn btn-ghost btn-block" data-back="screen-menu">← Volver</button>
       </div>
@@ -299,31 +360,37 @@
   <!-- HOST LOBBY -->
   <section class="screen" id="screen-host-lobby">
     <div class="screen-inner panel-card">
+      <h1 class="sr-only" id="host-lobby-heading" tabindex="-1" data-a11y-focus>Crear sala multijugador</h1>
       <div class="nebula-row">
         <div class="nebula-figure sz-md" id="nebula-host-slot"></div>
         <div class="bubble"><span class="bubble-name">Capitán Nébula</span>Comparte este código con tu tripulación. ¡Que suban a bordo!</div>
       </div>
-      <p class="q-meta" style="text-align:center;">CÓDIGO DE SALA</p>
-      <div class="room-code" id="host-code">------</div>
+      <p class="q-meta" style="text-align:center;" id="host-code-label">CÓDIGO DE SALA</p>
+      <p class="room-code" id="host-code" aria-labelledby="host-code-label">------</p>
 
-      <p class="q-meta" style="text-align:center; margin-top:0.4rem;">Número de preguntas</p>
-      <div class="count-picker" id="host-count-picker">
-        <button type="button" class="count-btn" data-count="10">10</button>
-        <button type="button" class="count-btn" data-count="15">15</button>
-        <button type="button" class="count-btn is-active" data-count="20">20</button>
-        <button type="button" class="count-btn" data-count="24">Todas</button>
-      </div>
+      <fieldset style="margin-top:0.4rem;">
+        <legend class="q-meta" style="display:block; width:100%; text-align:center;">Número de preguntas</legend>
+        <div class="count-picker" id="host-count-picker">
+          <button type="button" class="count-btn" data-count="10" aria-pressed="false">10</button>
+          <button type="button" class="count-btn" data-count="15" aria-pressed="false">15</button>
+          <button type="button" class="count-btn is-active" data-count="20" aria-pressed="true">20</button>
+          <button type="button" class="count-btn" data-count="24" aria-pressed="false">Todas</button>
+        </div>
+      </fieldset>
 
-      <p class="q-meta" style="text-align:center; margin-top:1rem;">¿El anfitrión también juega?</p>
-      <div class="count-picker" id="host-play-toggle">
-        <button type="button" class="count-btn is-active" data-play="0">🎤 Solo presentar</button>
-        <button type="button" class="count-btn" data-play="1">🎮 Jugar también</button>
-      </div>
+      <fieldset style="margin-top:1rem;">
+        <legend class="q-meta" style="display:block; width:100%; text-align:center;">¿El anfitrión también juega?</legend>
+        <div class="count-picker" id="host-play-toggle">
+          <button type="button" class="count-btn is-active" data-play="0" aria-pressed="true">🎤 Solo presentar</button>
+          <button type="button" class="count-btn" data-play="1" aria-pressed="false">🎮 Jugar también</button>
+        </div>
+      </fieldset>
+      <label class="sr-only" for="host-player-name">Tu nombre de astronauta (anfitrión)</label>
       <input class="field" id="host-player-name" maxlength="18" placeholder="Tu nombre de astronauta (anfitrión)" style="display:none; margin-top:0.8rem;">
 
       <p class="q-meta" style="text-align:center; margin-top:1.2rem;" id="host-count">0 astronautas a bordo</p>
-      <p class="q-meta" id="host-error" style="display:none; color:var(--red); text-align:center;"></p>
-      <div class="player-chips" id="host-chips"></div>
+      <p class="field-error" id="host-error" role="alert" style="display:none;"></p>
+      <ul class="player-chips" id="host-chips" aria-label="Astronautas en la sala"></ul>
       <div class="field-row">
         <button class="btn btn-primary btn-block" id="host-start" disabled>Iniciar misión 🚀</button>
         <button class="btn btn-ghost btn-block" data-back="screen-menu">← Cancelar sala</button>
@@ -334,14 +401,17 @@
   <!-- JOIN -->
   <section class="screen" id="screen-join">
     <div class="screen-inner panel-card">
+      <h1 class="sr-only" id="join-heading" tabindex="-1" data-a11y-focus>Unirse a una sala</h1>
       <div class="nebula-row">
         <div class="nebula-figure sz-md" id="nebula-join-slot"></div>
         <div class="bubble"><span class="bubble-name">Capitán Nébula</span>Introduce el código de la nave y tu nombre de astronauta.</div>
       </div>
       <div class="field-row">
-        <input class="field mono" id="join-code" maxlength="6" placeholder="CÓDIGO" style="text-transform:uppercase;">
+        <label class="sr-only" for="join-code">Código de la sala</label>
+        <input class="field mono" id="join-code" maxlength="6" placeholder="CÓDIGO" style="text-transform:uppercase;" required aria-describedby="join-error" autocapitalize="characters">
+        <label class="sr-only" for="join-name">Tu nombre de astronauta</label>
         <input class="field" id="join-name" maxlength="18" placeholder="Tu nombre de astronauta">
-        <p class="q-meta" id="join-error" style="display:none; color:var(--red); text-align:center;"></p>
+        <p class="field-error" id="join-error" role="alert" style="display:none;"></p>
         <button class="btn btn-primary btn-block" id="join-submit">Embarcar 🛰️</button>
         <button class="btn btn-ghost btn-block" data-back="screen-menu">← Volver</button>
       </div>
@@ -352,7 +422,7 @@
   <section class="screen" id="screen-player-wait">
     <div class="screen-inner panel-card" style="text-align:center;">
       <div class="nebula-figure sz-lg" id="nebula-wait-slot" style="margin:0 auto 1rem;"></div>
-      <h2 id="player-wait-title">A bordo. Esperando al Capitán Nébula…</h2>
+      <h1 class="screen-heading" id="player-wait-title" tabindex="-1" data-a11y-focus>A bordo. Esperando al Capitán Nébula…</h1>
       <p class="q-meta" id="player-wait-sub">Sala <span id="player-wait-code" class="mono"></span></p>
     </div>
   </section>
@@ -360,7 +430,8 @@
   <!-- LAUNCH COUNTDOWN -->
   <section class="screen" id="screen-launch">
     <div class="screen-inner" style="text-align:center;">
-      <div class="rocket">🚀</div>
+      <h1 class="sr-only" id="launch-heading" tabindex="-1" data-a11y-focus>Cuenta regresiva de despegue</h1>
+      <div class="rocket" aria-hidden="true">🚀</div>
       <div class="launch-num" id="launch-num">3</div>
       <div class="launch-label" id="launch-label">Preparando despegue</div>
     </div>
@@ -369,31 +440,36 @@
   <!-- QUESTION -->
   <section class="screen" id="screen-question">
     <div class="screen-inner">
-      <div class="bonus-banner" id="bonus-banner">🌠 ¡ESTRELLA FUGAZ! Puntaje x2 🌠</div>
+      <p class="bonus-banner" id="bonus-banner" role="status">🌠 ¡ESTRELLA FUGAZ! Puntaje x2 🌠</p>
       <div class="q-topbar">
-        <span class="q-meta q-progress" id="q-progress">Pregunta 1/24</span>
+        <h1 class="q-meta q-progress" id="q-progress" tabindex="-1">Pregunta 1/24</h1>
         <span class="q-meta" id="q-cat">Planetas · Fácil</span>
       </div>
       <div class="timer-wrap"><div class="timer-bar" id="timer-bar"></div></div>
-      <div class="meteor-track" id="meteor-track"></div>
-      <div class="q-text" id="q-text">Cargando pregunta…</div>
-      <div class="answers" id="q-answers"></div>
-      <p class="locked-note" id="q-lock-note" style="display:none;">✅ Respuesta enviada. Esperando a la tripulación…</p>
+      <div class="meteor-track" id="meteor-track" aria-hidden="true"></div>
+      <p class="sr-only" id="meteor-track-sr"></p>
+      <fieldset class="q-fieldset">
+        <legend class="q-text" id="q-text">Cargando pregunta…</legend>
+        <div class="answers" id="q-answers"></div>
+      </fieldset>
+      <p class="locked-note" id="q-lock-note" role="status" style="display:none;">✅ Respuesta enviada. Esperando a la tripulación…</p>
     </div>
   </section>
 
   <!-- HOST QUESTION VIEW (spectator, big screen) -->
   <section class="screen" id="screen-host-question">
     <div class="screen-inner">
-      <div class="bonus-banner" id="host-bonus-banner">🌠 ¡ESTRELLA FUGAZ! Puntaje x2 🌠</div>
+      <p class="bonus-banner" id="host-bonus-banner" role="status">🌠 ¡ESTRELLA FUGAZ! Puntaje x2 🌠</p>
       <div class="q-topbar">
-        <span class="q-meta q-progress" id="host-q-progress">Pregunta 1/24</span>
+        <h1 class="q-meta q-progress" id="host-q-progress" tabindex="-1">Pregunta 1/24</h1>
         <span class="q-meta" id="host-q-answered">0/0 respondieron</span>
       </div>
       <div class="timer-wrap"><div class="timer-bar" id="host-timer-bar"></div></div>
-      <div class="q-text" id="host-q-text">Cargando pregunta…</div>
-      <div class="answers" id="host-q-answers"></div>
-      <p class="locked-note" id="host-q-lock-note" style="display:none;">✅ Tu respuesta quedó registrada, Capitán.</p>
+      <fieldset class="q-fieldset">
+        <legend class="q-text" id="host-q-text">Cargando pregunta…</legend>
+        <div class="answers" id="host-q-answers"></div>
+      </fieldset>
+      <p class="locked-note" id="host-q-lock-note" role="status" style="display:none;">✅ Tu respuesta quedó registrada, Capitán.</p>
     </div>
   </section>
 
@@ -404,9 +480,9 @@
         <div class="nebula-figure sz-md" id="nebula-reveal-slot"></div>
         <div class="bubble" id="reveal-bubble"><span class="bubble-name">Capitán Nébula</span>…</div>
       </div>
-      <div class="result-badge" id="reveal-badge">✅</div>
-      <div class="result-title ok" id="reveal-title">¡Correcto!</div>
-      <div class="result-points" id="reveal-points">+900 pts</div>
+      <div class="result-badge" id="reveal-badge" aria-hidden="true">✅</div>
+      <h1 class="result-title ok" id="reveal-title" tabindex="-1" data-a11y-focus>¡Correcto!</h1>
+      <p class="result-points" id="reveal-points">+900 pts</p>
       <div id="reveal-fact" class="bubble" style="text-align:center;"></div>
       <div class="field-row" id="reveal-actions"></div>
     </div>
@@ -415,8 +491,8 @@
   <!-- SCOREBOARD (between questions, multiplayer) -->
   <section class="screen" id="screen-scoreboard">
     <div class="screen-inner panel-card">
-      <h2 style="text-align:center;">🛰️ Marcador en vivo</h2>
-      <div class="board-list scroll-y" id="board-list"></div>
+      <h1 class="screen-heading" id="scoreboard-heading" tabindex="-1" data-a11y-focus>🛰️ Marcador en vivo</h1>
+      <ul class="board-list scroll-y" id="board-list"></ul>
       <div class="field-row" id="board-actions"></div>
     </div>
   </section>
@@ -426,11 +502,12 @@
     <div class="screen-inner panel-card">
       <div class="nebula-figure sz-lg" id="nebula-final-slot" style="margin:0 auto 0.6rem; display:block;"></div>
       <div class="final-rank-badge">
-        <div class="q-meta" style="text-align:center;">MISIÓN COMPLETADA</div>
-        <div class="final-rank-name" id="final-rank-name">Cadete Espacial</div>
-        <div class="final-score" id="final-score">0 puntos</div>
+        <p class="q-meta" style="text-align:center;">MISIÓN COMPLETADA</p>
+        <h1 class="final-rank-name" id="final-rank-name" tabindex="-1" data-a11y-focus>Cadete Espacial</h1>
+        <p class="final-score" id="final-score">0 puntos</p>
       </div>
-      <div class="board-list scroll-y" id="final-board-list"></div>
+      <p class="q-meta" id="final-board-label" style="text-align:center;"></p>
+      <ul class="board-list scroll-y" id="final-board-list"></ul>
       <div class="field-row">
         <button class="btn btn-primary btn-block" id="final-view-top">Ver top global 🏆</button>
         <button class="btn btn-ghost btn-block" data-back="screen-menu" id="final-menu-btn">Volver al menú</button>
@@ -441,13 +518,14 @@
   <!-- LEADERBOARD -->
   <section class="screen" id="screen-leaderboard">
     <div class="screen-inner panel-card">
-      <h2 style="text-align:center;">🏆 Top global</h2>
+      <h1 class="screen-heading" id="leaderboard-heading" tabindex="-1" data-a11y-focus>🏆 Top global</h1>
       <div class="scroll-y">
         <table class="lb">
-          <thead><tr><th>#</th><th>Nombre</th><th>Puntaje</th><th>Rango</th><th>Fecha</th></tr></thead>
+          <caption class="sr-only">Clasificación global de Cosmo Quiz, ordenada por puntaje de mayor a menor</caption>
+          <thead><tr><th scope="col">#</th><th scope="col">Nombre</th><th scope="col">Puntaje</th><th scope="col">Rango</th><th scope="col">Fecha</th></tr></thead>
           <tbody id="lb-body"></tbody>
         </table>
-        <p class="empty-note" id="lb-empty" style="display:none;">Aún no hay puntajes. ¡Sé el primero en surcar la galaxia!</p>
+        <p class="empty-note" id="lb-empty" role="status" style="display:none;">Aún no hay puntajes. ¡Sé el primero en surcar la galaxia!</p>
       </div>
       <div class="field-row">
         <button class="btn btn-ghost btn-block" data-back="screen-menu">← Volver al menú</button>
@@ -455,7 +533,7 @@
     </div>
   </section>
 
-</div>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -776,8 +854,8 @@ async function loadLB(){
     .select('name,score,rank,created_at')
     .order('score', { ascending:false })
     .limit(50);
-  if(error){ console.error('[cosmoquiz] loadLB error', error); return []; }
-  return (data||[]).map(r=> ({ name:r.name, score:r.score, rank:r.rank, date:new Date(r.created_at).getTime() }));
+  if(error){ console.error('[cosmoquiz] loadLB error', error); return { error:true, rows:[] }; }
+  return { error:false, rows:(data||[]).map(r=> ({ name:r.name, score:r.score, rank:r.rank, date:new Date(r.created_at).getTime() })) };
 }
 async function saveLBEntry(entry){
   const { error } = await sb.from('leaderboard').insert({ name:entry.name, score:entry.score, rank:entry.rank });
@@ -787,14 +865,47 @@ async function renderLeaderboard(){
   const body = document.getElementById('lb-body');
   const empty = document.getElementById('lb-empty');
   empty.style.display = 'none';
-  body.innerHTML = '<tr><td colspan="5" class="empty-note">Cargando…</td></tr>';
-  const lb = await loadLB();
-  if(!lb.length){ body.innerHTML=''; empty.style.display='block'; return; }
-  body.innerHTML = lb.slice(0,20).map((e,i)=>
+  empty.removeAttribute('data-variant');
+  body.innerHTML = '<tr><td colspan="5" class="empty-note">Cargando clasificación…</td></tr>';
+  const { error, rows } = await loadLB();
+  if(error){
+    body.innerHTML = '';
+    empty.textContent = 'No se pudo cargar la clasificación. Revisa tu conexión e inténtalo de nuevo.';
+    empty.style.display = 'block';
+    return;
+  }
+  if(!rows.length){
+    body.innerHTML = '';
+    empty.textContent = 'Aún no hay puntajes. ¡Sé el primero en surcar la galaxia!';
+    empty.style.display = 'block';
+    return;
+  }
+  body.innerHTML = rows.slice(0,20).map((e,i)=>
     `<tr><td>${i+1}</td><td>${escapeHtml(e.name)}</td><td class="mono">${e.score}</td><td>${escapeHtml(e.rank)}</td><td class="mono">${fmtDate(e.date)}</td></tr>`
   ).join('');
+  announcePolite('Clasificación actualizada.');
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ============================= LIVE ANNOUNCEMENTS =============================
+   Two regions are mounted from first render (see <body>) and only their text
+   is ever changed, so screen readers reliably pick up the update. `polite`
+   is for non-critical status (joins, leaderboard refresh, timer milestones);
+   `assertive` is reserved for time-critical interruptions (time's up). Each
+   call clears the region first so a repeated identical message still fires
+   a change event. */
+const liveRegions = {
+  polite: document.getElementById('live-polite'),
+  assertive: document.getElementById('live-assertive')
+};
+function announce(region, message){
+  const el = liveRegions[region];
+  if(!el) return;
+  el.textContent = '';
+  window.setTimeout(()=>{ el.textContent = message; }, 30);
+}
+function announcePolite(message){ announce('polite', message); }
+function announceAssertive(message){ announce('assertive', message); }
 
 /* ============================= SCREEN NAV ============================= */
 function showScreen(id, warp){
@@ -807,6 +918,25 @@ function showScreen(id, warp){
   next.classList.remove('warp-in');
   void next.offsetWidth;
   next.classList.add('warp-in');
+  focusScreenHeading(next);
+}
+/* Moves keyboard focus to the screen's designated heading so users of
+   screen readers and keyboard navigation land on the new view's title
+   instead of keeping focus on a control that just disappeared. Screens
+   that change content without a screen transition (e.g. question-to-
+   question inside the same multiplayer screen) call their own focus
+   helper directly — see focusQuestionHeading(). */
+function focusScreenHeading(screenEl){
+  const target = screenEl.querySelector('[data-a11y-focus]');
+  if(target) target.focus({ preventScroll:true });
+}
+/* Question screens stay active across question changes (only their content
+   swaps), so showScreen()'s transition-based focus move never fires again
+   after the first question. renderQuestion()/renderHostQuestion() call this
+   directly on every question change instead. */
+function focusQuestionHeading(role){
+  const el = document.getElementById(role==='host' ? 'host-q-progress' : 'q-progress');
+  if(el) el.focus({ preventScroll:true });
 }
 document.querySelectorAll('[data-back]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -838,6 +968,8 @@ const App = {
   hostPlaying:false, // whether the room host also plays along, not just presents
   _launching:false,
   _finalized:false,
+  _announcedTimeUp:false,
+  _announcedMilestones:null,
   teardownRoom(){
     if(this.channel){ sb.removeChannel(this.channel); this.channel=null; }
     this.mode=null; this.code=null; this.hostPlayers.clear();
@@ -905,8 +1037,9 @@ function wireCountPicker(containerId, onSelect){
   if(!el) return;
   el.querySelectorAll('.count-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      el.querySelectorAll('.count-btn').forEach(b=> b.classList.remove('is-active'));
+      el.querySelectorAll('.count-btn').forEach(b=>{ b.classList.remove('is-active'); b.setAttribute('aria-pressed','false'); });
       btn.classList.add('is-active');
+      btn.setAttribute('aria-pressed','true');
       onSelect(parseInt(btn.dataset.count, 10));
     });
   });
@@ -914,7 +1047,11 @@ function wireCountPicker(containerId, onSelect){
 function resetCountPicker(containerId, defaultCount){
   const el = document.getElementById(containerId);
   if(!el) return;
-  el.querySelectorAll('.count-btn').forEach(b=> b.classList.toggle('is-active', parseInt(b.dataset.count,10)===defaultCount));
+  el.querySelectorAll('.count-btn').forEach(b=>{
+    const active = parseInt(b.dataset.count,10)===defaultCount;
+    b.classList.toggle('is-active', active);
+    b.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
 }
 wireCountPicker('solo-count-picker', (n)=>{ App.soloCount = n; });
 wireCountPicker('host-count-picker', (n)=>{
@@ -923,8 +1060,9 @@ wireCountPicker('host-count-picker', (n)=>{
 });
 document.querySelectorAll('#host-play-toggle .count-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    document.querySelectorAll('#host-play-toggle .count-btn').forEach(b=> b.classList.remove('is-active'));
+    document.querySelectorAll('#host-play-toggle .count-btn').forEach(b=>{ b.classList.remove('is-active'); b.setAttribute('aria-pressed','false'); });
     btn.classList.add('is-active');
+    btn.setAttribute('aria-pressed','true');
     App.hostPlaying = btn.dataset.play === '1';
     document.getElementById('host-player-name').style.display = App.hostPlaying ? 'block' : 'none';
   });
@@ -987,14 +1125,17 @@ async function soloFinish(){
   document.getElementById('final-rank-name').textContent = rank.name;
   document.getElementById('final-score').textContent = App.score + ' puntos';
   document.getElementById('nebula-final-slot').innerHTML = nebulaAvatarHTML();
-  document.getElementById('final-board-list').innerHTML = '<p class="q-meta" style="text-align:center;">Guardando puntaje…</p>';
+  document.getElementById('final-board-label').textContent = 'Guardando puntaje…';
+  document.getElementById('final-board-list').innerHTML = '';
   launchConfetti();
   await saveLBEntry({ name:App.playerName, score:App.score, rank:rank.name });
-  const lb = (await loadLB()).slice(0,5);
-  const list = document.getElementById('final-board-list');
-  list.innerHTML = '<p class="q-meta" style="text-align:center;">Top 5 global</p>' + lb.map((e,i)=>
-    `<div class="board-row"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(e.name)}</span><span class="board-score">${e.score}</span></div>`
+  const { rows } = await loadLB();
+  const lb = rows.slice(0,5);
+  document.getElementById('final-board-label').textContent = 'Top 5 global';
+  document.getElementById('final-board-list').innerHTML = lb.map((e,i)=>
+    `<li class="board-row"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(e.name)}</span><span class="board-score">${e.score} puntos</span></li>`
   ).join('');
+  announcePolite('Misión finalizada. Puntaje guardado en la clasificación.');
 }
 
 /* ============================= HOST MODE (Supabase) ============================= */
@@ -1014,7 +1155,11 @@ async function startHostLobby(){
   document.getElementById('host-player-name').style.display = 'none';
   document.getElementById('host-player-name').value = '';
   resetCountPicker('host-count-picker', 20);
-  document.querySelectorAll('#host-play-toggle .count-btn').forEach(b=> b.classList.toggle('is-active', b.dataset.play==='0'));
+  document.querySelectorAll('#host-play-toggle .count-btn').forEach(b=>{
+    const active = b.dataset.play==='0';
+    b.classList.toggle('is-active', active);
+    b.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
   showScreen('screen-host-lobby', true);
 
   const { error } = await sb.from('rooms').insert({ code:App.code, status:'waiting', question_index:-1, question_count:App.hostCount });
@@ -1029,7 +1174,10 @@ async function startHostLobby(){
   App.channel = sb.channel('room-'+App.code)
     .on('postgres_changes', { event:'INSERT', schema:'public', table:'players', filter:`room_code=eq.${App.code}` }, (payload)=>{
       const p = payload.new;
-      if(!App.hostPlayers.has(p.id)) App.hostPlayers.set(p.id, { name:p.name, score:0, failStreak:0, answered:false });
+      if(!App.hostPlayers.has(p.id)){
+        App.hostPlayers.set(p.id, { name:p.name, score:0, failStreak:0, answered:false });
+        announcePolite(`${p.name} se ha unido a la sala.`);
+      }
       renderHostLobby();
     })
     .on('postgres_changes', { event:'INSERT', schema:'public', table:'answers', filter:`room_code=eq.${App.code}` }, (payload)=>{
@@ -1049,7 +1197,7 @@ async function startHostLobby(){
 }
 function renderHostLobby(){
   const chips = document.getElementById('host-chips');
-  chips.innerHTML = Array.from(App.hostPlayers.values()).map(p=>`<span class="chip">🧑‍🚀 ${escapeHtml(p.name)}</span>`).join('');
+  chips.innerHTML = Array.from(App.hostPlayers.values()).map(p=>`<li class="chip">🧑‍🚀 ${escapeHtml(p.name)}</li>`).join('');
   document.getElementById('host-count').textContent = App.hostPlayers.size + ' astronauta' + (App.hostPlayers.size===1?'':'s') + ' a bordo';
   document.getElementById('host-start').disabled = App.hostPlayers.size === 0;
 }
@@ -1123,8 +1271,9 @@ async function hostReveal(){
 function renderHostScoreboard(scoreboard){
   const list = document.getElementById('board-list');
   list.innerHTML = scoreboard.map((p,i)=>
-    `<div class="board-row"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(p.name)}</span><span class="board-score">${p.score}</span></div>`
-  ).join('') || '<p class="empty-note">Sin jugadores.</p>';
+    `<li class="board-row"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(p.name)}</span><span class="board-score">${p.score} puntos</span></li>`
+  ).join('') || '<li class="empty-note">Sin jugadores.</li>';
+  announcePolite('Marcador actualizado.');
 }
 async function hostFinish(){
   const { data: playersRows } = await sb.from('players').select('id,name,score').eq('room_code', App.code);
@@ -1134,13 +1283,15 @@ async function hostFinish(){
   document.getElementById('final-rank-name').textContent = 'Misión de tripulación finalizada';
   document.getElementById('final-score').textContent = scoreboard.length + ' astronautas completaron la misión';
   document.getElementById('nebula-final-slot').innerHTML = nebulaAvatarHTML();
+  document.getElementById('final-board-label').textContent = 'Resultados finales';
   const list = document.getElementById('final-board-list');
   list.innerHTML = scoreboard.map((p,i)=>{
     const rank = rankFor(p.score);
-    return `<div class="board-row"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(p.name)} — ${escapeHtml(rank.name)}</span><span class="board-score">${p.score}</span></div>`;
+    return `<li class="board-row"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(p.name)} — ${escapeHtml(rank.name)}</span><span class="board-score">${p.score} puntos</span></li>`;
   }).join('');
   launchConfetti();
   showScreen('screen-final', true);
+  announcePolite('Misión de tripulación finalizada. Resultados disponibles.');
 }
 function renderHostQuestion(q){
   document.getElementById('host-q-progress').textContent = `Pregunta ${App.qIndex+1}/${App.order.length}`;
@@ -1152,11 +1303,13 @@ function renderHostQuestion(q){
   wrap.innerHTML = '';
   q.options.forEach((opt,i)=>{
     const b = document.createElement(App.hostPlaying ? 'button' : 'div');
+    if(App.hostPlaying) b.type = 'button';
     b.className = 'ans a'+i;
-    b.innerHTML = `<span class="shape">${SHAPES[i]}</span><span>${escapeHtml(opt)}</span>`;
+    b.innerHTML = `<span class="shape" aria-hidden="true">${SHAPES[i]}</span><span>${escapeHtml(opt)}</span>`;
     if(App.hostPlaying) b.addEventListener('click', ()=> hostSelfAnswerClick(i));
     wrap.appendChild(b);
   });
+  focusQuestionHeading('host');
 }
 async function hostSelfAnswerClick(idx){
   if(App.answered) return;
@@ -1176,7 +1329,13 @@ document.getElementById('join-submit').addEventListener('click', async ()=>{
   const code = codeInput.value.trim().toUpperCase();
   const name = document.getElementById('join-name').value.trim() || 'Cadete';
   errEl.style.display = 'none';
-  if(code.length < 4){ codeInput.focus(); return; }
+  errEl.textContent = '';
+  if(code.length < 4){
+    errEl.textContent = 'Escribe el código de sala completo (mínimo 4 caracteres) para continuar.';
+    errEl.style.display = 'block';
+    codeInput.focus();
+    return;
+  }
 
   const submitBtn = document.getElementById('join-submit');
   submitBtn.disabled = true;
@@ -1185,6 +1344,7 @@ document.getElementById('join-submit').addEventListener('click', async ()=>{
     if(roomErr || !room){
       errEl.textContent = 'No encontramos esa sala. Verifica el código con tu Capitán Nébula.';
       errEl.style.display = 'block';
+      codeInput.focus();
       return;
     }
     const { data: playerRow, error: joinErr } = await sb.from('players')
@@ -1195,6 +1355,7 @@ document.getElementById('join-submit').addEventListener('click', async ()=>{
       console.error('[cosmoquiz] join error', joinErr);
       errEl.textContent = 'No se pudo unir a la sala. Intenta de nuevo.';
       errEl.style.display = 'block';
+      codeInput.focus();
       return;
     }
 
@@ -1223,7 +1384,12 @@ document.getElementById('join-submit').addEventListener('click', async ()=>{
   }
 });
 
+const KNOWN_ROOM_STATUSES = ['waiting','launch','playing','scoreboard','finished'];
 function handleRoomUpdate(room){
+  if(!KNOWN_ROOM_STATUSES.includes(room.status)){
+    console.warn('[cosmoquiz] estado de sala desconocido, se ignora de forma segura:', room.status);
+    return;
+  }
   if(App.qIndex === -1 && room.question_count != null){
     App.order = buildProgressiveOrderForRoom(App.code, room.question_count);
   }
@@ -1235,7 +1401,13 @@ function handleRoomUpdate(room){
   if(room.status === 'playing' && room.question_index != null && room.question_index !== App.qIndex && room.question_index < App.order.length){
     App.qIndex = room.question_index;
     App.currentQuestion = App.order[App.qIndex];
-    App.deadline = new Date(room.question_deadline).getTime();
+    const deadlineMs = room.question_deadline ? new Date(room.question_deadline).getTime() : NaN;
+    if(Number.isFinite(deadlineMs)){
+      App.deadline = deadlineMs;
+    } else {
+      console.warn('[cosmoquiz] question_deadline ausente o inválido, usando estimación local');
+      App.deadline = Date.now() + App.currentQuestion.time*1000;
+    }
     App.answered = false;
     showScreen('screen-question', true);
     renderQuestion(App.currentQuestion, 'player', App.qIndex, App.order.length);
@@ -1273,7 +1445,19 @@ async function submitAnswerCore(idx){
     room_code: App.code, player_id: App.playerId, question_index: App.qIndex,
     option_index: idx, is_correct: correct, points: result.points
   });
-  if(ansErr) console.error('[cosmoquiz] submit answer error', ansErr);
+  if(ansErr){
+    if(ansErr.code === '23505'){
+      // Unique (room_code, player_id, question_index) violation: this question
+      // was already answered (e.g. a timeout and a click racing each other).
+      // The database row is the source of truth, so re-sync from it instead
+      // of double-counting points locally or surfacing a raw DB error.
+      console.warn('[cosmoquiz] respuesta duplicada para esta pregunta, se ignora el envío repetido');
+      const { data: playerRow } = await sb.from('players').select('score,fail_streak').eq('id', App.playerId).maybeSingle();
+      if(playerRow){ App.score = playerRow.score; App.failStreak = playerRow.fail_streak; }
+      return { correct, points:0, meteor:false };
+    }
+    console.error('[cosmoquiz] submit answer error', ansErr);
+  }
 
   App.score += result.points;
   App.failStreak = correct ? 0 : (result.meteor ? 0 : App.failStreak+1);
@@ -1311,12 +1495,14 @@ async function finalizeForPlayer(){
   document.getElementById('final-rank-name').textContent = rank.name;
   document.getElementById('final-score').textContent = App.score + ' puntos';
   document.getElementById('nebula-final-slot').innerHTML = nebulaAvatarHTML();
+  document.getElementById('final-board-label').textContent = 'Resultados finales';
   const list = document.getElementById('final-board-list');
   list.innerHTML = scoreboard.map((p,i)=>
-    `<div class="board-row ${p.id===App.playerId?'me':''}"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(p.name)}</span><span class="board-score">${p.score}</span></div>`
+    `<li class="board-row ${p.id===App.playerId?'me':''}"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(p.name)}${p.id===App.playerId?' (tú)':''}</span><span class="board-score">${p.score} puntos</span></li>`
   ).join('');
   launchConfetti();
   showScreen('screen-final', true);
+  announcePolite('Misión finalizada. Resultados disponibles.');
 
   await saveLBEntry({ name:App.playerName, score:App.score, rank:rank.name });
 }
@@ -1348,19 +1534,29 @@ function renderQuestion(q, role, qIndexOverride, totalOverride){
 
   const meteorTrack = document.getElementById('meteor-track');
   meteorTrack.innerHTML = [0,1].map(i=> `<span class="${App.failStreak>i?'hit':''}">☄️</span>`).join('');
+  const meteorSr = document.getElementById('meteor-track-sr');
+  if(meteorSr){
+    meteorSr.textContent = App.failStreak <= 0
+      ? 'Sin fallos consecutivos.'
+      : (App.failStreak === 1
+        ? '1 fallo consecutivo. Cuidado: el próximo fallo te restará puntos.'
+        : '2 fallos consecutivos. El próximo fallo te restará puntos.');
+  }
 
   const wrap = document.getElementById('q-answers');
   wrap.innerHTML = '';
   q.options.forEach((opt,i)=>{
     const b = document.createElement('button');
+    b.type = 'button';
     b.className = 'ans a'+i;
-    b.innerHTML = `<span class="shape">${SHAPES[i]}</span><span>${escapeHtml(opt)}</span>`;
+    b.innerHTML = `<span class="shape" aria-hidden="true">${SHAPES[i]}</span><span>${escapeHtml(opt)}</span>`;
     b.addEventListener('click', ()=>{
       if(role==='solo') soloAnswerClick(i);
       else if(role==='player') { playerAnswerClick(i); markPicked(i); }
     });
     wrap.appendChild(b);
   });
+  focusQuestionHeading('player');
 }
 function markPicked(idx){
   document.querySelectorAll('#q-answers .ans').forEach((b,i)=>{
@@ -1371,16 +1567,29 @@ function markPicked(idx){
 function markLocked(){
   document.querySelectorAll('#q-answers .ans').forEach(b=> b.disabled = true);
 }
+/* Correct/incorrect state is shown visually (outline + dim) but also needs a
+   text equivalent on the button itself so it isn't conveyed by color/outline
+   alone — the reveal screen repeats this a moment later in its heading, but
+   the marked buttons should already say it. */
 function markAnswerButtons(pickedIdx, correctIdx){
   document.querySelectorAll('#q-answers .ans').forEach((b,i)=>{
     b.disabled = true;
-    if(i===correctIdx) b.classList.add('correct');
-    else if(i===pickedIdx) b.classList.add('wrong');
+    if(i===correctIdx){
+      b.classList.add('correct');
+      b.insertAdjacentHTML('beforeend', '<span class="sr-only"> — Respuesta correcta</span>');
+    } else if(i===pickedIdx){
+      b.classList.add('wrong');
+      b.insertAdjacentHTML('beforeend', '<span class="sr-only"> — Tu respuesta, incorrecta</span>');
+    }
   });
   if(pickedIdx === correctIdx) sfxCorrect(); else if(pickedIdx!==-2) sfxWrong();
 }
 
-/* ============================= TIMER ============================= */
+/* ============================= TIMER =============================
+   Ticks visually every 100ms (progress bar) and audibly every second
+   (sfxTick), but only *announces* text at the 10s/5s milestones plus a
+   single "time's up" message — a per-second announcement would saturate
+   the screen-reader audio channel and drown out the question itself. */
 function startTimer(seconds, onTimeout, absoluteDeadline){
   stopTimer();
   App.deadline = absoluteDeadline || (Date.now() + seconds*1000);
@@ -1388,6 +1597,8 @@ function startTimer(seconds, onTimeout, absoluteDeadline){
   const bar = document.getElementById('timer-bar');
   const hostBar = document.getElementById('host-timer-bar');
   App.tickSecondsLeft = Math.ceil(total/1000);
+  App._announcedTimeUp = false;
+  App._announcedMilestones = new Set();
   App.timerHandle = setInterval(()=>{
     const remain = App.deadline - Date.now();
     const frac = Math.max(0, Math.min(1, remain/total));
@@ -1401,8 +1612,16 @@ function startTimer(seconds, onTimeout, absoluteDeadline){
       App.tickSecondsLeft = secLeft;
       sfxTick(urgent);
     }
+    if((secLeft===10 || secLeft===5) && !App._announcedMilestones.has(secLeft)){
+      App._announcedMilestones.add(secLeft);
+      announcePolite(`Quedan ${secLeft} segundos.`);
+    }
     if(remain<=0){
       stopTimer();
+      if(!App._announcedTimeUp){
+        App._announcedTimeUp = true;
+        announceAssertive('Se acabó el tiempo. La pregunta ha finalizado.');
+      }
       onTimeout && onTimeout();
     }
   }, 100);

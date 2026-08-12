@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nébula · Comunidad — Feed de la tripulación</title>
+<meta name="description" content="Comparte preguntas y fotos con la tripulación de Nébula.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23FF6A3D'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#050308;
+    --panel:rgba(19,14,36,0.72);
+    --panel-solid:#130e24;
+    --hair:rgba(255,255,255,0.13);
+    --ink:#f5f3f7;
+    --ink-dim:#a8a3ba;
+    --purple:#6a5cff;
+    --pink:#ff6a3d;
+    --cyan:#e8c07d;
+    --green:#33e08a;
+    --red:#ff5470;
+    --blue:#9b7bff;
+    --radius-lg: 22px;
+    --radius-full: 999px;
+    --ease: cubic-bezier(.16,1,.3,1);
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    min-height:100vh;
+    background: radial-gradient(ellipse at top, #130e24 0%, var(--void) 60%);
+    color: var(--ink);
+    font-family:'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{ font-family:'Unbounded', sans-serif; font-weight:700; letter-spacing:-0.01em; margin:0; }
+  a{ color:var(--cyan); }
+  button, input, textarea{ font-family:'Manrope', sans-serif; }
+
+  .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+  .skip-link{
+    position:absolute; left:1rem; top:-4rem; z-index:1000;
+    background:var(--panel-solid); color:var(--ink); border:1px solid var(--hair);
+    border-radius:10px; padding:0.7rem 1.1rem; font-weight:700; text-decoration:none;
+    transition: top .2s var(--ease);
+  }
+  .skip-link:focus{ top:1rem; }
+  :focus-visible{ outline:3px solid var(--cyan); outline-offset:3px; border-radius:4px; }
+
+  .topnav{
+    display:flex; align-items:center; justify-content:space-between; gap:1rem;
+    padding:1.2rem clamp(1.2rem,4vw,3rem); flex-wrap:wrap;
+    border-bottom:1px solid var(--hair);
+  }
+  .brand{ display:flex; align-items:center; gap:0.5rem; font-family:'Unbounded',sans-serif; font-weight:700; text-decoration:none; color:var(--ink); }
+  .brand-mark{ width:18px; height:18px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #ffd9a8, var(--pink) 55%, #7a2c12 100%); }
+  .nav-links{ display:flex; gap:1.4rem; list-style:none; margin:0; padding:0; font-size:0.88rem; font-weight:600; }
+  .nav-links a{ text-decoration:none; color:var(--ink-dim); }
+  .nav-links a[aria-current="page"]{ color:var(--ink); }
+  .nav-links a:hover{ color:var(--ink); }
+
+  main{ max-width:760px; margin:0 auto; padding:2.4rem clamp(1.2rem,4vw,3rem) 5rem; }
+  .page-eyebrow{ font-family:'Space Mono',monospace; font-size:12px; letter-spacing:0.18em; text-transform:uppercase; color:var(--cyan); margin:0 0 0.6rem; }
+  .page-title{ font-size:clamp(1.9rem,5vw,2.6rem); margin-bottom:0.6rem; }
+  .page-lede{ color:var(--ink-dim); max-width:60ch; line-height:1.7; margin-bottom:2.4rem; }
+
+  .panel-card{ background:var(--panel); border:1px solid var(--hair); border-radius:var(--radius-lg); padding:1.6rem; backdrop-filter:blur(8px); }
+  section + section{ margin-top:2.2rem; }
+  fieldset{ border:none; margin:0; padding:0; }
+
+  label{ display:block; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-dim); margin:0 0 0.35rem; }
+  .field, textarea.field{
+    width:100%; padding:0.75rem 1rem; border-radius:14px; border:1px solid var(--hair);
+    background:rgba(255,255,255,0.05); color:var(--ink); font-size:1rem; font-family:inherit;
+  }
+  textarea.field{ resize:vertical; min-height:6rem; }
+  .form-row{ margin-bottom:1.1rem; }
+  .form-row:last-of-type{ margin-bottom:0; }
+  .char-count{ display:block; text-align:right; font-family:'Space Mono',monospace; font-size:11px; color:var(--ink-dim); margin-top:0.3rem; }
+  .char-count.limit{ color:var(--red); }
+
+  .field-error{ color:var(--red); font-size:0.85rem; margin:0.35rem 0 0; display:flex; align-items:center; gap:0.35rem; }
+  .field-error::before{ content:'⚠'; }
+  .field-error:empty{ display:none; }
+  .form-status{ font-size:0.9rem; margin:0.9rem 0 0; }
+  .form-status.ok{ color:var(--green); }
+  .form-status.err{ color:var(--red); }
+  .form-status:empty{ display:none; }
+
+  .checkbox-row{ display:flex; align-items:flex-start; gap:0.6rem; }
+  .checkbox-row input{ margin-top:0.25rem; width:1.1rem; height:1.1rem; flex:none; }
+  .checkbox-row label{ margin:0; text-transform:none; font-family:inherit; font-size:0.9rem; letter-spacing:normal; color:var(--ink); }
+
+  .btn{
+    border:none; border-radius:var(--radius-full); padding:0 1.6rem; height:46px;
+    font-weight:700; font-size:0.94rem; color:#fff;
+    background:linear-gradient(135deg, var(--purple), var(--blue));
+    cursor:pointer; transition:filter .25s var(--ease), transform .25s var(--ease);
+  }
+  .btn:hover{ filter:brightness(1.08); }
+  .btn:active{ transform:scale(0.97); }
+  .btn-ghost{ background:transparent; border:1px solid var(--hair); color:var(--ink); }
+  .btn[disabled]{ opacity:0.55; cursor:default; }
+
+  .required-note{ color:var(--ink-dim); font-size:0.8rem; margin-bottom:1.2rem; }
+
+  .feed-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.2rem; flex-wrap:wrap; }
+
+  .post-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1rem; }
+  .post-card{ background:var(--panel); border:1px solid var(--hair); border-radius:var(--radius-lg); padding:1.3rem 1.4rem; }
+  .post-head{ display:flex; align-items:baseline; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:0.6rem; }
+  .post-author{ font-size:1rem; margin:0; }
+  .post-kind{ font-family:'Space Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--cyan); }
+  .post-time{ font-family:'Space Mono',monospace; font-size:11px; color:var(--ink-dim); }
+  .post-text{ color:var(--ink); line-height:1.65; white-space:pre-wrap; margin:0; }
+  .post-image{ max-width:100%; border-radius:14px; margin-top:0.6rem; display:block; }
+  .post-image-broken{ display:none; color:var(--ink-dim); font-size:0.85rem; margin-top:0.6rem; border:1px dashed var(--hair); border-radius:14px; padding:1rem; text-align:center; }
+
+  .empty-note, .error-note{ text-align:center; color:var(--ink-dim); padding:2rem 1rem; }
+  .error-note{ color:var(--red); }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#main-content">Saltar al contenido</a>
+
+<p class="sr-only" id="live-polite" aria-live="polite" aria-atomic="true"></p>
+<p class="sr-only" id="live-assertive" aria-live="assertive" aria-atomic="true"></p>
+
+<nav class="topnav" aria-label="Navegación principal">
+  <a href="index.html" class="brand"><span class="brand-mark" aria-hidden="true"></span>Nébula</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Atlas de la Tierra</a></li>
+    <li><a href="cosmo-quiz.html">Cosmo Quiz</a></li>
+    <li><a href="community.html" aria-current="page">Comunidad</a></li>
+  </ul>
+</nav>
+
+<main id="main-content">
+  <p class="page-eyebrow">Transmisiones de la tripulación</p>
+  <h1 class="page-title">Feed de comunidad</h1>
+  <p class="page-lede">Comparte una pregunta para el resto de la tripulación o una foto del cosmos. Las publicaciones son visibles para cualquiera que visite esta página.</p>
+
+  <section aria-labelledby="post-question-heading" class="panel-card">
+    <h2 id="post-question-heading" style="margin-bottom:1rem;">Publicar una pregunta</h2>
+    <p class="required-note">Los campos marcados con * son obligatorios.</p>
+    <form id="form-question" novalidate>
+      <div class="form-row">
+        <label for="q-username">Tu nombre *</label>
+        <input class="field" type="text" id="q-username" name="username" maxlength="40" required>
+        <p class="field-error" id="q-username-error" role="alert"></p>
+      </div>
+      <div class="form-row">
+        <label for="q-text">Tu pregunta *</label>
+        <textarea class="field" id="q-text-input" name="text_content" maxlength="500" required aria-describedby="q-text-count"></textarea>
+        <span class="char-count" id="q-text-count">0 / 500</span>
+        <p class="field-error" id="q-text-error" role="alert"></p>
+      </div>
+      <button class="btn" type="submit" id="q-submit">Publicar pregunta 🚀</button>
+      <p class="form-status" id="q-form-status" role="status"></p>
+    </form>
+  </section>
+
+  <section aria-labelledby="post-photo-heading" class="panel-card">
+    <h2 id="post-photo-heading" style="margin-bottom:1rem;">Publicar una foto</h2>
+    <p class="required-note">Los campos marcados con * son obligatorios.</p>
+    <form id="form-photo" novalidate>
+      <div class="form-row">
+        <label for="p-username">Tu nombre *</label>
+        <input class="field" type="text" id="p-username" name="username" maxlength="40" required>
+        <p class="field-error" id="p-username-error" role="alert"></p>
+      </div>
+      <div class="form-row">
+        <label for="p-image-url">Enlace de la imagen (URL) *</label>
+        <input class="field" type="url" id="p-image-url" name="image_url" placeholder="https://…" required inputmode="url">
+        <p class="field-error" id="p-image-url-error" role="alert"></p>
+      </div>
+      <div class="form-row">
+        <div class="checkbox-row">
+          <input type="checkbox" id="p-decorative">
+          <label for="p-decorative">Esta imagen es decorativa y no aporta información (no necesita descripción)</label>
+        </div>
+      </div>
+      <div class="form-row" id="p-alt-row">
+        <label for="p-alt">Descripción de la imagen (texto alternativo) *</label>
+        <input class="field" type="text" id="p-alt" name="alt_text" maxlength="200" required>
+        <p class="field-error" id="p-alt-error" role="alert"></p>
+      </div>
+      <button class="btn" type="submit" id="p-submit">Publicar foto 🛰️</button>
+      <p class="form-status" id="p-form-status" role="status"></p>
+    </form>
+  </section>
+
+  <section aria-labelledby="feed-heading">
+    <div class="feed-toolbar">
+      <h2 id="feed-heading">Publicaciones recientes</h2>
+      <button class="btn btn-ghost" id="feed-refresh" type="button">Actualizar</button>
+    </div>
+    <ul class="post-list" id="post-list" aria-live="off"></ul>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+'use strict';
+
+const SUPABASE_URL = 'https://hblsjoxujpxopendvqki.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_YMppTOwVxBZSPevoyKem2A_7CuHz62_';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ============================= LIVE ANNOUNCEMENTS ============================= */
+const liveRegions = {
+  polite: document.getElementById('live-polite'),
+  assertive: document.getElementById('live-assertive')
+};
+function announce(region, message){
+  const el = liveRegions[region];
+  if(!el) return;
+  el.textContent = '';
+  window.setTimeout(()=>{ el.textContent = message; }, 30);
+}
+function announcePolite(message){ announce('polite', message); }
+
+/* ============================= UTILITIES ============================= */
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function isSafeHttpUrl(value){
+  try{
+    const u = new URL(value);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  }catch(e){ return false; }
+}
+function fmtDateTime(iso){
+  const d = new Date(iso);
+  return d.toLocaleString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+/* ============================= FEED RENDERING ============================= */
+async function loadPosts(){
+  const { data, error } = await sb.from('nebula_community_posts')
+    .select('id,username,type,text_content,image_url,created_at')
+    .order('created_at', { ascending:false })
+    .limit(30);
+  if(error){ console.error('[community] loadPosts error', error); return { error:true, rows:[] }; }
+  return { error:false, rows: data||[] };
+}
+function postCardHTML(post){
+  const who = escapeHtml(post.username || 'Astronauta anónimo');
+  const when = post.created_at ? `<time datetime="${escapeHtml(post.created_at)}">${escapeHtml(fmtDateTime(post.created_at))}</time>` : '';
+  const kindLabel = post.type === 'photo' ? 'Foto' : 'Pregunta';
+  let body = '';
+  if(post.type === 'photo' && post.image_url && isSafeHttpUrl(post.image_url)){
+    const alt = post.text_content ? escapeHtml(post.text_content) : '';
+    body = `<img class="post-image" src="${escapeHtml(post.image_url)}" alt="${alt}" loading="lazy">` +
+           `<p class="post-image-broken">La imagen no está disponible en este momento.</p>`;
+  } else if(post.type === 'photo'){
+    body = `<p class="post-image-broken" style="display:block;">Esta publicación no incluye una imagen válida.</p>`;
+  } else {
+    body = `<p class="post-text">${escapeHtml(post.text_content || '')}</p>`;
+  }
+  return `<li class="post-card">
+    <div class="post-head">
+      <h3 class="post-author">${who} <span class="post-kind">· ${kindLabel}</span></h3>
+      <span class="post-time">${when}</span>
+    </div>
+    ${body}
+  </li>`;
+}
+function wireBrokenImages(container){
+  container.querySelectorAll('img.post-image').forEach(img=>{
+    img.addEventListener('error', ()=>{
+      img.style.display = 'none';
+      const note = img.nextElementSibling;
+      if(note && note.classList.contains('post-image-broken')) note.style.display = 'block';
+    });
+  });
+}
+async function renderFeed(announceUpdate){
+  const list = document.getElementById('post-list');
+  list.innerHTML = '<li class="empty-note">Cargando publicaciones…</li>';
+  const { error, rows } = await loadPosts();
+  if(error){
+    list.innerHTML = '<li class="error-note">No se pudieron cargar las publicaciones. Verifica tu conexión e inténtalo de nuevo.</li>';
+    return;
+  }
+  if(!rows.length){
+    list.innerHTML = '<li class="empty-note">Aún no hay publicaciones. ¡Sé la primera tripulante en compartir algo!</li>';
+    return;
+  }
+  list.innerHTML = rows.map(postCardHTML).join('');
+  wireBrokenImages(list);
+  if(announceUpdate) announcePolite('Nueva publicación disponible.');
+}
+document.getElementById('feed-refresh').addEventListener('click', ()=> renderFeed(false));
+
+/* ============================= FORM: TEXT / QUESTION POST ============================= */
+const qForm = document.getElementById('form-question');
+const qUsername = document.getElementById('q-username');
+const qText = document.getElementById('q-text-input');
+const qTextCount = document.getElementById('q-text-count');
+const Q_TEXT_LIMIT = 500;
+
+qText.addEventListener('input', ()=>{
+  const len = qText.value.length;
+  qTextCount.textContent = `${len} / ${Q_TEXT_LIMIT}`;
+  qTextCount.classList.toggle('limit', len >= Q_TEXT_LIMIT);
+});
+
+qForm.addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  const usernameErr = document.getElementById('q-username-error');
+  const textErr = document.getElementById('q-text-error');
+  const statusEl = document.getElementById('q-form-status');
+  usernameErr.textContent = '';
+  textErr.textContent = '';
+  statusEl.textContent = '';
+  statusEl.className = 'form-status';
+
+  const username = qUsername.value.trim();
+  const text = qText.value.trim();
+  let firstInvalid = null;
+  if(!username){ usernameErr.textContent = 'Escribe tu nombre para poder publicar.'; firstInvalid = firstInvalid || qUsername; }
+  if(!text){ textErr.textContent = 'Escribe tu pregunta antes de publicarla.'; firstInvalid = firstInvalid || qText; }
+  if(firstInvalid){ firstInvalid.focus(); return; }
+
+  const submitBtn = document.getElementById('q-submit');
+  submitBtn.disabled = true;
+  try{
+    const { error } = await sb.from('nebula_community_posts').insert({
+      username, type:'question', text_content:text
+    });
+    if(error){
+      console.error('[community] insert question error', error);
+      statusEl.textContent = 'No se pudo publicar tu pregunta. Inténtalo de nuevo.';
+      statusEl.classList.add('err');
+      return;
+    }
+    qForm.reset();
+    qTextCount.textContent = `0 / ${Q_TEXT_LIMIT}`;
+    qTextCount.classList.remove('limit');
+    statusEl.textContent = 'Tu pregunta se publicó correctamente.';
+    statusEl.classList.add('ok');
+    renderFeed(true);
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
+/* ============================= FORM: PHOTO POST ============================= */
+const pForm = document.getElementById('form-photo');
+const pUsername = document.getElementById('p-username');
+const pImageUrl = document.getElementById('p-image-url');
+const pAlt = document.getElementById('p-alt');
+const pDecorative = document.getElementById('p-decorative');
+const pAltRow = document.getElementById('p-alt-row');
+
+pDecorative.addEventListener('change', ()=>{
+  const decorative = pDecorative.checked;
+  pAlt.required = !decorative;
+  pAltRow.style.opacity = decorative ? '0.5' : '1';
+  if(decorative) document.getElementById('p-alt-error').textContent = '';
+});
+
+pForm.addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  const usernameErr = document.getElementById('p-username-error');
+  const urlErr = document.getElementById('p-image-url-error');
+  const altErr = document.getElementById('p-alt-error');
+  const statusEl = document.getElementById('p-form-status');
+  usernameErr.textContent = '';
+  urlErr.textContent = '';
+  altErr.textContent = '';
+  statusEl.textContent = '';
+  statusEl.className = 'form-status';
+
+  const username = pUsername.value.trim();
+  const url = pImageUrl.value.trim();
+  const alt = pAlt.value.trim();
+  const decorative = pDecorative.checked;
+  let firstInvalid = null;
+
+  if(!username){ usernameErr.textContent = 'Escribe tu nombre para poder publicar.'; firstInvalid = firstInvalid || pUsername; }
+  if(!url){
+    urlErr.textContent = 'Añade el enlace de la imagen que quieres compartir.';
+    firstInvalid = firstInvalid || pImageUrl;
+  } else if(!isSafeHttpUrl(url)){
+    urlErr.textContent = 'El enlace debe ser una URL http o https válida.';
+    firstInvalid = firstInvalid || pImageUrl;
+  }
+  if(!decorative && !alt){
+    altErr.textContent = 'Describe la imagen para quienes usan lector de pantalla, o márcala como decorativa.';
+    firstInvalid = firstInvalid || pAlt;
+  }
+  if(firstInvalid){ firstInvalid.focus(); return; }
+
+  const submitBtn = document.getElementById('p-submit');
+  submitBtn.disabled = true;
+  try{
+    const { error } = await sb.from('nebula_community_posts').insert({
+      username, type:'photo', image_url:url, text_content: decorative ? '' : alt
+    });
+    if(error){
+      console.error('[community] insert photo error', error);
+      statusEl.textContent = 'No se pudo publicar tu foto. Inténtalo de nuevo.';
+      statusEl.classList.add('err');
+      return;
+    }
+    pForm.reset();
+    pAlt.required = true;
+    pAltRow.style.opacity = '1';
+    statusEl.textContent = 'Tu foto se publicó correctamente.';
+    statusEl.classList.add('ok');
+    renderFeed(true);
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
+/* ============================= INIT ============================= */
+renderFeed(false);
+
+})();
+</script>
+</body>
+</html>

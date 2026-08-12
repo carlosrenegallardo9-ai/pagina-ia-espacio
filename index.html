@@ -432,34 +432,52 @@
 
   @media (prefers-reduced-motion: reduce){
     html{ scroll-behavior:auto; }
+    *, *::before, *::after{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
   }
+
+  /* ---------- ACCESSIBILITY FOUNDATION ---------- */
+  .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+  .skip-link{
+    position:absolute; left:1rem; top:-4rem; z-index:1000;
+    background:var(--void-3); color:var(--ink); border:1px solid var(--line);
+    border-radius:10px; padding:0.7rem 1.1rem; font-weight:700; text-decoration:none;
+    transition: top .2s var(--ease);
+  }
+  .skip-link:focus{ top:1rem; }
+  :focus-visible{ outline:3px solid var(--gold); outline-offset:3px; border-radius:4px; }
 </style>
 </head>
 <body>
 
+<a class="skip-link" href="#main-content">Saltar al contenido</a>
+
 <nav class="nav" id="siteNav">
-  <a href="#" class="nav-brand"><span class="nav-mark"></span>Nébula</a>
+  <a href="#main-content" class="nav-brand"><span class="nav-mark" aria-hidden="true"></span>Nébula</a>
   <ul class="nav-links">
     <li><a href="#vitals">Datos vitales</a></li>
     <li><a href="#atmosphere">Atmósfera</a></li>
     <li><a href="#planets">Planetas</a></li>
     <li><a href="#scale">Escala del cosmos</a></li>
+    <li><a href="community.html">Comunidad</a></li>
   </ul>
   <div class="nav-right">
     <a href="cosmo-quiz.html" class="nav-cta">🚀 Cosmo Quiz</a>
   </div>
 </nav>
 
-<div id="globe-stage"></div>
-<div class="instrument-ring" id="ring"></div>
-<div class="readout" id="readout">
+<div id="globe-stage" aria-hidden="true"></div>
+<div class="instrument-ring" id="ring" aria-hidden="true"></div>
+<div class="readout" id="readout" aria-hidden="true">
   UTC <span id="utc-time">--:--:--</span><br>
   ROT <span id="rot-speed">1 674 km/h</span><br>
   ORB <span id="orb-speed">107 226 km/h</span><br>
   INCL <span>23.44°</span>
 </div>
 
-<main>
+<main id="main-content">
 
   <section class="hero">
     <p class="hero-eyebrow">Atlas del cosmos cercano — distancia 0 km</p>
@@ -570,7 +588,10 @@
 
   <footer class="foot">
     <span class="foot-mark">Nébula — Atlas del cosmos cercano</span>
-    <a href="cosmo-quiz.html" class="btn btn-outline btn-sm">🚀 Jugar Cosmo Quiz</a>
+    <div class="btn-row">
+      <a href="cosmo-quiz.html" class="btn btn-outline btn-sm">🚀 Jugar Cosmo Quiz</a>
+      <a href="community.html" class="btn btn-outline btn-sm">📰 Comunidad</a>
+    </div>
     <span class="foot-note">DATOS OSTENSIBLEMENTE APROXIMADOS · NASA / IAU</span>
   </footer>
 
