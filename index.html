@@ -278,25 +278,21 @@
   .quick-links a{ font-size:0.88rem; font-weight:600; color:var(--indigo); display:flex; align-items:center; gap:0.3rem; }
   .quick-links a:hover{ color:var(--violet); }
   .quick-row{
-    display:grid; grid-template-columns:repeat(8, 1fr); gap:1.6rem 1.2rem;
+    display:grid; grid-template-columns:repeat(5, 1fr); gap:2.6rem 1.2rem;
   }
   .quick-item{ text-align:center; }
   .quick-thumb{
-    width:100%; aspect-ratio:1; border-radius:20px;
+    width:100%; aspect-ratio:1; max-width:64px; margin:0 auto 1.1rem;
     display:flex; align-items:center; justify-content:center;
-    font-size:1.6rem;
-    margin-bottom:0.85rem;
-    border:1px solid var(--line-soft);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -14px 26px -10px rgba(0,0,0,0.35), 0 18px 34px -16px rgba(0,0,0,0.6);
-    transition:transform .4s var(--ease), border-color .4s var(--ease), box-shadow .4s var(--ease);
+    color:var(--ink-dim);
+    transition:color .4s var(--ease), transform .4s var(--ease);
   }
-  .quick-item:hover .quick-thumb{
-    transform:translateY(-6px) scale(1.045); border-color:var(--line);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -14px 26px -10px rgba(0,0,0,0.3), 0 26px 46px -16px rgba(0,0,0,0.7), 0 0 34px -6px currentColor;
-  }
-  .quick-label{ font-size:0.82rem; font-weight:600; color:var(--ink-dim); }
-  @media (max-width: 980px){ .quick-row{ grid-template-columns:repeat(4,1fr); } }
-  @media (max-width: 560px){ .quick-row{ grid-template-columns:repeat(3,1fr); gap:1.3rem 0.8rem;} .quick-thumb{ font-size:1.25rem;} }
+  .quick-thumb svg{ width:66%; height:66%; }
+  .quick-item:hover .quick-thumb{ color:var(--ink); transform:translateY(-4px); }
+  .quick-label{ font-size:0.8rem; font-weight:500; color:var(--ink-dim); letter-spacing:0.01em; transition:color .4s var(--ease); }
+  .quick-item:hover .quick-label{ color:var(--ink); }
+  @media (max-width: 980px){ .quick-row{ grid-template-columns:repeat(3,1fr); } }
+  @media (max-width: 560px){ .quick-row{ grid-template-columns:repeat(3,1fr); gap:2rem 0.8rem;} }
 
   /* ---------- SOLAR SYSTEM SECTION (near-fullscreen 3D) ---------- */
   .solar-section{
@@ -657,7 +653,7 @@
     background:#0b0714;
     box-shadow:0 40px 90px -30px rgba(0,0,0,0.8);
   }
-  .lightbox-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity 1s var(--ease), transform 8s linear; transform:scale(1.06); }
+  .lightbox-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity 1s var(--ease), transform 8s linear; transform:scale(1.06); }
   .lightbox-img.is-loaded{ opacity:1; }
   .lightbox.is-open .lightbox-img.is-loaded{ transform:scale(1); }
   .lightbox-fallback{ position:absolute; inset:0; }
@@ -1446,7 +1442,6 @@
   const IMG = {
     nebulaPillars: WM('Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg'),
     carinaGold: WM('Carina_Nebula_JWST.jpg'),
-    apollo11: WM('Aldrin_Apollo_11_original.jpg'),
     moon: WM('Full_Moon_Luc_Viatour.jpg'),
     earthBlueMarble: WM('The_Earth_seen_from_Apollo_17.jpg'),
     iss: WM('International_Space_Station_after_undocking_of_STS-132.jpg'),
@@ -1460,7 +1455,10 @@
     gagarin: [ WM('Yuri_Gagarin_Colour.jpg'), WM('RIAN_archive_25981_Yuri_Gagarin.jpg'), WM('Bundesarchiv_Bild_Yuri_Gagarin.jpg'), WM('Yuri_Gagarin.jpg'), WIKI('en','Yuri Gagarin') ],
     curiosity: [ WM('Mars_Curiosity_Rover.jpg'), WM("Curiosity_Self-Portrait_at_'Big_Sky'_Drilling_Site.jpg"), WM('Curiosity_Self-Portrait_at_Big_Sky_Drilling_Site.jpg'), WIKI('en','Curiosity (rover)') ],
     paleBlueDot: [ WM('Pale_Blue_Dot.png'), WM('Pale_Blue_Dot.jpg'), WIKI('en','Pale Blue Dot') ],
-    venusSurface: [ WM('Venera_13_photo.jpg'), WM('Venera_13.jpg'), WIKI('en','Venera 13') ]
+    venusSurface: [ WM('Venera_13_photo.jpg'), WM('Venera_13.jpg'), WIKI('en','Venera 13') ],
+    apollo11: [ WM('Apollo_11_Crew.jpg'), WM('Apollo11-crew.jpg'), WIKI('en','Apollo 11') ],
+    jwstCraft: [ WM('James_Webb_Space_Telescope_2009_top.jpg'), WM('Nasa-webbtelescope-full.jpg'), WIKI('en','James Webb Space Telescope') ],
+    hubbleCraft: [ WM('HST-SM4.jpeg'), WM('Hubble_01.jpg'), WIKI('en','Hubble Space Telescope') ]
   };
 
   function loadImageInto(imgEl, urlOrList, onSuccess){
@@ -1530,8 +1528,8 @@
       story:"Diseñada para sobrevivir apenas 32 minutos bajo 465 °C y una presión 92 veces mayor que la terrestre, Venera 13 funcionó 127 minutos: casi cuatro veces más de lo previsto. Sus imágenes muestran un paisaje anaranjado de roca volcánica bajo un cielo denso de dióxido de carbono.",
       img:IMG.venusSurface, tint:"35deg", link:{ label:"Wikipedia · Venera 13", url:"https://es.wikipedia.org/wiki/Venera_13" } },
     { year:"1990", title:"Telescopio Hubble", text:"Puesto en órbita para ver más allá de la atmósfera, redefinió nuestra imagen del universo profundo.",
-      story:"Un defecto en su espejo principal casi arruina la misión, corregido en 1993 por astronautas en una caminata espacial histórica. Desde entonces, Hubble ha capturado más de 1.5 millones de observaciones, incluida esta imagen de los Pilares de la Creación: columnas de gas donde nacen nuevas estrellas.",
-      img:IMG.nebulaPillars, tint:"330deg", link:{ label:"Wikipedia · Telescopio Hubble", url:"https://es.wikipedia.org/wiki/Telescopio_espacial_Hubble" } },
+      story:"Un defecto en su espejo principal casi arruina la misión, corregido en 1993 por astronautas en una caminata espacial histórica. Desde entonces, Hubble ha capturado más de 1.5 millones de observaciones, entre ellas la de los Pilares de la Creación: columnas de gas donde nacen nuevas estrellas.",
+      img:IMG.hubbleCraft, tint:"330deg", link:{ label:"Wikipedia · Telescopio Hubble", url:"https://es.wikipedia.org/wiki/Telescopio_espacial_Hubble" } },
     { year:"1990", title:"El Pequeño Punto Azul", text:"A petición de Carl Sagan, la Voyager 1 gira su cámara y fotografía a la Tierra desde 6 000 millones de km.",
       story:"En la imagen, la Tierra ocupa menos de un píxel: un punto pálido suspendido en un rayo de luz solar disperso. «Ese es aquí. Ese es nuestro hogar», escribió Sagan. «Todo lo que ha sido, todos los que amaste, cada ser humano que existió, vivió su vida ahí.»",
       img:IMG.paleBlueDot, tint:"215deg", link:{ label:"Wikipedia · Pale Blue Dot", url:"https://es.wikipedia.org/wiki/Pale_Blue_Dot" } },
@@ -1543,7 +1541,7 @@
       img:IMG.curiosity, tint:"20deg", link:{ label:"Wikipedia · Curiosity", url:"https://es.wikipedia.org/wiki/Curiosity" } },
     { year:"2021", title:"Telescopio James Webb", text:"El observatorio infrarrojo más potente jamás construido comienza a mirar hacia el amanecer del universo.",
       story:"Su espejo de 6.5 metros, hecho de 18 segmentos de berilio bañados en oro, se despliega en el espacio como un origami tras el lanzamiento. Orbita el punto de Lagrange L2, a 1.5 millones de km de la Tierra, observando galaxias tal como eran apenas 300 millones de años después del Big Bang.",
-      img:IMG.carinaGold, tint:"40deg", link:{ label:"Wikipedia · Telescopio James Webb", url:"https://es.wikipedia.org/wiki/Telescopio_espacial_James_Webb" } },
+      img:IMG.jwstCraft, tint:"40deg", link:{ label:"Wikipedia · Telescopio James Webb", url:"https://es.wikipedia.org/wiki/Telescopio_espacial_James_Webb" } },
     { year:"Hoy", title:"Regreso a la Luna", text:"El programa Artemis prepara el camino para una presencia humana sostenida más allá de la órbita terrestre.",
       story:"Artemis busca llevar a la primera mujer y la primera persona no blanca a la superficie lunar, estableciendo una base como paso previo a una misión tripulada a Marte. Orion, su cápsula, ya voló sin tripulación alrededor de la Luna en 2022.",
       img:IMG.moon, tint:"230deg", link:{ label:"Wikipedia · Programa Artemisa", url:"https://es.wikipedia.org/wiki/Programa_Artemisa" } }
@@ -1585,14 +1583,16 @@
   ];
 
   const QUICK_ITEMS = [
-    { icon:"☉", label:"Sistema Solar", href:"#explorador", grad:"linear-gradient(135deg,#ff9d6c,#c9542b)" },
-    { icon:"✦", label:"Galería Espacial", href:"#galeria", grad:"linear-gradient(135deg,#8fa8ff,#3d3aa8)" },
-    { icon:"❦", label:"Dorado Celestial", href:"#dorado", grad:"linear-gradient(135deg,#f0cf94,#a9762e)" },
-    { icon:"↔", label:"Escalas cósmicas", href:"#", grad:"linear-gradient(135deg,#8fd6d0,#2c7a75)", action:"scale" },
-    { icon:"◐", label:"Fenómenos", href:"#aprender", grad:"linear-gradient(135deg,#c98ad6,#5a2c80)" },
-    { icon:"✧", label:"Guía IA", href:"#", grad:"linear-gradient(135deg,#a0a6ff,#4a4ac9)", action:"ai" },
-    { icon:"◇", label:"Aprender", href:"#aprender", grad:"linear-gradient(135deg,#9ecbe8,#2c5a8a)" },
-    { icon:"⟡", label:"Constelaciones", href:"#aprender", grad:"linear-gradient(135deg,#f6d896,#8a6a2c)" }
+    { label:"Sistema Solar", href:"#explorador",
+      icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><ellipse cx="12" cy="12" rx="10.2" ry="3.4"/></svg>` },
+    { label:"Galería Espacial", href:"#galeria",
+      icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6.5" width="15" height="11" rx="2"/><path d="M18 10l3.4-2v8L18 14"/><circle cx="8" cy="12" r="2.3"/></svg>` },
+    { label:"Dorado Celestial", href:"#dorado",
+      icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5c2.6-1 5.2-1 8 0v13c-2.8-1-5.4-1-8 0z"/><path d="M20 5.5c-2.6-1-5.2-1-8 0v13c2.8-1 5.4-1 8 0z"/></svg>` },
+    { label:"Escalas cósmicas", href:"#", action:"scale",
+      icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15v5h5"/><path d="M20 9V4h-5"/><path d="M20 4L13 11"/><path d="M4 20l7-7"/></svg>` },
+    { label:"Aprender", href:"#aprender",
+      icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l9 4.5-9 4.5-9-4.5z"/><path d="M6.5 11v5c0 1.4 2.5 3 5.5 3s5.5-1.6 5.5-3v-5"/></svg>` }
   ];
 
   const TOPICS = [
@@ -1664,9 +1664,8 @@
     const a = document.createElement('a');
     a.className = 'quick-item';
     a.href = item.href;
-    a.innerHTML = `<div class="quick-thumb" style="background:${item.grad}">${item.icon}</div><div class="quick-label">${item.label}</div>`;
+    a.innerHTML = `<div class="quick-thumb">${item.icon}</div><div class="quick-label">${item.label}</div>`;
     if(item.action === 'scale'){ a.addEventListener('click', (e)=>{ e.preventDefault(); openScalePanel(); }); }
-    if(item.action === 'ai'){ a.addEventListener('click', (e)=>{ e.preventDefault(); openAi(); }); }
     quickRow.appendChild(a);
   });
 
