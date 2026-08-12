@@ -446,6 +446,46 @@
   .cinematic.sacred .cinematic-scrim{
     background:linear-gradient(180deg, rgba(9,5,3,0.05) 0%, rgba(13,7,3,0.35) 45%, rgba(9,5,3,0.95) 100%);
   }
+
+  /* ---------- GALLERY WALL (asymmetric collage) ---------- */
+  .gallery-wall-section{ padding:clamp(2.4rem,6vw,3.6rem) clamp(1.2rem,5vw,3.4rem) clamp(4rem,9vw,6rem); background:var(--void); }
+  .gallery-wall{
+    display:grid; grid-template-columns:repeat(6, 1fr); grid-auto-rows:130px; grid-auto-flow:dense;
+    gap:14px;
+  }
+  .gallery-frame{
+    position:relative; overflow:hidden; border-radius:12px; cursor:pointer; grid-column:span 1; grid-row:span 1;
+    border:1px solid rgba(255,255,255,0.2);
+    box-shadow:0 18px 32px -18px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(255,255,255,0.06);
+    background:linear-gradient(135deg, var(--void-3), var(--void-2));
+    transition:transform .5s var(--ease), box-shadow .5s var(--ease), border-color .5s var(--ease);
+  }
+  .gallery-frame:hover{ transform:translateY(-5px) scale(1.02); box-shadow:0 32px 56px -20px rgba(0,0,0,0.8); border-color:rgba(255,255,255,0.45); z-index:2; }
+  .gallery-frame img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity 1s var(--ease), transform .7s var(--ease); }
+  .gallery-frame img.is-loaded{ opacity:1; }
+  .gallery-frame:hover img{ transform:scale(1.06); }
+  .gallery-frame-fallback{ position:absolute; inset:0; }
+  .gallery-frame-cap{
+    position:absolute; left:0; right:0; bottom:0; padding:0.9rem 1rem 0.8rem;
+    background:linear-gradient(0deg, rgba(4,2,8,0.88) 0%, rgba(4,2,8,0.2) 70%, transparent 100%);
+    display:flex; justify-content:space-between; align-items:baseline; gap:0.6rem;
+  }
+  .gallery-frame-cap b{ font-family:'Unbounded',sans-serif; font-weight:700; font-size:0.82rem; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,0.6); }
+  .gallery-frame-cap small{ font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.04em; color:var(--gold); flex:0 0 auto; }
+  .gallery-frame.size-lg{ grid-column:span 3; grid-row:span 2; }
+  .gallery-frame.size-wide{ grid-column:span 2; grid-row:span 1; }
+  .gallery-frame.size-tall{ grid-column:span 2; grid-row:span 2; }
+  @media (max-width:980px){
+    .gallery-wall{ grid-template-columns:repeat(4,1fr); grid-auto-rows:120px; }
+    .gallery-frame.size-lg{ grid-column:span 4; grid-row:span 2; }
+    .gallery-frame.size-tall{ grid-column:span 2; grid-row:span 2; }
+  }
+  @media (max-width:620px){
+    .gallery-wall{ grid-template-columns:repeat(2,1fr); grid-auto-rows:150px; gap:10px; }
+    .gallery-frame.size-lg{ grid-column:span 2; grid-row:span 2; }
+    .gallery-frame.size-wide{ grid-column:span 2; grid-row:span 1; }
+    .gallery-frame.size-tall{ grid-column:span 1; grid-row:span 2; }
+  }
   .cinematic-content{
     position:relative; z-index:1; width:100%;
     padding: 0 clamp(1.2rem,5vw,3.4rem) clamp(3rem,7vw,4.6rem);
@@ -764,6 +804,7 @@
     transition:transform .5s var(--ease);
   }
   .book-cover:hover .book-object{ transform:translateY(-5px) scale(1.014); }
+  .book.is-opening .book-object{ transform:rotateX(10deg) translateY(8px) scale(1.015); }
   .book-shadow{
     position:absolute; left:8%; right:8%; bottom:-7%; height:14%; z-index:0;
     background:radial-gradient(ellipse, rgba(0,0,0,0.55), transparent 72%);
@@ -773,7 +814,7 @@
     position:absolute; left:0; top:1.5%; bottom:1.5%; width:7%; z-index:1; border-radius:5px 0 0 5px;
     background:
       repeating-linear-gradient(180deg, rgba(212,176,106,0.35) 0 2px, transparent 2px 15px),
-      linear-gradient(90deg, #23070d, #3a0f16);
+      linear-gradient(90deg, #140d05, #2f2013);
     box-shadow:inset -2px 0 4px rgba(0,0,0,0.5);
   }
   .book-page-edge{
@@ -781,6 +822,12 @@
     background:repeating-linear-gradient(180deg, #f3dfa6 0 1.6px, #c9a25c 1.6px 2.4px, #f3dfa6 2.4px 4px);
     box-shadow:inset 2px 0 5px rgba(70,45,15,0.4), 1px 0 4px rgba(0,0,0,0.35);
   }
+  .book-page-edge-top, .book-page-edge-bottom{
+    position:absolute; left:8%; right:6%; height:4%; z-index:1;
+    background:repeating-linear-gradient(90deg, #f3dfa6 0 1.6px, #c9a25c 1.6px 2.4px, #f3dfa6 2.4px 4px);
+  }
+  .book-page-edge-top{ top:0; border-radius:5px 5px 0 0; box-shadow:inset 0 2px 5px rgba(70,45,15,0.4), 0 -1px 3px rgba(0,0,0,0.3); }
+  .book-page-edge-bottom{ bottom:0; border-radius:0 0 5px 5px; box-shadow:inset 0 -2px 5px rgba(70,45,15,0.4), 0 1px 3px rgba(0,0,0,0.3); }
   .book-ribbon{
     position:absolute; top:-1%; left:38%; width:9%; height:46%; z-index:4; transform-origin:top center;
     background:linear-gradient(180deg, #7a1620, #5a0f18);
@@ -798,8 +845,8 @@
       radial-gradient(circle at 94% 6%, rgba(0,0,0,0.35), transparent 40%),
       repeating-linear-gradient(128deg, rgba(0,0,0,0.09) 0 1.5px, transparent 1.5px 4px),
       url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22300%22%20height%3D%22300%22%3E%3Cpath%20d%3D%22M49.5%20206.9%20L57.4%20194.2%20L96.7%20228.8%20L107.9%20239.2%22%20stroke%3D%22%23000%22%20stroke-width%3D%220.5%22%20fill%3D%22none%22%20opacity%3D%220.31%22/%3E%3Cpath%20d%3D%22M4.2%20279.8%20L-28.8%20313.3%20L-45.6%20301.9%20L-81.4%20351.8%22%20stroke%3D%22%23000%22%20stroke-width%3D%220.7%22%20fill%3D%22none%22%20opacity%3D%220.43%22/%3E%3Cpath%20d%3D%22M184.8%2010.2%20L198.8%2035.7%20L223.7%2080.8%20L186.0%20110.0%22%20stroke%3D%22%23000%22%20stroke-width%3D%220.5%22%20fill%3D%22none%22%20opacity%3D%220.27%22/%3E%3Cpath%20d%3D%22M135.9%20165.6%20L136.1%20147.7%20L162.6%20155.3%20L204.6%20131.3%22%20stroke%3D%22%23000%22%20stroke-width%3D%220.9%22%20fill%3D%22none%22%20opacity%3D%220.3%22/%3E%3Cpath%20d%3D%22M290.6%20268.2%20L262.9%20276.3%20L305.6%20262.4%22%20stroke%3D%22%23000%22%20stroke-width%3D%220.9%22%20fill%3D%22none%22%20opacity%3D%220.48%22/%3E%3Cpath%20d%3D%22M122.9%20109.6%20L133.0%20105.0%20L141.5%2096.3%20L184.9%2079.0%22%20stroke%3D%22%23000%22%20stroke-width%3D%220.7%22%20fill%3D%22none%22%20opacity%3D%220.43%22/%3E%3Cpath%20d%3D%22M0.8%2021.0%20L18.0%2016.5%20L76.0%20-4.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%220.9%22%20fill%3D%22none%22%20opacity%3D%220.42%22/%3E%3Cpath%20d%3D%22M104.5%20278.1%20L140.6%20322.5%20L125.2%20306.0%20L177.5%20289.9%22%20stroke%3D%22%23000%22%20stroke-width%3D%220.5%22%20fill%3D%22none%22%20opacity%3D%220.36%22/%3E%3Cpath%20d%3D%22M205.0%20202.8%20L205.7%20251.9%20L261.8%20269.1%22%20stroke%3D%22%23000%22%20stroke-width%3D%220.7%22%20fill%3D%22none%22%20opacity%3D%220.47%22/%3E%3Ccircle%20cx%3D%22151.8%22%20cy%3D%22200.1%22%20r%3D%220.9%22%20fill%3D%22%23000%22%20opacity%3D%220.15%22/%3E%3Ccircle%20cx%3D%22168.5%22%20cy%3D%22131.8%22%20r%3D%220.5%22%20fill%3D%22%23000%22%20opacity%3D%220.25%22/%3E%3Ccircle%20cx%3D%2217.2%22%20cy%3D%2286.4%22%20r%3D%220.8%22%20fill%3D%22%23000%22%20opacity%3D%220.23%22/%3E%3Ccircle%20cx%3D%2210.4%22%20cy%3D%2274.6%22%20r%3D%220.5%22%20fill%3D%22%23000%22%20opacity%3D%220.27%22/%3E%3Ccircle%20cx%3D%22193.6%22%20cy%3D%2243.8%22%20r%3D%220.4%22%20fill%3D%22%23000%22%20opacity%3D%220.25%22/%3E%3Ccircle%20cx%3D%2214.8%22%20cy%3D%2241.9%22%20r%3D%220.7%22%20fill%3D%22%23000%22%20opacity%3D%220.28%22/%3E%3Ccircle%20cx%3D%22143.7%22%20cy%3D%22285.8%22%20r%3D%220.8%22%20fill%3D%22%23000%22%20opacity%3D%220.17%22/%3E%3Ccircle%20cx%3D%2246.2%22%20cy%3D%22110.6%22%20r%3D%220.8%22%20fill%3D%22%23000%22%20opacity%3D%220.2%22/%3E%3Ccircle%20cx%3D%22270.8%22%20cy%3D%22143.1%22%20r%3D%220.4%22%20fill%3D%22%23000%22%20opacity%3D%220.22%22/%3E%3Ccircle%20cx%3D%2241.8%22%20cy%3D%22216.2%22%20r%3D%220.5%22%20fill%3D%22%23000%22%20opacity%3D%220.13%22/%3E%3Ccircle%20cx%3D%22214.7%22%20cy%3D%2279.3%22%20r%3D%220.5%22%20fill%3D%22%23000%22%20opacity%3D%220.15%22/%3E%3Ccircle%20cx%3D%22286.7%22%20cy%3D%22126.3%22%20r%3D%220.7%22%20fill%3D%22%23000%22%20opacity%3D%220.25%22/%3E%3Ccircle%20cx%3D%22243.6%22%20cy%3D%2241.6%22%20r%3D%220.4%22%20fill%3D%22%23000%22%20opacity%3D%220.18%22/%3E%3Ccircle%20cx%3D%2256.0%22%20cy%3D%22192.5%22%20r%3D%220.8%22%20fill%3D%22%23000%22%20opacity%3D%220.11%22/%3E%3Ccircle%20cx%3D%2235.7%22%20cy%3D%2284.4%22%20r%3D%220.5%22%20fill%3D%22%23000%22%20opacity%3D%220.29%22/%3E%3Ccircle%20cx%3D%22118.9%22%20cy%3D%22266.4%22%20r%3D%220.7%22%20fill%3D%22%23000%22%20opacity%3D%220.14%22/%3E%3Ccircle%20cx%3D%22257.2%22%20cy%3D%2260.5%22%20r%3D%220.7%22%20fill%3D%22%23000%22%20opacity%3D%220.25%22/%3E%3Ccircle%20cx%3D%22181.2%22%20cy%3D%22151.5%22%20r%3D%220.7%22%20fill%3D%22%23000%22%20opacity%3D%220.11%22/%3E%3Ccircle%20cx%3D%22278.8%22%20cy%3D%22116.3%22%20r%3D%220.8%22%20fill%3D%22%23000%22%20opacity%3D%220.18%22/%3E%3Ccircle%20cx%3D%22170.1%22%20cy%3D%22256.3%22%20r%3D%220.4%22%20fill%3D%22%23000%22%20opacity%3D%220.29%22/%3E%3Ccircle%20cx%3D%22181.6%22%20cy%3D%22223.7%22%20r%3D%220.4%22%20fill%3D%22%23000%22%20opacity%3D%220.13%22/%3E%3Ccircle%20cx%3D%22217.8%22%20cy%3D%22297.1%22%20r%3D%220.8%22%20fill%3D%22%23000%22%20opacity%3D%220.26%22/%3E%3Ccircle%20cx%3D%22147.0%22%20cy%3D%22171.9%22%20r%3D%220.6%22%20fill%3D%22%23000%22%20opacity%3D%220.11%22/%3E%3Ccircle%20cx%3D%22178.4%22%20cy%3D%2297.2%22%20r%3D%220.6%22%20fill%3D%22%23000%22%20opacity%3D%220.16%22/%3E%3Ccircle%20cx%3D%22187.4%22%20cy%3D%22227.3%22%20r%3D%220.4%22%20fill%3D%22%23000%22%20opacity%3D%220.22%22/%3E%3Ccircle%20cx%3D%2297.7%22%20cy%3D%2260.4%22%20r%3D%220.3%22%20fill%3D%22%23000%22%20opacity%3D%220.23%22/%3E%3Ccircle%20cx%3D%22126.1%22%20cy%3D%22260.4%22%20r%3D%220.7%22%20fill%3D%22%23000%22%20opacity%3D%220.23%22/%3E%3Ccircle%20cx%3D%22242.3%22%20cy%3D%22293.2%22%20r%3D%220.6%22%20fill%3D%22%23000%22%20opacity%3D%220.29%22/%3E%3Ccircle%20cx%3D%22204.0%22%20cy%3D%22211.7%22%20r%3D%220.6%22%20fill%3D%22%23000%22%20opacity%3D%220.2%22/%3E%3Ccircle%20cx%3D%22262.7%22%20cy%3D%2221.1%22%20r%3D%220.3%22%20fill%3D%22%23000%22%20opacity%3D%220.23%22/%3E%3Ccircle%20cx%3D%2212.6%22%20cy%3D%2282.7%22%20r%3D%220.7%22%20fill%3D%22%23000%22%20opacity%3D%220.18%22/%3E%3Ccircle%20cx%3D%22128.1%22%20cy%3D%22239.3%22%20r%3D%220.5%22%20fill%3D%22%23000%22%20opacity%3D%220.17%22/%3E%3Ccircle%20cx%3D%2268.3%22%20cy%3D%22274.4%22%20r%3D%220.7%22%20fill%3D%22%23000%22%20opacity%3D%220.11%22/%3E%3Ccircle%20cx%3D%2251.9%22%20cy%3D%22111.9%22%20r%3D%220.7%22%20fill%3D%22%23000%22%20opacity%3D%220.14%22/%3E%3Ccircle%20cx%3D%22134.9%22%20cy%3D%22189.8%22%20r%3D%220.7%22%20fill%3D%22%23000%22%20opacity%3D%220.25%22/%3E%3Ccircle%20cx%3D%22181.7%22%20cy%3D%22246.1%22%20r%3D%220.5%22%20fill%3D%22%23000%22%20opacity%3D%220.2%22/%3E%3Ccircle%20cx%3D%22149.6%22%20cy%3D%2291.8%22%20r%3D%220.5%22%20fill%3D%22%23000%22%20opacity%3D%220.2%22/%3E%3Ccircle%20cx%3D%22213.4%22%20cy%3D%22272.7%22%20r%3D%220.4%22%20fill%3D%22%23000%22%20opacity%3D%220.14%22/%3E%3Ccircle%20cx%3D%22262.7%22%20cy%3D%22214.9%22%20r%3D%220.4%22%20fill%3D%22%23000%22%20opacity%3D%220.14%22/%3E%3Ccircle%20cx%3D%22156.7%22%20cy%3D%22186.0%22%20r%3D%220.5%22%20fill%3D%22%23000%22%20opacity%3D%220.25%22/%3E%3C/svg%3E"),
-      linear-gradient(160deg, #5a1620 0%, #3a0f16 45%, #2a0a10 80%, #1c070c 100%);
-    transition:transform .95s cubic-bezier(.6,0,.4,1), opacity .6s ease .5s;
+      linear-gradient(160deg, #4a3323 0%, #2f2013 45%, #201509 80%, #140d05 100%);
+    transition:transform .9s cubic-bezier(.6,0,.4,1) .4s, opacity .5s ease .55s;
     backface-visibility:hidden;
   }
   .book-flap.is-left{ background-position:left center; border-radius:5px 0 0 5px; transform-origin:100% 50%; box-shadow:1px 0 0 rgba(0,0,0,0.4); }
@@ -825,15 +872,18 @@
     font-size:clamp(1.05rem,6vw,1.55rem); color:#d9b874; line-height:1.15; white-space:nowrap;
     text-shadow:-1px -1px 0 rgba(255,226,170,0.4), 1px 1.5px 1.5px rgba(0,0,0,0.7), 0 0 10px rgba(220,180,90,0.2);
   }
-  .book-cover-sub{ font-family:'Cormorant Garamond',serif; font-style:italic; font-size:12px; letter-spacing:0.08em; color:#b08f5e; text-shadow:0 1px 2px rgba(0,0,0,0.6); }
-  .book-cover-hint{ font-family:'Space Mono',monospace; font-size:9.5px; letter-spacing:0.18em; text-transform:uppercase; color:#7a6248; animation:bookHint 2.6s ease-in-out infinite; position:relative; z-index:2; }
+  .book-cover-sub{ font-family:'Space Mono',monospace; font-weight:700; text-transform:uppercase; font-size:11px; letter-spacing:0.14em; color:#c9a25c; text-shadow:0 1px 2px rgba(0,0,0,0.6); }
+  .book-cover-hint{ font-family:'Space Mono',monospace; font-size:9.5px; letter-spacing:0.18em; text-transform:uppercase; color:#7a6248; animation:bookHint 2.6s ease-in-out infinite; position:relative; z-index:2; transition:opacity .35s ease; }
   @keyframes bookHint{ 0%,100%{ opacity:0.45; } 50%{ opacity:0.95; } }
   .ink-glyph{ display:inline-block; transform:rotate(var(--r,0deg)) translateY(var(--y,0px)); }
   @media (prefers-reduced-motion: reduce){ .book-motes span, .book-ribbon{ animation:none; } }
 
   /* ---- cover opening + golden burst transition ---- */
   .book{ perspective:1600px; }
-  .book.is-opening .book-shadow{ opacity:0; }
+  .book-spine-strip, .book-page-edge, .book-page-edge-top, .book-page-edge-bottom, .book-ribbon{ transition:opacity .4s ease; }
+  .book.is-opening .book-shadow, .book.is-opening .book-spine-strip, .book.is-opening .book-page-edge,
+  .book.is-opening .book-page-edge-top, .book.is-opening .book-page-edge-bottom, .book.is-opening .book-ribbon,
+  .book.is-opening .book-cover-hint{ opacity:0; animation:none; }
   .book-burst{
     position:absolute; left:50%; top:50%; width:10px; height:10px; margin:-5px 0 0 -5px;
     border-radius:50%; z-index:4; opacity:0; pointer-events:none;
@@ -886,6 +936,14 @@
     pointer-events:none;
   }
   .book-page{ position:relative; padding:clamp(1.4rem,3.4vw,2.8rem); overflow-y:auto; }
+  /* fore-edge sliver on the outer sides — a thin stack of page lines, so the open spread still reads as a bound block of paper rather than a flat card */
+  .book-page-left::before, .book-page-right::before{
+    content:''; position:absolute; top:1%; bottom:1%; width:4px; z-index:2; pointer-events:none;
+    background:repeating-linear-gradient(180deg, #e8c988 0 1.6px, #b8905a 1.6px 2.4px, #e8c988 2.4px 4px);
+    opacity:0.55;
+  }
+  .book-page-left::before{ left:0; border-radius:10px 0 0 10px; }
+  .book-page-right::before{ right:0; border-radius:0 10px 10px 0; }
   #bookPageRight{ transform-origin:0% 50%; transition:transform .32s ease, opacity .32s ease; backface-visibility:hidden; }
   #bookPageRight.is-turning{ transform:rotateY(-14deg); opacity:0.4; }
   @media (max-width:760px){
@@ -1244,6 +1302,10 @@
     </div>
   </section>
 
+  <section class="gallery-wall-section reveal">
+    <div class="gallery-wall" id="galleryWall"></div>
+  </section>
+
   <!-- ================= DORADO CELESTIAL (cinematic sacred) ================= -->
   <section class="cinematic sacred reveal" id="dorado">
     <img class="cinematic-photo" id="sacredPhoto" alt="" aria-hidden="true" loading="lazy" decoding="async">
@@ -1373,6 +1435,8 @@
       <div class="book-shadow" aria-hidden="true"></div>
       <div class="book-spine-strip" aria-hidden="true"></div>
       <div class="book-page-edge" aria-hidden="true"></div>
+      <div class="book-page-edge-top" aria-hidden="true"></div>
+      <div class="book-page-edge-bottom" aria-hidden="true"></div>
       <div class="book-ribbon" aria-hidden="true"></div>
       <div class="book-flaps" aria-hidden="true">
         <div class="book-flap is-left"></div>
@@ -1935,6 +1999,23 @@
   document.getElementById('lightboxNext').addEventListener('click', ()=> renderMilestone(lbIndex+1));
   lightbox.addEventListener('click', (e)=>{ if(e.target === lightbox) lightbox.classList.remove('is-open'); });
 
+  /* ============ GALLERY WALL (asymmetric collage) ============ */
+  const GALLERY_WALL_SIZES = ['size-lg','','size-tall','size-wide','','size-lg','size-wide','','size-tall','size-lg',''];
+  const galleryWall = document.getElementById('galleryWall');
+  MILESTONES.forEach((m, i)=>{
+    const frame = document.createElement('button');
+    frame.type = 'button';
+    frame.className = `gallery-frame ${GALLERY_WALL_SIZES[i % GALLERY_WALL_SIZES.length]}`.trim();
+    frame.setAttribute('aria-label', `${m.title} — ${m.year}`);
+    frame.innerHTML = `
+      <div class="gallery-frame-fallback" style="background:radial-gradient(circle at 30% 25%, rgba(255,255,255,0.14), transparent 55%), linear-gradient(135deg, hsl(${m.tint} 55% 20%), hsl(calc(${m.tint} + 60deg) 45% 8%));"></div>
+      <img alt="${m.title}" loading="lazy" decoding="async">
+      <div class="gallery-frame-cap"><b>${m.title}</b><small>${m.year}</small></div>`;
+    frame.addEventListener('click', ()=> openLightbox(i));
+    galleryWall.appendChild(frame);
+    loadImageInto(frame.querySelector('img'), m.img);
+  });
+
   /* ============ SAGRADA BIBLIA — Dorado Celestial ============ */
   const book = document.getElementById('book');
   const bookCover = document.getElementById('bookCover');
@@ -2117,7 +2198,7 @@
     playPageSound();
     book.classList.remove('is-cover');
     book.classList.add('is-opening');
-    setTimeout(()=>{ openingBook = false; showIndex(); }, 1550);
+    setTimeout(()=>{ openingBook = false; showIndex(); }, 1700);
   }
 
   document.getElementById('sacredOpenBtn').addEventListener('click', ()=>{ showCover(); book.classList.add('is-open'); });
