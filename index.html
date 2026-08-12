@@ -1070,6 +1070,43 @@
   @media (max-width:980px){ .learn-grid{ grid-template-columns:repeat(2,1fr); } }
   @media (max-width:640px){ .learn-grid{ grid-template-columns:1fr; } }
 
+  /* ---------- COMPARADOR DE TAMAÑOS Y MASAS ---------- */
+  .compare-module{ margin-top:clamp(3.6rem,7vw,5.5rem); padding-top:clamp(2.6rem,5vw,3.6rem); border-top:1px solid var(--line-soft); }
+  .compare-head{ max-width:640px; margin-bottom:1.8rem; }
+  .compare-head .lede{ margin-top:0.6rem; }
+  .compare-chips{ display:flex; flex-wrap:wrap; gap:0.6rem; margin-bottom:1.4rem; }
+  .compare-chip{
+    display:inline-flex; align-items:center; gap:0.5rem; padding:0.55rem 1rem 0.55rem 0.7rem;
+    border-radius:var(--radius-full); border:1px solid var(--line); background:var(--surface);
+    color:var(--ink-dim); font-size:0.82rem; font-weight:600; cursor:pointer;
+    transition:border-color .3s var(--ease), color .3s var(--ease), background .3s var(--ease), transform .3s var(--ease);
+  }
+  .compare-chip:hover{ transform:translateY(-2px); border-color:var(--line-soft); color:var(--ink); }
+  .compare-chip .compare-chip-dot{ width:9px; height:9px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 0 3px rgba(255,255,255,0.05); }
+  .compare-chip.is-active{ border-color:var(--gold-dim); background:rgba(232,192,125,0.1); color:var(--ink); }
+  .compare-actions{ display:flex; align-items:center; gap:1rem; margin-bottom:2.2rem; flex-wrap:wrap; }
+  .compare-hint{ font-size:0.8rem; color:var(--ink-faint); }
+  .compare-stage{
+    position:relative; border-radius:var(--radius-lg); border:1px solid var(--line-soft);
+    background:radial-gradient(ellipse at 50% 20%, rgba(106,92,255,0.08), transparent 60%), var(--void-2);
+    overflow:hidden; height:clamp(280px,38vw,420px); margin-bottom:1.6rem;
+  }
+  .compare-canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .compare-empty{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:2rem; color:var(--ink-faint); font-size:0.92rem; max-width:340px;
+    margin:0 auto;
+  }
+  .compare-table{ width:100%; border-collapse:collapse; font-size:0.86rem; }
+  .compare-table th{ text-align:left; color:var(--ink-faint); font-weight:600; font-size:0.74rem; text-transform:uppercase; letter-spacing:0.06em; padding:0 0.8rem 0.7rem 0; border-bottom:1px solid var(--line-soft); }
+  .compare-table td{ padding:0.75rem 0.8rem 0.75rem 0; border-bottom:1px solid var(--line-soft); color:var(--ink-dim); vertical-align:top; }
+  .compare-table td.compare-name{ color:var(--ink); font-weight:600; display:flex; align-items:center; gap:0.55rem; white-space:nowrap; }
+  .compare-name-dot{ width:10px; height:10px; border-radius:50%; flex:0 0 auto; }
+  .compare-table td.compare-desc{ max-width:340px; line-height:1.6; }
+  @media (max-width:640px){
+    .compare-table{ display:block; overflow-x:auto; }
+  }
+
   /* ---------- AI GUIDE ---------- */
   .ai-fab{
     position:fixed; right:clamp(1rem,3vw,2rem); bottom:clamp(1rem,3vw,2rem); z-index:400;
@@ -1337,6 +1374,26 @@
       <p class="lede">Sin muros de texto. Abre solo lo que quieras entender hoy.</p>
     </div>
     <div class="learn-grid" id="learnGrid"></div>
+
+    <div class="compare-module" id="comparador">
+      <div class="compare-head">
+        <p class="eyebrow">Escala real, lado a lado</p>
+        <h3 class="display band-title" style="font-size:clamp(1.6rem,3vw,2.2rem);">Comparador de tamaños y masas</h3>
+        <p class="lede">Elige dos o más objetos cósmicos y compáralos a escala logarítmica: desde la Luna hasta las estrellas más grandes conocidas.</p>
+      </div>
+      <div class="compare-chips" id="compareChips"></div>
+      <div class="compare-actions">
+        <button class="btn btn-fill" id="compareBtn" type="button">Comparar</button>
+        <span class="compare-hint">Selecciona al menos 2 objetos para visualizar la comparación.</span>
+      </div>
+      <div class="compare-stage">
+        <canvas class="compare-canvas" id="compareCanvas"></canvas>
+        <div class="compare-empty" id="compareEmpty">Selecciona objetos arriba y pulsa «Comparar» para verlos a escala.</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="compare-table" id="compareTable"></table>
+      </div>
+    </div>
   </section>
 
   <!-- ================= FOOTER ================= -->
@@ -1360,6 +1417,7 @@
           <ul>
             <li><a href="#aprender">Preguntas frecuentes</a></li>
             <li><a href="#" data-scale-link>Escalas cósmicas</a></li>
+            <li><a href="#comparador">Comparador de tamaños</a></li>
             <li><a href="#" id="footAiLink">Guía IA</a></li>
           </ul>
         </div>
@@ -1681,6 +1739,33 @@
     { title:"Constelaciones", icon:"⟡", img:IMG.constellations, teaser:"Ochenta y ocho patrones que dividen el cielo.",
       full:"Figuras trazadas entre estrellas que, salvo por su posición aparente desde la Tierra, no suelen tener relación física entre sí. La Unión Astronómica Internacional reconoce 88 constelaciones oficiales, usadas desde la antigüedad para navegar y contar el tiempo.",
       link:{ label:"Wikipedia · Constelación", url:"https://es.wikipedia.org/wiki/Constelaci%C3%B3n" } }
+  ];
+
+  // diameterKm / massKg are approximate real physical values; sizes span ~8 orders of
+  // magnitude so the visual comparison uses a log scale (see renderComparison).
+  const COSMIC_OBJECTS = [
+    { id:"luna", name:"Luna", color:"#b8b3ac", diameterKm:3474, massKg:7.35e22,
+      desc:"El satélite natural de la Tierra; su gravedad gobierna nuestras mareas." },
+    { id:"tierra", name:"Tierra", color:"#4a8ab5", diameterKm:12742, massKg:5.97e24,
+      desc:"Nuestro planeta: el único mundo conocido con agua líquida estable y vida." },
+    { id:"marte", name:"Marte", color:"#c96a3a", diameterKm:6779, massKg:6.42e23,
+      desc:"El planeta rojo; poco más de la mitad del diámetro de la Tierra." },
+    { id:"neptuno", name:"Neptuno", color:"#4a6ac9", diameterKm:49244, massKg:1.02e26,
+      desc:"El gigante helado más lejano del Sol, con los vientos más rápidos conocidos." },
+    { id:"jupiter", name:"Júpiter", color:"#c9a063", diameterKm:139820, massKg:1.90e27,
+      desc:"El planeta más grande del sistema solar: más masivo que todos los demás juntos." },
+    { id:"sol", name:"Sol", color:"#f2c14e", diameterKm:1391000, massKg:1.99e30,
+      desc:"Nuestra estrella; concentra el 99.8% de la masa de todo el sistema solar." },
+    { id:"enana-blanca", name:"Enana blanca", color:"#cfe8f5", diameterKm:12000, massKg:1.19e30,
+      desc:"El núcleo denso que deja una estrella como el Sol al final de su vida: tamaño de la Tierra, masa del Sol." },
+    { id:"betelgeuse", name:"Betelgeuse", color:"#e8583a", diameterKm:1_060_000_000, massKg:3.58e31,
+      desc:"Una supergigante roja tan grande que, en el lugar del Sol, se extendería más allá de Marte." },
+    { id:"uy-scuti", name:"UY Scuti", color:"#e8703a", diameterKm:2_377_000_000, massKg:1.39e31,
+      desc:"Una de las estrellas más grandes conocidas por su radio: unas 1700 veces el radio solar." },
+    { id:"neutron", name:"Estrella de neutrones", color:"#dce7ff", diameterKm:20, massKg:2.78e30,
+      desc:"El remanente ultradenso de una supernova: la masa del Sol comprimida en el tamaño de una ciudad." },
+    { id:"agujero-negro", name:"Agujero negro estelar", color:"#3a2a52", diameterKm:60, massKg:1.99e31,
+      desc:"Horizonte de sucesos de un agujero negro de ~10 masas solares: nada que lo cruce puede escapar." }
   ];
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2257,6 +2342,95 @@
   function closeTopicModal(){ topicModal.classList.remove('is-open'); }
   document.getElementById('topicModalClose').addEventListener('click', closeTopicModal);
   topicModal.addEventListener('click', (e)=>{ if(e.target === topicModal) closeTopicModal(); });
+
+  /* ============ COMPARADOR DE TAMAÑOS Y MASAS ============ */
+  const compareChipsEl = document.getElementById('compareChips');
+  const compareCanvas = document.getElementById('compareCanvas');
+  const compareCtx = compareCanvas.getContext('2d');
+  const compareEmpty = document.getElementById('compareEmpty');
+  const compareTable = document.getElementById('compareTable');
+  const selectedCompare = new Set(['tierra','luna','jupiter']);
+
+  COSMIC_OBJECTS.forEach(obj=>{
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'compare-chip' + (selectedCompare.has(obj.id) ? ' is-active' : '');
+    chip.dataset.id = obj.id;
+    chip.innerHTML = `<span class="compare-chip-dot" style="background:${obj.color}"></span>${obj.name}`;
+    chip.addEventListener('click', ()=>{
+      if(selectedCompare.has(obj.id)) selectedCompare.delete(obj.id); else selectedCompare.add(obj.id);
+      chip.classList.toggle('is-active');
+    });
+    compareChipsEl.appendChild(chip);
+  });
+
+  function fmtKm(km){
+    if(km >= 1_000_000) return (km/1_000_000).toLocaleString('es-ES', {maximumFractionDigits:2}) + ' millones de km';
+    return Math.round(km).toLocaleString('es-ES') + ' km';
+  }
+  function fmtKg(kg){
+    const exp = Math.floor(Math.log10(kg));
+    const mant = kg / Math.pow(10, exp);
+    return mant.toFixed(2) + '×10' + String(exp).replace(/-/g,'⁻').replace(/[0-9]/g, d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[d]) + ' kg';
+  }
+
+  function renderComparison(){
+    const objs = COSMIC_OBJECTS.filter(o=> selectedCompare.has(o.id)).sort((a,b)=> b.diameterKm - a.diameterKm);
+    compareTable.innerHTML = '';
+    if(objs.length < 2){
+      compareEmpty.style.display = 'flex';
+      compareCtx.clearRect(0,0,compareCanvas.width,compareCanvas.height);
+      return;
+    }
+    compareEmpty.style.display = 'none';
+
+    // log-scale radius: real diameters span ~8 orders of magnitude, so a linear
+    // map would render every object but the largest as an invisible dot.
+    const dpr = Math.min(window.devicePixelRatio||1, 2);
+    const w = compareCanvas.clientWidth, h = compareCanvas.clientHeight;
+    compareCanvas.width = w*dpr; compareCanvas.height = h*dpr;
+    compareCtx.setTransform(dpr,0,0,dpr,0,0);
+    compareCtx.clearRect(0,0,w,h);
+
+    const logs = objs.map(o=> Math.log10(o.diameterKm));
+    const minLog = Math.min(...logs), maxLog = Math.max(...logs);
+    const maxR = Math.min(h*0.42, (w/objs.length)*0.42);
+    const minR = 4;
+    const radii = logs.map(l=> maxLog === minLog ? maxR : minR + (l-minLog)/(maxLog-minLog) * (maxR-minR));
+
+    const baseline = h*0.62;
+    const gap = w / objs.length;
+    compareCtx.strokeStyle = 'rgba(255,255,255,0.12)';
+    compareCtx.beginPath(); compareCtx.moveTo(0, baseline); compareCtx.lineTo(w, baseline); compareCtx.stroke();
+
+    objs.forEach((o,i)=>{
+      const cx = gap*i + gap/2, r = radii[i], cy = baseline - r;
+      const g = compareCtx.createRadialGradient(cx-r*0.35, cy-r*0.35, r*0.1, cx, cy, r);
+      g.addColorStop(0, o.color); g.addColorStop(1, 'rgba(0,0,0,0.55)');
+      compareCtx.fillStyle = g;
+      compareCtx.beginPath(); compareCtx.arc(cx, cy, Math.max(r,1.5), 0, Math.PI*2); compareCtx.fill();
+
+      compareCtx.fillStyle = 'rgba(245,243,247,0.92)';
+      compareCtx.font = '600 12px "Space Mono", monospace';
+      compareCtx.textAlign = 'center';
+      compareCtx.fillText(o.name, cx, Math.max(cy - r - 12, 14));
+    });
+
+    objs.forEach(o=>{
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="compare-name"><span class="compare-name-dot" style="background:${o.color}"></span>${o.name}</td>
+        <td>${fmtKm(o.diameterKm)}</td>
+        <td>${fmtKg(o.massKg)}</td>
+        <td class="compare-desc">${o.desc}</td>`;
+      compareTable.appendChild(row);
+    });
+    compareTable.insertAdjacentHTML('afterbegin', `
+      <thead><tr><th>Objeto</th><th>Diámetro</th><th>Masa</th><th>Descripción</th></tr></thead>`);
+  }
+  document.getElementById('compareBtn').addEventListener('click', renderComparison);
+  window.addEventListener('resize', ()=>{ if(compareEmpty.style.display === 'none') renderComparison(); });
+  renderComparison();
 
   /* ============ AI GUIDE ============ */
   const aiFab = document.getElementById('aiFab');
