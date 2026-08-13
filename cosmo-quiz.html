@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Cosmo Quiz: Rumbo a las Estrellas</title>
-<meta name="description" content="Un juego de preguntas tipo Kahoot ambientado en el espacio, presentado por el Capitán Nébula.">
+<meta name="description" content="Un juego de preguntas tipo Kahoot ambientado en el espacio, presentado por el Capitán Cósmica.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23FF6A3D'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,13 +48,13 @@
 
   /* ---------- BACKGROUND ---------- */
   #bg-canvas{ position:fixed; inset:0; width:100%; height:100%; z-index:0; }
-  .nebula-blob{
+  .cosmica-blob{
     position:fixed; border-radius:50%; filter:blur(60px); opacity:0.35; z-index:0; pointer-events:none;
     animation: drift 18s ease-in-out infinite alternate;
   }
-  .nebula-blob.n1{ width:38vw; height:38vw; left:-8vw; top:-10vh; background:radial-gradient(circle, var(--purple), transparent 70%); }
-  .nebula-blob.n2{ width:32vw; height:32vw; right:-6vw; bottom:-8vh; background:radial-gradient(circle, var(--pink), transparent 70%); animation-delay:-6s; }
-  .nebula-blob.n3{ width:26vw; height:26vw; right:20vw; top:10vh; background:radial-gradient(circle, var(--cyan), transparent 70%); opacity:0.2; animation-delay:-11s; }
+  .cosmica-blob.n1{ width:38vw; height:38vw; left:-8vw; top:-10vh; background:radial-gradient(circle, var(--purple), transparent 70%); }
+  .cosmica-blob.n2{ width:32vw; height:32vw; right:-6vw; bottom:-8vh; background:radial-gradient(circle, var(--pink), transparent 70%); animation-delay:-6s; }
+  .cosmica-blob.n3{ width:26vw; height:26vw; right:20vw; top:10vh; background:radial-gradient(circle, var(--cyan), transparent 70%); opacity:0.2; animation-delay:-11s; }
   @keyframes drift{ from{ transform:translate(0,0) scale(1);} to{ transform:translate(3vw,4vh) scale(1.12);} }
 
   .float-planet{ position:fixed; border-radius:50%; z-index:0; pointer-events:none; box-shadow: inset -10px -10px 24px rgba(0,0,0,0.55), 0 0 30px -6px currentColor; animation: bob 7s ease-in-out infinite; }
@@ -86,13 +86,13 @@
   .warp-in{ animation: warp-in 0.4s ease; }
   @keyframes warp-in{ from{ opacity:0; filter: blur(6px); transform: scale(1.05);} to{ opacity:1; filter:blur(0); transform:scale(1);} }
 
-  /* ---------- NEBULA AVATAR ---------- */
-  .nebula-figure{ position:relative; display:inline-block; line-height:0; }
-  .nebula-figure.sz-lg{ width:200px; height:200px; }
-  .nebula-figure.sz-md{ width:120px; height:120px; }
-  .nebula-figure.sz-sm{ width:64px; height:64px; }
-  .nebula-fallback, .nebula-photo{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
-  .nebula-photo{ z-index:1; }
+  /* ---------- COSMICA AVATAR ---------- */
+  .cosmica-figure{ position:relative; display:inline-block; line-height:0; }
+  .cosmica-figure.sz-lg{ width:200px; height:200px; }
+  .cosmica-figure.sz-md{ width:120px; height:120px; }
+  .cosmica-figure.sz-sm{ width:64px; height:64px; }
+  .cosmica-fallback, .cosmica-photo{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
+  .cosmica-photo{ z-index:1; }
 
   /* ---------- MENU ---------- */
   #screen-menu .screen-inner{ text-align:center; }
@@ -136,8 +136,8 @@
 
   .panel-card{ background:var(--panel); border:1px solid var(--hair); border-radius:var(--radius-lg); padding:2rem; backdrop-filter: blur(8px); box-shadow: var(--glow); }
 
-  /* ---------- NEBULA DIALOGUE BUBBLE ---------- */
-  .nebula-row{ display:flex; align-items:center; gap:1rem; margin-bottom:1.2rem; text-align:left; }
+  /* ---------- COSMICA DIALOGUE BUBBLE ---------- */
+  .cosmica-row{ display:flex; align-items:center; gap:1rem; margin-bottom:1.2rem; text-align:left; }
   .bubble{ position:relative; background:rgba(255,255,255,0.07); border:1px solid var(--hair); border-radius:16px; padding:0.9rem 1.1rem; font-size:0.98rem; color:var(--ink); flex:1; }
   .bubble b{ color:var(--yellow); }
   .bubble-name{ font-family:'Unbounded',sans-serif; font-weight:700; color:var(--cyan); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:0.3rem; }
@@ -246,9 +246,9 @@
 <body>
 
 <canvas id="bg-canvas"></canvas>
-<div class="nebula-blob n1"></div>
-<div class="nebula-blob n2"></div>
-<div class="nebula-blob n3"></div>
+<div class="cosmica-blob n1"></div>
+<div class="cosmica-blob n2"></div>
+<div class="cosmica-blob n3"></div>
 <div class="float-planet fp1"></div>
 <div class="float-planet fp2"></div>
 <div class="float-planet fp3"></div>
@@ -259,10 +259,10 @@
   <!-- MENU -->
   <section class="screen active" id="screen-menu">
     <div class="screen-inner">
-      <div id="nebula-menu-slot" style="margin-bottom:0.6rem;"></div>
+      <div id="cosmica-menu-slot" style="margin-bottom:0.6rem;"></div>
       <p class="logo-eyebrow">Un juego de preguntas del espacio profundo</p>
       <h1 class="logo-title">COSMO QUIZ</h1>
-      <p class="logo-sub">Rumbo a las Estrellas · con el <b style="color:var(--cyan)">Capitán Nébula</b></p>
+      <p class="logo-sub">Rumbo a las Estrellas · con el <b style="color:var(--cyan)">Capitán Cósmica</b></p>
 
       <div class="menu-grid">
         <button class="btn btn-tile btn-primary btn-wide" id="btn-solo"><span class="ico">🚀</span> Jugar solo</button>
@@ -277,9 +277,9 @@
   <!-- SOLO SETUP -->
   <section class="screen" id="screen-solo-setup">
     <div class="screen-inner panel-card">
-      <div class="nebula-row">
-        <div class="nebula-figure sz-md" id="nebula-solo-slot"></div>
-        <div class="bubble"><span class="bubble-name">Capitán Nébula</span>¡Prepárate, cadete! Dime tu nombre y despegamos rumbo a las estrellas.</div>
+      <div class="cosmica-row">
+        <div class="cosmica-figure sz-md" id="cosmica-solo-slot"></div>
+        <div class="bubble"><span class="bubble-name">Capitán Cósmica</span>¡Prepárate, cadete! Dime tu nombre y despegamos rumbo a las estrellas.</div>
       </div>
       <div class="field-row">
         <input class="field" id="solo-name" maxlength="18" placeholder="Tu nombre de astronauta">
@@ -299,9 +299,9 @@
   <!-- HOST LOBBY -->
   <section class="screen" id="screen-host-lobby">
     <div class="screen-inner panel-card">
-      <div class="nebula-row">
-        <div class="nebula-figure sz-md" id="nebula-host-slot"></div>
-        <div class="bubble"><span class="bubble-name">Capitán Nébula</span>Comparte este código con tu tripulación. ¡Que suban a bordo!</div>
+      <div class="cosmica-row">
+        <div class="cosmica-figure sz-md" id="cosmica-host-slot"></div>
+        <div class="bubble"><span class="bubble-name">Capitán Cósmica</span>Comparte este código con tu tripulación. ¡Que suban a bordo!</div>
       </div>
       <p class="q-meta" style="text-align:center;">CÓDIGO DE SALA</p>
       <div class="room-code" id="host-code">------</div>
@@ -334,9 +334,9 @@
   <!-- JOIN -->
   <section class="screen" id="screen-join">
     <div class="screen-inner panel-card">
-      <div class="nebula-row">
-        <div class="nebula-figure sz-md" id="nebula-join-slot"></div>
-        <div class="bubble"><span class="bubble-name">Capitán Nébula</span>Introduce el código de la nave y tu nombre de astronauta.</div>
+      <div class="cosmica-row">
+        <div class="cosmica-figure sz-md" id="cosmica-join-slot"></div>
+        <div class="bubble"><span class="bubble-name">Capitán Cósmica</span>Introduce el código de la nave y tu nombre de astronauta.</div>
       </div>
       <div class="field-row">
         <input class="field mono" id="join-code" maxlength="6" placeholder="CÓDIGO" style="text-transform:uppercase;">
@@ -351,8 +351,8 @@
   <!-- PLAYER WAITING -->
   <section class="screen" id="screen-player-wait">
     <div class="screen-inner panel-card" style="text-align:center;">
-      <div class="nebula-figure sz-lg" id="nebula-wait-slot" style="margin:0 auto 1rem;"></div>
-      <h2 id="player-wait-title">A bordo. Esperando al Capitán Nébula…</h2>
+      <div class="cosmica-figure sz-lg" id="cosmica-wait-slot" style="margin:0 auto 1rem;"></div>
+      <h2 id="player-wait-title">A bordo. Esperando al Capitán Cósmica…</h2>
       <p class="q-meta" id="player-wait-sub">Sala <span id="player-wait-code" class="mono"></span></p>
     </div>
   </section>
@@ -400,9 +400,9 @@
   <!-- REVEAL -->
   <section class="screen" id="screen-reveal">
     <div class="screen-inner panel-card">
-      <div class="nebula-row" id="reveal-nebula-row">
-        <div class="nebula-figure sz-md" id="nebula-reveal-slot"></div>
-        <div class="bubble" id="reveal-bubble"><span class="bubble-name">Capitán Nébula</span>…</div>
+      <div class="cosmica-row" id="reveal-cosmica-row">
+        <div class="cosmica-figure sz-md" id="cosmica-reveal-slot"></div>
+        <div class="bubble" id="reveal-bubble"><span class="bubble-name">Capitán Cósmica</span>…</div>
       </div>
       <div class="result-badge" id="reveal-badge">✅</div>
       <div class="result-title ok" id="reveal-title">¡Correcto!</div>
@@ -424,7 +424,7 @@
   <!-- FINAL -->
   <section class="screen" id="screen-final">
     <div class="screen-inner panel-card">
-      <div class="nebula-figure sz-lg" id="nebula-final-slot" style="margin:0 auto 0.6rem; display:block;"></div>
+      <div class="cosmica-figure sz-lg" id="cosmica-final-slot" style="margin:0 auto 0.6rem; display:block;"></div>
       <div class="final-rank-badge">
         <div class="q-meta" style="text-align:center;">MISIÓN COMPLETADA</div>
         <div class="final-rank-name" id="final-rank-name">Cadete Espacial</div>
@@ -748,10 +748,10 @@ function shuffledQuestion(src){
 }
 const SHAPES = ['▲','◆','●','■'];
 
-/* ============================= NEBULA AVATAR ============================= */
-function nebulaAvatarHTML(){
+/* ============================= COSMICA AVATAR ============================= */
+function cosmicaAvatarHTML(){
   return '' +
-    '<svg class="nebula-fallback" viewBox="0 0 200 200" aria-hidden="true">' +
+    '<svg class="cosmica-fallback" viewBox="0 0 200 200" aria-hidden="true">' +
       '<defs>' +
         '<radialGradient id="visor" cx="35%" cy="30%" r="75%">' +
           '<stop offset="0%" stop-color="#4fd6ff"/>' +
@@ -765,10 +765,10 @@ function nebulaAvatarHTML(){
       '<path d="M40 150 q60 40 120 0" fill="none" stroke="#8a5cff" stroke-width="8" stroke-linecap="round"/>' +
       '<circle cx="100" cy="24" r="10" fill="#ff4da6"/>' +
     '</svg>' +
-    '<img class="nebula-photo" src="assets/capitan-nebula.png" alt="Capitán Nébula" onerror="this.remove()">';
+    '<img class="cosmica-photo" src="assets/capitan-cosmica.png" alt="Capitán Cósmica" onerror="this.remove()">';
 }
-document.querySelectorAll('[id^="nebula-"][id$="-slot"]').forEach(el=>{ el.innerHTML = nebulaAvatarHTML(); });
-document.getElementById('nebula-menu-slot').innerHTML = '<div class="nebula-figure sz-lg" style="margin:0 auto;">'+nebulaAvatarHTML()+'</div>';
+document.querySelectorAll('[id^="cosmica-"][id$="-slot"]').forEach(el=>{ el.innerHTML = cosmicaAvatarHTML(); });
+document.getElementById('cosmica-menu-slot').innerHTML = '<div class="cosmica-figure sz-lg" style="margin:0 auto;">'+cosmicaAvatarHTML()+'</div>';
 
 /* ============================= LEADERBOARD (Supabase) ============================= */
 async function loadLB(){
@@ -986,7 +986,7 @@ async function soloFinish(){
   showScreen('screen-final', true);
   document.getElementById('final-rank-name').textContent = rank.name;
   document.getElementById('final-score').textContent = App.score + ' puntos';
-  document.getElementById('nebula-final-slot').innerHTML = nebulaAvatarHTML();
+  document.getElementById('cosmica-final-slot').innerHTML = cosmicaAvatarHTML();
   document.getElementById('final-board-list').innerHTML = '<p class="q-meta" style="text-align:center;">Guardando puntaje…</p>';
   launchConfetti();
   await saveLBEntry({ name:App.playerName, score:App.score, rank:rank.name });
@@ -1060,7 +1060,7 @@ document.getElementById('host-start').addEventListener('click', async ()=>{
   App.answered = false;
 
   if(App.hostPlaying){
-    const hostName = document.getElementById('host-player-name').value.trim() || 'Capitán Nébula';
+    const hostName = document.getElementById('host-player-name').value.trim() || 'Capitán Cósmica';
     const { data: playerRow, error: hostJoinErr } = await sb.from('players')
       .insert({ room_code:App.code, name:hostName })
       .select('id')
@@ -1133,7 +1133,7 @@ async function hostFinish(){
 
   document.getElementById('final-rank-name').textContent = 'Misión de tripulación finalizada';
   document.getElementById('final-score').textContent = scoreboard.length + ' astronautas completaron la misión';
-  document.getElementById('nebula-final-slot').innerHTML = nebulaAvatarHTML();
+  document.getElementById('cosmica-final-slot').innerHTML = cosmicaAvatarHTML();
   const list = document.getElementById('final-board-list');
   list.innerHTML = scoreboard.map((p,i)=>{
     const rank = rankFor(p.score);
@@ -1183,7 +1183,7 @@ document.getElementById('join-submit').addEventListener('click', async ()=>{
   try{
     const { data: room, error: roomErr } = await sb.from('rooms').select('*').eq('code', code).maybeSingle();
     if(roomErr || !room){
-      errEl.textContent = 'No encontramos esa sala. Verifica el código con tu Capitán Nébula.';
+      errEl.textContent = 'No encontramos esa sala. Verifica el código con tu Capitán Cósmica.';
       errEl.style.display = 'block';
       return;
     }
@@ -1310,7 +1310,7 @@ async function finalizeForPlayer(){
 
   document.getElementById('final-rank-name').textContent = rank.name;
   document.getElementById('final-score').textContent = App.score + ' puntos';
-  document.getElementById('nebula-final-slot').innerHTML = nebulaAvatarHTML();
+  document.getElementById('cosmica-final-slot').innerHTML = cosmicaAvatarHTML();
   const list = document.getElementById('final-board-list');
   list.innerHTML = scoreboard.map((p,i)=>
     `<div class="board-row ${p.id===App.playerId?'me':''}"><span class="board-rank">#${i+1}</span><span class="board-name">${escapeHtml(p.name)}</span><span class="board-score">${p.score}</span></div>`
@@ -1437,7 +1437,7 @@ function runLaunchCountdown(cb){
 /* ============================= REVEAL RENDERING ============================= */
 function renderReveal(opts){
   const { correct, points, meteor, question, totalScore, onNext, position, totalPlayers, waitingForHost } = opts;
-  document.getElementById('nebula-reveal-slot').innerHTML = nebulaAvatarHTML();
+  document.getElementById('cosmica-reveal-slot').innerHTML = cosmicaAvatarHTML();
   document.getElementById('reveal-badge').textContent = correct ? '✅' : (meteor ? '☄️' : '❌');
   const title = document.getElementById('reveal-title');
   title.textContent = correct ? '¡Correcto!' : (meteor ? '¡Impacto de meteorito!' : 'Incorrecto');
@@ -1450,7 +1450,7 @@ function renderReveal(opts){
   let line = correct ? pick(CORRECT_LINES) : pick(WRONG_LINES);
   if(meteor) line = METEOR_HIT;
   else if(!correct && App.failStreak===2) line = METEOR_WARN;
-  bubble.innerHTML = '<span class="bubble-name">Capitán Nébula</span>' + escapeHtml(line);
+  bubble.innerHTML = '<span class="bubble-name">Capitán Cósmica</span>' + escapeHtml(line);
 
   const factEl = document.getElementById('reveal-fact');
   factEl.textContent = '💫 ' + question.after;
@@ -1461,7 +1461,7 @@ function renderReveal(opts){
     const p = document.createElement('p');
     p.className = 'q-meta';
     p.style.textAlign = 'center';
-    p.textContent = position ? `Vas en la posición #${position} de ${totalPlayers}. Esperando al Capitán Nébula…` : 'Esperando al Capitán Nébula…';
+    p.textContent = position ? `Vas en la posición #${position} de ${totalPlayers}. Esperando al Capitán Cósmica…` : 'Esperando al Capitán Cósmica…';
     actions.appendChild(p);
   } else {
     const btn = document.createElement('button');
