@@ -513,7 +513,12 @@
 
   /* página derecha — texto */
   .book-page-right{ display:flex; flex-direction:column; }
-  .book-page-tag{ margin-bottom:1.3rem; }
+  /* referencia del pasaje = "número de versículo" de esta lectura: serif dorado,
+     con más cuerpo que el resto de las etiquetas en mayúscula monoespaciada */
+  .book-page-tag{
+    font-family:'Cinzel',serif; font-weight:600; font-size:13px; letter-spacing:0.1em;
+    color:var(--border-ornate); margin-bottom:1.3rem;
+  }
   .book-verse{ font-size:clamp(1.4rem,2.8vw,1.95rem); line-height:1.48; margin-bottom:1.5rem; }
   /* capitular iluminada: la primera letra de la cita bíblica se agranda y dora,
      puramente vía CSS (:first-child), sin tocar el JS que genera los glifos */
