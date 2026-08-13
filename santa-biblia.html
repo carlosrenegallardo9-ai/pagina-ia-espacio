@@ -293,21 +293,39 @@
     background:radial-gradient(ellipse, rgba(0,0,0,0.55), transparent 72%);
     transition:opacity .4s ease;
   }
+  /* lomo de encuadernación de cuero: base burdeos/marrón profundo + nervios (cords)
+     empujados horizontalmente, cada uno con su propio realce y sombra — nada de
+     franjas repetitivas de cuaderno */
   .book-spine-strip{
     position:absolute; left:0; top:1.5%; bottom:1.5%; width:7%; z-index:1; border-radius:5px 0 0 5px;
-    background:
-      repeating-linear-gradient(180deg, rgba(212,176,106,0.35) 0 2px, transparent 2px 15px),
-      linear-gradient(90deg, var(--bg-darker), var(--surface));
-    box-shadow:inset -2px 0 4px rgba(0,0,0,0.5);
+    background:linear-gradient(90deg, var(--bg-darker) 0%, #4a1f18 32%, #33140f 58%, var(--bg-darker) 100%);
+    box-shadow:inset -2px 0 4px rgba(0,0,0,0.6), inset 2px 0 3px rgba(0,0,0,0.35);
+    overflow:hidden;
   }
+  .book-spine-strip::before{
+    content:''; position:absolute; inset:0;
+    background-image:repeating-linear-gradient(180deg,
+      transparent 0px, transparent 58px,
+      rgba(0,0,0,0.5) 58px, rgba(0,0,0,0.5) 61px,
+      rgba(232,192,125,0.55) 61px, rgba(232,192,125,0.55) 64px,
+      rgba(0,0,0,0.35) 64px, rgba(0,0,0,0.35) 67px,
+      transparent 67px, transparent 104px);
+    mix-blend-mode:overlay;
+  }
+  /* canto de las hojas: pan de oro pulido, no papel a rayas — degradado metálico
+     con una veta grabada muy sutil por encima */
   .book-page-edge{
     position:absolute; right:0; top:2%; bottom:2%; width:5%; z-index:1; border-radius:0 5px 5px 0;
-    background:repeating-linear-gradient(180deg, #f3dfa6 0 1.6px, #c9a25c 1.6px 2.4px, #f3dfa6 2.4px 4px);
-    box-shadow:inset 2px 0 5px rgba(70,45,15,0.4), 1px 0 4px rgba(0,0,0,0.35);
+    background:linear-gradient(90deg, #96702a 0%, #f6dfa0 22%, #d9a94f 42%, #fff6da 58%, #c9932f 76%, #f6dfa0 90%, #96702a 100%);
+    box-shadow:inset 2px 0 5px rgba(70,45,15,0.45), 1px 0 4px rgba(0,0,0,0.35), inset -1px 0 1px rgba(255,255,255,0.4);
+  }
+  .book-page-edge::after{
+    content:''; position:absolute; inset:0; opacity:0.35; mix-blend-mode:multiply; pointer-events:none;
+    background-image:repeating-linear-gradient(180deg, rgba(120,80,20,0.5) 0 0.6px, transparent 0.6px 3px);
   }
   .book-page-edge-top, .book-page-edge-bottom{
     position:absolute; left:8%; right:6%; height:4%; z-index:1;
-    background:repeating-linear-gradient(90deg, #f3dfa6 0 1.6px, #c9a25c 1.6px 2.4px, #f3dfa6 2.4px 4px);
+    background:linear-gradient(90deg, #96702a 0%, #f6dfa0 22%, #d9a94f 42%, #fff6da 58%, #c9932f 76%, #f6dfa0 90%, #96702a 100%);
   }
   .book-page-edge-top{ top:0; border-radius:5px 5px 0 0; box-shadow:inset 0 2px 5px rgba(70,45,15,0.4), 0 -1px 3px rgba(0,0,0,0.3); }
   .book-page-edge-bottom{ bottom:0; border-radius:0 0 5px 5px; box-shadow:inset 0 -2px 5px rgba(70,45,15,0.4), 0 1px 3px rgba(0,0,0,0.3); }
@@ -320,16 +338,25 @@
   }
   @keyframes bookRibbonSway{ 0%,100%{ transform:rotate(-1.6deg); } 50%{ transform:rotate(1.6deg); } }
   .book-flaps{ position:absolute; inset:0 5% 0 7%; display:flex; z-index:2; overflow:visible; }
+  /* cuero sagrado: burdeos/marrón profundo, sombreado multidireccional (realce
+     superior-izquierdo, sombra inferior-derecho) y grano fino superpuesto */
   .book-flap{
     position:relative; width:50%; height:100%; background-size:200% 100%;
     background-image:
-      radial-gradient(ellipse 65% 40% at 30% 10%, rgba(255,220,190,0.14), transparent 60%),
-      radial-gradient(circle at 6% 94%, rgba(0,0,0,0.5), transparent 45%),
-      radial-gradient(circle at 94% 6%, rgba(0,0,0,0.35), transparent 40%),
-      repeating-linear-gradient(128deg, rgba(0,0,0,0.09) 0 1.5px, transparent 1.5px 4px),
-      linear-gradient(160deg, #4a3323 0%, #2f2013 45%, #201509 80%, var(--bg-darker) 100%);
+      radial-gradient(ellipse 70% 45% at 26% 8%, rgba(255,214,178,0.16), transparent 62%),
+      radial-gradient(ellipse 60% 50% at 78% 92%, rgba(0,0,0,0.5), transparent 60%),
+      radial-gradient(circle at 6% 94%, rgba(0,0,0,0.55), transparent 45%),
+      radial-gradient(circle at 94% 6%, rgba(0,0,0,0.4), transparent 42%),
+      repeating-linear-gradient(128deg, rgba(0,0,0,0.1) 0 1.4px, transparent 1.4px 3.6px),
+      repeating-linear-gradient(38deg, rgba(0,0,0,0.06) 0 1px, transparent 1px 3.2px),
+      linear-gradient(160deg, #5a2e22 0%, #3a1c14 38%, #241209 72%, var(--bg-darker) 100%);
     transition:transform .9s cubic-bezier(.6,0,.4,1) .4s, opacity .5s ease .55s;
     backface-visibility:hidden;
+  }
+  .book-flap::before{
+    content:''; position:absolute; inset:0; border-radius:inherit; overflow:hidden;
+    pointer-events:none; opacity:0.5; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
   }
   .book-flap.is-left{ background-position:left center; border-radius:5px 0 0 5px; transform-origin:100% 50%; box-shadow:1px 0 0 rgba(0,0,0,0.4); }
   .book-flap.is-right{ background-position:right center; border-radius:0 5px 5px 0; transform-origin:0% 50%; box-shadow:-1px 0 0 rgba(0,0,0,0.3); }
@@ -342,25 +369,46 @@
     transition:opacity .35s ease;
   }
   .book.is-opening .book-face-content{ opacity:0; }
-  .book-corner{ position:absolute; width:20px; height:20px; border:1px solid var(--gold-dim); }
-  .book-corner::after{ content:''; position:absolute; inset:4px; border-radius:50%; border:1px solid var(--gold-dim); }
-  .book-corner::before{
-    content:''; position:absolute; width:5px; height:5px; background:var(--gold); opacity:0.8;
-    transform:rotate(45deg);
+  /* esquinas: filigrana fina de pan de oro (línea curva + anillo/punto), reutilizada
+     por rotación desde un único trazo <symbol> definido en el HTML */
+  .book-corner{ position:absolute; width:34px; height:34px; overflow:visible; }
+  .book-corner.tl{ top:7%; left:7%; }
+  .book-corner.tr{ top:7%; right:7%; transform:rotate(90deg); }
+  .book-corner.bl{ bottom:7%; left:7%; transform:rotate(-90deg); }
+  .book-corner.br{ bottom:7%; right:7%; transform:rotate(180deg); }
+  /* cruz dorada — pieza protagonista: metal grabado a varias capas (base + brillo
+     diagonal + filo oscuro) con relieve tipo emboss vía drop-shadow, envuelta en un
+     halo de micro-destellos celestiales */
+  .book-cross-wrap{
+    position:relative; display:inline-flex; align-items:center; justify-content:center;
+    margin-bottom:0.35rem; pointer-events:none;
   }
-  .book-corner.tl{ top:8%; left:8%; border-right:none; border-bottom:none; }
-  .book-corner.tl::before{ top:-2.5px; left:-2.5px; }
-  .book-corner.tr{ top:8%; right:8%; border-left:none; border-bottom:none; }
-  .book-corner.tr::before{ top:-2.5px; right:-2.5px; }
-  .book-corner.bl{ bottom:8%; left:8%; border-right:none; border-top:none; }
-  .book-corner.bl::before{ bottom:-2.5px; left:-2.5px; }
-  .book-corner.br{ bottom:8%; right:8%; border-left:none; border-top:none; }
-  .book-corner.br::before{ bottom:-2.5px; right:-2.5px; }
-  .book-cross{
-    font-size:2.1rem; line-height:1; margin-bottom:0.2rem;
-    background:linear-gradient(180deg, var(--gold-light), var(--cross-gold) 60%, var(--border-ornate));
-    -webkit-background-clip:text; background-clip:text; color:transparent;
-    filter:drop-shadow(0 2px 3px rgba(0,0,0,0.65)) drop-shadow(0 0 10px rgba(212,175,55,0.25));
+  .book-cross-svg{
+    width:clamp(4.5rem,13vw,6rem); height:auto; display:block; overflow:visible;
+    filter:
+      drop-shadow(-1px -1.5px 0 rgba(255,246,224,0.4))
+      drop-shadow(1.5px 2.5px 3px rgba(0,0,0,0.55))
+      drop-shadow(0 0 20px rgba(212,175,55,0.32));
+  }
+  .book-cross-sheen{ mix-blend-mode:screen; opacity:0.55; }
+  .cross-sparkle{
+    position:absolute; font-size:9px; line-height:1; color:var(--gold-light);
+    opacity:0; will-change:opacity, transform;
+    filter:drop-shadow(0 0 3px rgba(232,192,125,0.85));
+    animation:crossSparkle 5s ease-in-out infinite;
+  }
+  .cross-sparkle::before{ content:'✦'; }
+  .cross-sparkle.s1{ top:0%;   left:14%; font-size:10px; animation-delay:.2s;  animation-duration:5.4s; }
+  .cross-sparkle.s2{ top:16%;  right:6%; font-size:7px;  animation-delay:1.7s; animation-duration:4.6s; }
+  .cross-sparkle.s3{ bottom:26%; left:0%; font-size:8px;  animation-delay:2.9s; animation-duration:5.8s; }
+  .cross-sparkle.s4{ bottom:6%; right:16%; font-size:6.5px; animation-delay:.9s; animation-duration:5.1s; }
+  .cross-sparkle.s5{ top:42%;  left:-8%; font-size:7.5px; animation-delay:3.6s; animation-duration:6.2s; }
+  @keyframes crossSparkle{
+    0%,100%{ opacity:0; transform:scale(0.35) rotate(0deg); }
+    45%,55%{ opacity:0.9; transform:scale(1) rotate(10deg); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .cross-sparkle{ animation:none; opacity:0.45; }
   }
   .book-cover-title{
     font-family:'Cinzel',serif; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
@@ -565,9 +613,57 @@
         <div class="book-flap is-right"></div>
       </div>
       <div class="book-face-content">
-        <span class="book-corner tl"></span><span class="book-corner tr"></span>
-        <span class="book-corner bl"></span><span class="book-corner br"></span>
-        <div class="book-cross">✝</div>
+        <!-- sprite oculto: un único trazo de filigrana reutilizado (rotado) en las 4 esquinas -->
+        <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+          <defs>
+            <linearGradient id="filigreeGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#e8c07d"/>
+              <stop offset="55%" stop-color="#c9a227"/>
+              <stop offset="100%" stop-color="#a68b3c"/>
+            </linearGradient>
+            <g id="filigreeMark">
+              <path d="M3 34 C3 14 14 3 34 3" fill="none" stroke="url(#filigreeGrad)" stroke-width="1.1" stroke-linecap="round" opacity="0.9"/>
+              <path d="M3 34 C3 21 9 15 17 11" fill="none" stroke="url(#filigreeGrad)" stroke-width="0.65" stroke-linecap="round" opacity="0.6"/>
+              <path d="M34 3 C23 3 17 8 12 15" fill="none" stroke="url(#filigreeGrad)" stroke-width="0.65" stroke-linecap="round" opacity="0.6"/>
+              <circle cx="4" cy="4" r="2.3" fill="url(#filigreeGrad)"/>
+              <circle cx="4" cy="4" r="5" fill="none" stroke="url(#filigreeGrad)" stroke-width="0.55" opacity="0.55"/>
+            </g>
+          </defs>
+        </svg>
+        <svg class="book-corner tl" viewBox="0 0 40 40" aria-hidden="true"><use href="#filigreeMark"/></svg>
+        <svg class="book-corner tr" viewBox="0 0 40 40" aria-hidden="true"><use href="#filigreeMark"/></svg>
+        <svg class="book-corner bl" viewBox="0 0 40 40" aria-hidden="true"><use href="#filigreeMark"/></svg>
+        <svg class="book-corner br" viewBox="0 0 40 40" aria-hidden="true"><use href="#filigreeMark"/></svg>
+
+        <div class="book-cross-wrap" aria-hidden="true">
+          <svg class="book-cross-svg" viewBox="0 0 100 150" aria-hidden="true">
+            <defs>
+              <linearGradient id="crossGoldGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#fff6e0"/>
+                <stop offset="14%" stop-color="#e8c07d"/>
+                <stop offset="48%" stop-color="#c9a227"/>
+                <stop offset="78%" stop-color="#a68b3c"/>
+                <stop offset="100%" stop-color="#5c4413"/>
+              </linearGradient>
+              <linearGradient id="crossSheenGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>
+                <stop offset="45%" stop-color="#ffffff" stop-opacity="0.55"/>
+                <stop offset="60%" stop-color="#ffffff" stop-opacity="0"/>
+              </linearGradient>
+              <!-- un único contorno para toda la cruz: evita la costura visible que
+                   dejaban dos rectángulos independientes superpuestos en el cruce -->
+              <path id="crossOutline" d="M45 6 L55 6 L55 42 L82 42 L82 52 L55 52 L55 144 L45 144 L45 52 L18 52 L18 42 L45 42 Z"/>
+            </defs>
+            <use class="book-cross-shape" href="#crossOutline" fill="url(#crossGoldGrad)"/>
+            <use class="book-cross-sheen" href="#crossOutline" fill="url(#crossSheenGrad)"/>
+            <use class="book-cross-edge" href="#crossOutline" fill="none" stroke="#3a2a08" stroke-width="0.8" stroke-linejoin="round" opacity="0.5"/>
+          </svg>
+          <span class="cross-sparkle s1" aria-hidden="true"></span>
+          <span class="cross-sparkle s2" aria-hidden="true"></span>
+          <span class="cross-sparkle s3" aria-hidden="true"></span>
+          <span class="cross-sparkle s4" aria-hidden="true"></span>
+          <span class="cross-sparkle s5" aria-hidden="true"></span>
+        </div>
         <h2 class="book-cover-title">Santa Biblia</h2>
         <svg class="book-cover-divider" viewBox="0 0 64 9" aria-hidden="true">
           <line x1="0" y1="4.5" x2="24" y2="4.5" stroke="#c9a227" stroke-width="1"/>
