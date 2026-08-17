@@ -9,9 +9,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Literata:ital,opsz,wght@0,18..144,400;0,18..144,500;0,18..144,600;1,18..144,400&family=Manrope:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<!-- Si JavaScript está desactivado, la introducción animada se oculta de inmediato
-     para no retrasar nunca el acceso al contenido principal. -->
-<noscript><style>.introbible{ animation:none !important; opacity:0 !important; visibility:hidden !important; pointer-events:none !important; }</style></noscript>
 <style>
   /* =====================================================================
      SANTA BIBLIA · DORADO CELESTIAL — capa visual
@@ -59,7 +56,6 @@
   a{ color:inherit; text-decoration:none; }
   button{ font-family:inherit; cursor:pointer; background:none; border:none; }
   ::selection{ background:var(--gold); color:#1a120b; }
-  .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 
   .wrap{ max-width:1280px; margin:0 auto; padding:0 clamp(1.2rem, 5vw, 3.4rem); }
   .reveal{ opacity:0; transform:translateY(28px); transition:opacity .9s var(--ease), transform .9s var(--ease); }
@@ -211,6 +207,46 @@
   @media (max-width:640px){ .sacred-frame{ display:none; } }
 
   /* =====================================================================
+     LA BIBLIA CERRADA EN LA VITRINA — protagonista visible desde la carga.
+     No se anima sola: solo reacciona a hover/foco y, al activarse, entrega
+     el gesto a la apertura cinematográfica real dentro de #book (modal).
+     ===================================================================== */
+  .hero-book-dock{
+    position:absolute; left:50%; top:39%; z-index:2;
+    transform:translate(-50%,-50%);
+    width:min(300px,58vw);
+    pointer-events:none;
+  }
+  .hero-book-dock .book-cover{ width:100%; pointer-events:auto; }
+  .hero-book-halo{
+    position:absolute; left:50%; top:48%; width:150%; height:150%;
+    transform:translate(-50%,-50%) scale(0.92);
+    border-radius:50%; pointer-events:none; z-index:-1;
+    background:radial-gradient(circle, rgba(232,192,125,0.28), rgba(201,162,39,0.08) 48%, transparent 72%);
+    opacity:0.7; filter:blur(1px);
+    animation:heroHaloBreathe 5s ease-in-out infinite;
+    transition:opacity .5s var(--ease), transform .5s var(--ease);
+  }
+  .hero-book-dock:hover .hero-book-halo, .hero-book-dock:focus-within .hero-book-halo{
+    opacity:1; transform:translate(-50%,-50%) scale(1.04);
+  }
+  @keyframes heroHaloBreathe{
+    0%,100%{ opacity:0.6; } 50%{ opacity:0.85; }
+  }
+  @media (prefers-reduced-motion: reduce){ .hero-book-halo{ animation:none; opacity:0.75; } }
+  @media (max-width:640px){
+    /* en móvil el bloque de texto ocupa casi la mitad inferior de la vitrina;
+       se alarga la vitrina y se sube/reduce el libro para que ninguno de
+       los dos se recorte ni se superponga */
+    .cinematic{ min-height:132vh; }
+    .hero-book-dock{ top:24%; width:min(190px,50vw); }
+  }
+  @media (max-width:380px){
+    .cinematic{ min-height:140vh; }
+    .hero-book-dock{ top:21%; width:min(165px,47vw); }
+  }
+
+  /* =====================================================================
      BIBLIA DE CUERO — Dorado Celestial (modal de lectura)
      ===================================================================== */
   .book{
@@ -263,7 +299,14 @@
     width:min(400px,84vw); cursor:pointer;
     display:flex; flex-direction:column; align-items:center; gap:1.3rem;
     position:relative;
+    border-radius:calc(var(--radius-md) + 4px);
   }
+  .book-cover:focus-visible{ outline:2px solid var(--gold-light); outline-offset:6px; }
+  /* reacción breve al activar: la cubierta se eleva y el aviso "Toca para abrir"
+     se apaga de inmediato, antes de ceder el paso a la apertura cinematográfica */
+  .book-cover.is-launching{ pointer-events:none; }
+  .book-cover.is-launching .book-object{ transform:translateY(-9px) scale(1.024); transition:transform .24s var(--ease); }
+  .book-cover.is-launching .book-cover-hint{ opacity:0 !important; transition:opacity .16s ease; }
   .book-motes{ position:absolute; inset:-14% -20%; pointer-events:none; z-index:1; }
   .book-motes span{
     position:absolute; width:3px; height:3px; border-radius:50%;
@@ -366,6 +409,55 @@
   .book-flap.is-right{ background-position:right center; border-radius:0 5px 5px 0; transform-origin:0% 50%; box-shadow:-1px 0 0 rgba(0,0,0,0.3); }
   .book.is-opening .book-flap.is-left{ transform:rotateY(-108deg); opacity:0; }
   .book.is-opening .book-flap.is-right{ transform:rotateY(108deg); opacity:0; }
+
+  /* ---- bloque de páginas interiores: 3 hojas superpuestas que se abren en
+     cascada bajo la cubierta, cada una con su propio ángulo, ritmo y leve
+     variación de luz, para leerse como papel real y no como una sola pieza ---- */
+  .book-leaves{ position:absolute; inset:0 5% 0 7%; z-index:2; pointer-events:none; perspective:1000px; }
+  .book-leaf{ position:absolute; display:flex; backface-visibility:hidden; }
+  .book-leaf.l1{ inset:0.6% 4.4% 0.6% 6.4%; }
+  .book-leaf.l2{ inset:1.2% 3.7% 1.2% 5.7%; }
+  .book-leaf.l3{ inset:1.8% 3% 1.8% 5%; }
+  .leaf-half{
+    position:relative; width:50%; height:100%;
+    background:linear-gradient(180deg, #f8eed6 0%, #eeddb4 55%, #e3d09e 100%);
+    box-shadow:inset 0 0 20px rgba(120,86,45,0.16);
+    backface-visibility:hidden;
+  }
+  .leaf-half.is-left{ border-radius:3px 0 0 3px; transform-origin:100% 50%; box-shadow:1px 0 0 rgba(120,86,45,0.3), inset 0 0 20px rgba(120,86,45,0.16); }
+  .leaf-half.is-right{ border-radius:0 3px 3px 0; transform-origin:0% 50%; box-shadow:-1px 0 0 rgba(120,86,45,0.25), inset 0 0 20px rgba(120,86,45,0.16); }
+  .book.is-opening .book-leaf.l1 .leaf-half.is-left{ animation:leafOpenL1L .95s cubic-bezier(.55,0,.35,1) forwards; animation-delay:.42s; }
+  .book.is-opening .book-leaf.l1 .leaf-half.is-right{ animation:leafOpenL1R .95s cubic-bezier(.55,0,.35,1) forwards; animation-delay:.42s; }
+  .book.is-opening .book-leaf.l2 .leaf-half.is-left{ animation:leafOpenL2L 1.05s cubic-bezier(.55,0,.35,1) forwards; animation-delay:.56s; }
+  .book.is-opening .book-leaf.l2 .leaf-half.is-right{ animation:leafOpenL2R 1.05s cubic-bezier(.55,0,.35,1) forwards; animation-delay:.56s; }
+  .book.is-opening .book-leaf.l3 .leaf-half.is-left{ animation:leafOpenL3L 1.15s cubic-bezier(.55,0,.35,1) forwards; animation-delay:.7s; }
+  .book.is-opening .book-leaf.l3 .leaf-half.is-right{ animation:leafOpenL3R 1.15s cubic-bezier(.55,0,.35,1) forwards; animation-delay:.7s; }
+  /* cada hoja oscila hacia afuera (mostrando su canto y una sombra más
+     oscura, como si girase en el aire) y luego se asienta casi plana,
+     mirando al lector — así el resultado final es una página abierta
+     legible, no un filo invisible de canto */
+  @keyframes leafOpenL1L{ 0%{ transform:rotateY(0deg); filter:brightness(1); } 42%{ transform:rotateY(-36deg) rotateZ(-1.4deg); filter:brightness(0.78); } 100%{ transform:rotateY(-5deg) rotateZ(-0.4deg); filter:brightness(1.05); } }
+  @keyframes leafOpenL1R{ 0%{ transform:rotateY(0deg); filter:brightness(1); } 42%{ transform:rotateY(36deg) rotateZ(1.4deg); filter:brightness(0.78); } 100%{ transform:rotateY(5deg) rotateZ(0.4deg); filter:brightness(1.05); } }
+  @keyframes leafOpenL2L{ 0%{ transform:rotateY(0deg); filter:brightness(1); } 46%{ transform:rotateY(-44deg) rotateZ(-1deg); filter:brightness(0.76); } 100%{ transform:rotateY(-8deg) rotateZ(-0.3deg); filter:brightness(1.03); } }
+  @keyframes leafOpenL2R{ 0%{ transform:rotateY(0deg); filter:brightness(1); } 46%{ transform:rotateY(44deg) rotateZ(1deg); filter:brightness(0.76); } 100%{ transform:rotateY(8deg) rotateZ(0.3deg); filter:brightness(1.03); } }
+  @keyframes leafOpenL3L{ 0%{ transform:rotateY(0deg); filter:brightness(1); } 50%{ transform:rotateY(-50deg); filter:brightness(0.74); } 100%{ transform:rotateY(-11deg); filter:brightness(1.02); } }
+  @keyframes leafOpenL3R{ 0%{ transform:rotateY(0deg); filter:brightness(1); } 50%{ transform:rotateY(50deg); filter:brightness(0.74); } 100%{ transform:rotateY(11deg); filter:brightness(1.02); } }
+
+  /* resplandor cálido que nace entre las páginas, crece hasta el clímax de
+     la apertura y luego cede para no interferir con la lectura */
+  .book-inner-glow{
+    position:absolute; inset:8% 6%; z-index:1; border-radius:6px;
+    background:radial-gradient(ellipse 65% 55% at 50% 42%, rgba(255,238,196,0.95), rgba(232,192,125,0.4) 50%, transparent 76%);
+    opacity:0; pointer-events:none;
+  }
+  .book.is-opening .book-inner-glow{ animation:innerGlowLife 2.6s ease forwards; animation-delay:.25s; }
+  @keyframes innerGlowLife{
+    0%{ opacity:0; transform:scale(0.82); }
+    55%{ opacity:1; transform:scale(1.05); }
+    78%{ opacity:0.92; transform:scale(1); }
+    100%{ opacity:0.38; transform:scale(0.98); }
+  }
+
   .book-face-content{
     position:absolute; inset:0 5% 0 7%; z-index:3;
     display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:0.6rem;
@@ -467,10 +559,24 @@
     .book-flap{ transition:opacity .3s ease; }
     .book.is-opening .book-flap{ transform:none; }
     .book.is-opening .book-burst{ animation:none; opacity:0; }
+    .book.is-opening .book-leaf .leaf-half{ animation:none !important; transform:none !important; filter:none; transition:opacity .3s ease; opacity:0; }
+    .book.is-opening .book-inner-glow{ animation:none; opacity:0.55; }
   }
 
   /* ---- libro abierto / doble página ---- */
   .book-open{ display:none; width:100%; height:100%; align-items:center; justify-content:center; }
+  /* revelación elegante del contenido justo al terminar la apertura del libro
+     (opacidad progresiva + leve subida + desenfoque que se aclara); solo se
+     aplica una vez, no en cada cambio de página/índice posterior */
+  @keyframes bookContentReveal{
+    from{ opacity:0; transform:translateY(16px); filter:blur(7px); }
+    to{ opacity:1; transform:none; filter:blur(0); }
+  }
+  .book-open.is-revealing{ animation:bookContentReveal .75s var(--ease) both; }
+  @media (prefers-reduced-motion: reduce){
+    .book-open.is-revealing{ animation:bookContentRevealSoft .35s ease both; }
+  }
+  @keyframes bookContentRevealSoft{ from{ opacity:0; } to{ opacity:1; } }
   .book.is-index .book-open, .book.is-page .book-open{ display:flex; }
   .book:not(.is-cover):not(.is-opening) .book-cover{ display:none; }
   .book-spread{
@@ -561,9 +667,6 @@
   .book-index-row:last-child{ border-bottom:none; }
   .book-index-row:hover{ padding-left:0.6rem; color:var(--parchment-label); }
   .book-index-row .book-index-num{ font-family:'Space Mono',monospace; font-size:11px; color:#a9866f; flex:0 0 auto; }
-  .book-pill:focus-visible, .book-index-row:focus-visible, .book-to-index:focus-visible{
-    outline:2px solid var(--parchment-label); outline-offset:2px; border-radius:4px;
-  }
 
   /* =====================================================================
      ZONA DE INTEGRACIÓN FUTURA: cuando el JSON completo de la Biblia esté
@@ -571,281 +674,9 @@
      .book-page-tag de arriba son las que darán estilo a cada libro,
      capítulo y versículo real — no se requiere ningún cambio de CSS.
      ===================================================================== */
-
-  /* =====================================================================
-     INTRO — Biblia cerrada que se abre (pantalla de carga inicial)
-     Animación de ~3.8s resuelta enteramente en CSS (arranca sola al pintar
-     la página, sin JS). El único JavaScript asociado es el botón "Omitir"
-     y una red de seguridad que la retira si algo saliera mal. Usa su
-     propio espacio de nombres `introbible-*` para no tocar ni depender de
-     la lógica del modal de lectura (.book / BOOK_PAGES).
-     ===================================================================== */
-  .introbible{
-    position:fixed; inset:0; z-index:900;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:clamp(1.1rem,4vw,1.9rem);
-    background:
-      radial-gradient(ellipse 60% 50% at 50% 38%, rgba(60,40,16,0.35), transparent 65%),
-      radial-gradient(ellipse 90% 70% at 50% 100%, rgba(20,13,7,0.9), transparent 60%),
-      linear-gradient(180deg, #0b0704 0%, #140d07 45%, #0b0704 100%);
-    overflow:hidden;
-    animation:introOverlayFadeOut .85s ease forwards;
-    animation-delay:3.05s;
-  }
-  .introbible-skip{
-    position:absolute; top:clamp(0.9rem,3vw,1.6rem); right:clamp(0.9rem,3vw,1.6rem); z-index:3;
-    height:40px; padding:0 1.2rem; border-radius:var(--radius-full);
-    font-family:'Manrope',sans-serif; font-size:0.8rem; font-weight:600; letter-spacing:0.01em;
-    color:var(--ink-dim); background:rgba(201,162,39,0.08); border:1px solid var(--line);
-    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
-    opacity:0; animation:introFadeIn .6s ease forwards; animation-delay:.5s;
-    transition:background-color .3s var(--ease), border-color .3s var(--ease), color .3s var(--ease), transform .3s var(--ease);
-  }
-  .introbible-skip:hover{ background:rgba(201,162,39,0.16); border-color:var(--gold-light); color:var(--ink); transform:translateY(-1px); }
-  .introbible-skip:focus-visible{ outline:2px solid var(--gold-light); outline-offset:3px; }
-
-  .introbible-caption{
-    font-family:'Cinzel',serif; font-weight:600; font-size:clamp(11px,2.4vw,13px);
-    letter-spacing:0.28em; text-transform:uppercase; color:var(--gold-light);
-    opacity:0; text-align:center;
-    animation:introCaptionFade 1.2s ease forwards;
-    animation-delay:1.9s;
-  }
-
-  .introbible-halo{
-    position:absolute; left:50%; top:46%; width:min(70vw,640px); height:min(70vw,640px);
-    transform:translate(-50%,-50%) scale(0.7); border-radius:50%;
-    background:radial-gradient(circle, rgba(232,192,125,0.4), rgba(201,162,39,0.12) 45%, transparent 70%);
-    opacity:0; pointer-events:none; filter:blur(2px);
-    animation:introHaloBuild 1.6s cubic-bezier(.2,.7,.3,1) forwards;
-    animation-delay:.3s;
-  }
-  @keyframes introHaloBuild{
-    0%{ opacity:0; transform:translate(-50%,-50%) scale(0.65); }
-    70%{ opacity:1; transform:translate(-50%,-50%) scale(1.08); }
-    100%{ opacity:0.85; transform:translate(-50%,-50%) scale(1); }
-  }
-
-  .introbible-sparks{ position:absolute; inset:0; pointer-events:none; z-index:2; }
-  .introbible-spark{
-    position:absolute; color:var(--gold-light); font-size:10px; opacity:0;
-    filter:drop-shadow(0 0 4px rgba(232,192,125,0.8));
-    animation:introSparkPop 1.8s ease-out forwards;
-  }
-  .introbible-spark::before{ content:'✦'; }
-  .introbible-spark.k1{ left:30%; top:32%; animation-delay:1.65s; font-size:11px; }
-  .introbible-spark.k2{ left:68%; top:28%; animation-delay:1.9s;  font-size:8px; }
-  .introbible-spark.k3{ left:60%; top:60%; animation-delay:2.1s;  font-size:9px; }
-  .introbible-spark.k4{ left:36%; top:64%; animation-delay:1.8s;  font-size:7px; }
-  .introbible-spark.k5{ left:50%; top:20%; animation-delay:2.25s; font-size:8px; }
-  @keyframes introSparkPop{
-    0%{ opacity:0; transform:scale(0.4) translateY(4px); }
-    35%{ opacity:0.95; transform:scale(1) translateY(-2px); }
-    100%{ opacity:0; transform:scale(0.7) translateY(-14px); }
-  }
-
-  .introbible-stage{ position:relative; z-index:1; }
-  .introbible-book{
-    position:relative; width:min(272px,56vw); aspect-ratio:0.66;
-    opacity:0; transform:translateY(10px) scale(0.96);
-    animation:introBookIn .7s var(--ease) forwards;
-    animation-delay:.05s;
-    filter:drop-shadow(0 30px 40px rgba(0,0,0,0.65));
-    perspective:1400px;
-  }
-  @keyframes introBookIn{ to{ opacity:1; transform:none; } }
-
-  .introbible-shadow{
-    position:absolute; left:6%; right:6%; bottom:-8%; height:16%;
-    background:radial-gradient(ellipse, rgba(0,0,0,0.6), transparent 72%);
-  }
-  .introbible-spine{
-    position:absolute; left:0; top:1.5%; bottom:1.5%; width:7%; border-radius:5px 0 0 5px; z-index:1;
-    background:linear-gradient(90deg, var(--bg-darker) 0%, #4a1f18 32%, #33140f 58%, var(--bg-darker) 100%);
-    box-shadow:inset -2px 0 4px rgba(0,0,0,0.6), inset 2px 0 3px rgba(0,0,0,0.35);
-  }
-  .introbible-pageedge{
-    position:absolute; right:0; top:2%; bottom:2%; width:5%; border-radius:0 5px 5px 0; z-index:1;
-    background:linear-gradient(90deg, #96702a 0%, #f6dfa0 22%, #d9a94f 42%, #fff6da 58%, #c9932f 76%, #f6dfa0 90%, #96702a 100%);
-    box-shadow:inset 2px 0 5px rgba(70,45,15,0.45), 1px 0 4px rgba(0,0,0,0.35);
-  }
-  .introbible-glow-pages{
-    position:absolute; inset:6% 5%; z-index:2; border-radius:6px;
-    background:radial-gradient(ellipse 70% 60% at 50% 42%, rgba(255,236,190,0.95), rgba(232,192,125,0.35) 55%, transparent 78%);
-    opacity:0;
-    animation:introPageLight 1.5s ease forwards;
-    animation-delay:1.55s;
-  }
-  @keyframes introPageLight{
-    0%{ opacity:0; transform:scale(0.85); }
-    55%{ opacity:1; transform:scale(1.04); }
-    100%{ opacity:0.88; transform:scale(1); }
-  }
-
-  .introbible-flap{
-    position:absolute; top:0; bottom:0; width:43%; z-index:3;
-    background-size:200% 100%;
-    background-image:
-      radial-gradient(ellipse 70% 45% at 26% 8%, rgba(255,214,178,0.16), transparent 62%),
-      radial-gradient(ellipse 60% 50% at 78% 92%, rgba(0,0,0,0.5), transparent 60%),
-      radial-gradient(circle at 6% 94%, rgba(0,0,0,0.55), transparent 45%),
-      radial-gradient(circle at 94% 6%, rgba(0,0,0,0.4), transparent 42%),
-      linear-gradient(160deg, #5a2e22 0%, #3a1c14 38%, #241209 72%, var(--bg-darker) 100%);
-    backface-visibility:hidden;
-  }
-  .introbible-flap.is-left{
-    left:7%; background-position:left center; border-radius:5px 0 0 5px;
-    transform-origin:100% 50%;
-    animation:introFlapLeft 1.05s cubic-bezier(.6,0,.4,1) forwards;
-    animation-delay:1.5s;
-  }
-  .introbible-flap.is-right{
-    right:5%; background-position:right center; border-radius:0 5px 5px 0;
-    transform-origin:0% 50%;
-    animation:introFlapRight 1.05s cubic-bezier(.6,0,.4,1) forwards;
-    animation-delay:1.5s;
-  }
-  @keyframes introFlapLeft{
-    0%{ transform:rotateY(0deg); opacity:1; }
-    82%{ opacity:1; }
-    100%{ transform:rotateY(-108deg); opacity:0; }
-  }
-  @keyframes introFlapRight{
-    0%{ transform:rotateY(0deg); opacity:1; }
-    82%{ opacity:1; }
-    100%{ transform:rotateY(108deg); opacity:0; }
-  }
-
-  .introbible-face{
-    position:absolute; inset:0 5% 0 7%; z-index:4;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.5rem;
-    text-align:center; pointer-events:none;
-    animation:introFadeOutFast .4s ease forwards;
-    animation-delay:1.5s;
-  }
-  @keyframes introFadeOutFast{ to{ opacity:0; } }
-
-  .introbible-cross{
-    position:relative; width:clamp(2.5rem,9vw,3.4rem); height:calc(clamp(2.5rem,9vw,3.4rem) * 1.5);
-    margin-bottom:0.15rem;
-  }
-  .introbible-cross::before, .introbible-cross::after{
-    content:''; position:absolute;
-    background:linear-gradient(180deg, #fff6e0 0%, #e8c07d 18%, #c9a227 52%, #a68b3c 82%, #5c4413 100%);
-    border-radius:2px;
-    box-shadow:0 1px 2px rgba(0,0,0,0.5), 0 0 14px rgba(212,175,55,0.3);
-  }
-  .introbible-cross::before{ left:38%; right:38%; top:0; bottom:0; }
-  .introbible-cross::after{ top:24%; bottom:58%; left:0; right:0; }
-
-  .introbible-title{
-    font-family:'Cinzel',serif; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
-    font-size:clamp(0.95rem,5vw,1.3rem); color:var(--gold-light); white-space:nowrap;
-    text-shadow:-1px -1px 0 rgba(255,226,170,0.25), 1px 1.5px 1.5px rgba(0,0,0,0.7), 0 0 14px rgba(201,162,39,0.25);
-  }
-  .introbible-subtitle{
-    font-family:'Space Mono',monospace; font-weight:700; text-transform:uppercase; font-size:9.5px;
-    letter-spacing:0.16em; color:var(--gold);
-  }
-
-  @keyframes introFadeIn{ to{ opacity:1; } }
-  @keyframes introCaptionFade{ 0%{ opacity:0; transform:translateY(4px); } 100%{ opacity:0.9; transform:none; } }
-  @keyframes introOverlayFadeOut{ to{ opacity:0; visibility:hidden; pointer-events:none; } }
-
-  /* botón "Omitir": salta directamente al estado final (libro abierto, luz
-     visible) con una transición corta, en lugar de recortar la animación
-     a mitad de un movimiento */
-  .introbible.is-skipped{ animation:introOverlayFadeOut .4s ease forwards !important; animation-delay:0s !important; }
-  .introbible.is-skipped *{ animation:none !important; transition:none !important; }
-  .introbible.is-skipped .introbible-flap.is-left{ transform:rotateY(-108deg); opacity:0; }
-  .introbible.is-skipped .introbible-flap.is-right{ transform:rotateY(108deg); opacity:0; }
-  .introbible.is-skipped .introbible-halo{ opacity:0.85; transform:translate(-50%,-50%) scale(1); }
-  .introbible.is-skipped .introbible-glow-pages{ opacity:0.88; transform:scale(1); }
-  .introbible.is-skipped .introbible-face{ opacity:0; }
-  .introbible.is-skipped .introbible-book{ opacity:1; transform:none; }
-  .introbible.is-skipped .introbible-skip{ opacity:0; }
-
-  @media (prefers-reduced-motion: reduce){
-    .introbible{ animation:introOverlayFadeOut 1.1s ease forwards; animation-delay:.9s; }
-    .introbible-halo{ animation:none; opacity:0.75; transform:translate(-50%,-50%) scale(1); }
-    .introbible-glow-pages{ animation:none; opacity:0.8; transform:scale(1); }
-    .introbible-flap.is-left{ animation:none; transform:rotateY(-108deg); opacity:0; }
-    .introbible-flap.is-right{ animation:none; transform:rotateY(108deg); opacity:0; }
-    .introbible-face{ animation:none; opacity:0; }
-    .introbible-book{ animation:none; opacity:1; transform:none; }
-    .introbible-spark{ animation:none; opacity:0; }
-    .introbible-skip{ animation:none; opacity:1; }
-    .introbible-caption{ animation:none; opacity:0.9; }
-  }
 </style>
 </head>
 <body>
-
-<!-- ================= INTRO — Biblia abriéndose (pantalla de carga) =================
-     Se reproduce una única vez, al cargar la página (no en cada apertura del
-     modal de lectura). Dura ~3.8s, es enteramente CSS (arranca sola sin JS),
-     respeta prefers-reduced-motion y puede omitirse en cualquier momento. -->
-<div class="introbible" id="introBible" aria-label="Introducción: la Biblia abriéndose">
-  <span class="sr-only">Animación de apertura de la Santa Biblia. El contenido principal se muestra automáticamente a continuación.</span>
-  <button class="introbible-skip" id="introSkipBtn" type="button">Omitir introducción</button>
-  <div class="introbible-halo" aria-hidden="true"></div>
-  <div class="introbible-sparks" aria-hidden="true">
-    <span class="introbible-spark k1"></span>
-    <span class="introbible-spark k2"></span>
-    <span class="introbible-spark k3"></span>
-    <span class="introbible-spark k4"></span>
-    <span class="introbible-spark k5"></span>
-  </div>
-  <div class="introbible-stage">
-    <div class="introbible-book" aria-hidden="true">
-      <div class="introbible-shadow"></div>
-      <div class="introbible-spine"></div>
-      <div class="introbible-pageedge"></div>
-      <div class="introbible-glow-pages"></div>
-      <div class="introbible-flap is-left"></div>
-      <div class="introbible-flap is-right"></div>
-      <div class="introbible-face">
-        <div class="introbible-cross"></div>
-        <h2 class="introbible-title">Santa Biblia</h2>
-        <p class="introbible-subtitle">Aprendiendo con Jesús</p>
-      </div>
-    </div>
-  </div>
-  <p class="introbible-caption" aria-hidden="true">Abriendo la Palabra</p>
-</div>
-<script>
-(function(){
-  "use strict";
-  try{
-    var intro = document.getElementById('introBible');
-    var skipBtn = document.getElementById('introSkipBtn');
-    if(!intro) return;
-    var done = false;
-    function finishIntro(){
-      if(done) return;
-      done = true;
-      intro.classList.add('is-skipped');
-      window.setTimeout(function(){
-        try{
-          intro.setAttribute('aria-hidden','true');
-          intro.style.display = 'none';
-        }catch(e){ /* nada más que hacer: la animación CSS ya la deja invisible */ }
-      }, 420);
-    }
-    if(skipBtn) skipBtn.addEventListener('click', finishIntro);
-    window.addEventListener('keydown', function(e){
-      if(e.key === 'Escape' || e.key === 'Esc') finishIntro();
-    });
-    // Red de seguridad: si por cualquier motivo la animación CSS no llegara a
-    // ocultar la introducción, la retiramos igualmente pasado un margen
-    // prudente para no bloquear nunca el acceso al contenido.
-    window.setTimeout(finishIntro, 6000);
-  }catch(err){
-    var el = document.getElementById('introBible');
-    if(el) el.style.display = 'none';
-  }
-})();
-</script>
 
 <!-- ================= DORADO CELESTIAL — vitrina ================= -->
 <section class="cinematic sacred reveal is-visible" id="dorado">
@@ -861,6 +692,59 @@
     <span class="sacred-frame-corner bl"></span>
     <span class="sacred-frame-corner br"></span>
   </div>
+
+  <!-- La Biblia cerrada, protagonista de la vitrina desde la primera carga.
+       No se abre sola: solo reacciona a hover/foco y espera el toque del
+       usuario. Al activarse, cede el gesto a la apertura cinematográfica
+       real dentro de #book (más abajo en el documento). Los <use> de las
+       esquinas y la cruz reutilizan los <defs> ya definidos en #bookCover,
+       por eso este bloque no repite ningún id. -->
+  <div class="hero-book-dock" id="heroBookDock">
+    <div class="hero-book-halo" aria-hidden="true"></div>
+    <div class="book-cover" id="heroBookCover" role="button" tabindex="0" aria-label="Abrir la Santa Biblia y comenzar la lectura">
+      <div class="book-motes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="book-object">
+        <div class="book-shadow" aria-hidden="true"></div>
+        <div class="book-spine-strip" aria-hidden="true"></div>
+        <div class="book-page-edge" aria-hidden="true"></div>
+        <div class="book-page-edge-top" aria-hidden="true"></div>
+        <div class="book-page-edge-bottom" aria-hidden="true"></div>
+        <div class="book-ribbon" aria-hidden="true"></div>
+        <div class="book-flaps" aria-hidden="true">
+          <div class="book-flap is-left"></div>
+          <div class="book-flap is-right"></div>
+        </div>
+        <div class="book-face-content">
+          <svg class="book-corner tl" viewBox="0 0 40 40" aria-hidden="true"><use href="#filigreeMark"/></svg>
+          <svg class="book-corner tr" viewBox="0 0 40 40" aria-hidden="true"><use href="#filigreeMark"/></svg>
+          <svg class="book-corner bl" viewBox="0 0 40 40" aria-hidden="true"><use href="#filigreeMark"/></svg>
+          <svg class="book-corner br" viewBox="0 0 40 40" aria-hidden="true"><use href="#filigreeMark"/></svg>
+
+          <div class="book-cross-wrap" aria-hidden="true">
+            <svg class="book-cross-svg" viewBox="0 0 100 150" aria-hidden="true">
+              <use class="book-cross-shape" href="#crossOutline" fill="url(#crossGoldGrad)"/>
+              <use class="book-cross-sheen" href="#crossOutline" fill="url(#crossSheenGrad)"/>
+              <use class="book-cross-edge" href="#crossOutline" fill="none" stroke="#3a2a08" stroke-width="0.8" stroke-linejoin="round" opacity="0.5"/>
+            </svg>
+            <span class="cross-sparkle s1" aria-hidden="true"></span>
+            <span class="cross-sparkle s2" aria-hidden="true"></span>
+            <span class="cross-sparkle s3" aria-hidden="true"></span>
+            <span class="cross-sparkle s4" aria-hidden="true"></span>
+            <span class="cross-sparkle s5" aria-hidden="true"></span>
+          </div>
+          <h2 class="book-cover-title">Santa Biblia</h2>
+          <svg class="book-cover-divider" viewBox="0 0 64 9" aria-hidden="true">
+            <line x1="0" y1="4.5" x2="24" y2="4.5" stroke="#c9a227" stroke-width="1"/>
+            <line x1="40" y1="4.5" x2="64" y2="4.5" stroke="#c9a227" stroke-width="1"/>
+            <rect x="29.5" y="1.5" width="6" height="6" fill="#e8c07d" transform="rotate(45 32.5 4.5)"/>
+          </svg>
+          <p class="book-cover-sub">Aprendiendo con Jesús</p>
+        </div>
+      </div>
+      <p class="book-cover-hint">Toca para abrir</p>
+    </div>
+  </div>
+
   <div class="cinematic-content">
     <div class="cinematic-text">
       <p class="eyebrow">Dorado Celestial · Aprendiendo con Jesús</p>
@@ -878,7 +762,7 @@
 <div class="book is-cover" id="book" role="dialog" aria-modal="true" aria-label="Santa Biblia — Aprendiendo con Jesús">
   <button class="btn-icon book-close" id="bookClose" aria-label="Cerrar lectura">✕</button>
 
-  <div class="book-cover" id="bookCover">
+  <div class="book-cover" id="bookCover" role="button" tabindex="0" aria-label="Abrir la Santa Biblia y comenzar la lectura">
     <div class="book-motes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
     <div class="book-object">
       <div class="book-shadow" aria-hidden="true"></div>
@@ -887,6 +771,12 @@
       <div class="book-page-edge-top" aria-hidden="true"></div>
       <div class="book-page-edge-bottom" aria-hidden="true"></div>
       <div class="book-ribbon" aria-hidden="true"></div>
+      <div class="book-inner-glow" aria-hidden="true"></div>
+      <div class="book-leaves" aria-hidden="true">
+        <div class="book-leaf l3"><span class="leaf-half is-left"></span><span class="leaf-half is-right"></span></div>
+        <div class="book-leaf l2"><span class="leaf-half is-left"></span><span class="leaf-half is-right"></span></div>
+        <div class="book-leaf l1"><span class="leaf-half is-left"></span><span class="leaf-half is-right"></span></div>
+      </div>
       <div class="book-flaps" aria-hidden="true">
         <div class="book-flap is-left"></div>
         <div class="book-flap is-right"></div>
@@ -1117,6 +1007,7 @@
   /* ============ SAGRADA BIBLIA — LÓGICA (sin cambios respecto al original) ============ */
   const book = document.getElementById('book');
   const bookCover = document.getElementById('bookCover');
+  const bookOpen = document.getElementById('bookOpen');
   const bookPageLeft = document.getElementById('bookPageLeft');
   const bookPageRight = document.getElementById('bookPageRight');
   let bookIndex = 0;
@@ -1137,8 +1028,8 @@
     }).join('');
   }
   function inkifyEl(el){ if(el) el.innerHTML = inkHtml(el.textContent); }
-  inkifyEl(document.querySelector('.book-cover-title'));
-  inkifyEl(document.querySelector('.book-cover-sub'));
+  document.querySelectorAll('.book-cover-title').forEach(inkifyEl);
+  document.querySelectorAll('.book-cover-sub').forEach(inkifyEl);
 
   let bookSealUid = 0;
   // estética de grabado/xilografía renacentista: tinta monocroma, trazos finos,
@@ -1288,8 +1179,18 @@
     bookPageRight.classList.add('is-turning');
     setTimeout(()=>{ fn(); bookPageRight.classList.remove('is-turning'); }, 160);
   }
-  function closeBook(){ book.classList.remove('is-open'); setTimeout(showCover, 550); }
+  function closeBook(){
+    book.classList.remove('is-open');
+    setTimeout(showCover, 550);
+    // La Biblia de la vitrina vuelve a estar disponible para abrirse de nuevo.
+    heroDockLocked = false;
+    if(heroBookCover){
+      heroBookCover.classList.remove('is-launching');
+      heroBookCover.removeAttribute('aria-disabled');
+    }
+  }
 
+  let heroDockLocked = false;
   let openingBook = false;
   function beginOpening(){
     if(openingBook) return;
@@ -1297,11 +1198,31 @@
     playPageSound();
     book.classList.remove('is-cover');
     book.classList.add('is-opening');
-    setTimeout(()=>{ openingBook = false; showIndex(); }, 1700);
+    // La secuencia rica (cubierta + hojas en cascada + resplandor) dura ~3.4s;
+    // con "reducir movimiento" se acorta a una transición breve y directa.
+    setTimeout(()=>{
+      openingBook = false;
+      showIndex();
+      // Revelación elegante del contenido, solo la primera vez que se abre
+      // (la navegación normal entre índice/página conserva su propio giro rápido).
+      bookOpen.classList.add('is-revealing');
+      setTimeout(()=> bookOpen.classList.remove('is-revealing'), 800);
+    }, reduceMotion ? 450 : 3400);
+  }
+
+  // Abre la experiencia de lectura completa: muestra el modal (con su propia
+  // Biblia cerrada) y arranca de inmediato la apertura cinematográfica real.
+  function openReadingExperience(){
+    showCover();
+    book.classList.add('is-open');
+    beginOpening();
   }
 
   document.getElementById('sacredOpenBtn').addEventListener('click', ()=>{ showCover(); book.classList.add('is-open'); });
   bookCover.addEventListener('click', beginOpening);
+  bookCover.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){ e.preventDefault(); beginOpening(); }
+  });
   document.getElementById('bookClose').addEventListener('click', closeBook);
   book.addEventListener('click', (e)=>{
     const t = e.target.closest('[data-action]');
@@ -1313,6 +1234,25 @@
     }
     if(e.target === book) closeBook();
   });
+
+  /* ============ BIBLIA CERRADA EN LA VITRINA (dock del hero) ============
+     Visible desde la carga, sin animarse sola. Un solo toque entrega el
+     gesto a la experiencia de lectura de arriba: no duplica su lógica, solo
+     la dispara con una breve reacción propia primero. */
+  const heroBookCover = document.getElementById('heroBookCover');
+  function launchFromHero(){
+    if(heroDockLocked) return;
+    heroDockLocked = true;
+    heroBookCover.classList.add('is-launching');
+    heroBookCover.setAttribute('aria-disabled', 'true');
+    window.setTimeout(openReadingExperience, reduceMotion ? 0 : 220);
+  }
+  if(heroBookCover){
+    heroBookCover.addEventListener('click', launchFromHero);
+    heroBookCover.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){ e.preventDefault(); launchFromHero(); }
+    });
+  }
 
 })();
 </script>
