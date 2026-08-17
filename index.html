@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   :root{
     --void:#050308;
@@ -121,40 +120,6 @@
   }
   .nav-cta:hover{ background:rgba(255,255,255,0.16); border-color:rgba(255,255,255,0.35); transform:translateY(-1px); }
   @media (max-width: 700px){ .nav-links{ display:none; } }
-
-  #globe-stage{
-    position:fixed;
-    top:0; left:0;
-    width:100vw; height:100vh;
-    z-index:0;
-    transition: none;
-    pointer-events:none;
-  }
-  #globe-stage canvas{ display:block; width:100%; height:100%; }
-
-  .instrument-ring{
-    position:fixed;
-    z-index:2;
-    pointer-events:none;
-    border:1px solid var(--gold-dim);
-    border-radius:50%;
-    transition: opacity 0.4s ease;
-  }
-
-  .readout{
-    position:fixed;
-    z-index:3;
-    font-family:'Space Mono', monospace;
-    font-size:11px;
-    letter-spacing:0.04em;
-    color: var(--gold);
-    text-transform:uppercase;
-    opacity:0;
-    transition: opacity 0.5s ease;
-    pointer-events:none;
-    line-height:1.8;
-  }
-  .readout span{ color: var(--ink-dim); }
 
   main{ position:relative; z-index:1; }
 
@@ -450,15 +415,6 @@
   </div>
 </nav>
 
-<div id="globe-stage"></div>
-<div class="instrument-ring" id="ring"></div>
-<div class="readout" id="readout">
-  UTC <span id="utc-time">--:--:--</span><br>
-  ROT <span id="rot-speed">1 674 km/h</span><br>
-  ORB <span id="orb-speed">107 226 km/h</span><br>
-  INCL <span>23.44°</span>
-</div>
-
 <main>
 
   <section class="hero">
@@ -580,179 +536,6 @@
 
 <script>
 (function(){
-  const stage = document.getElementById('globe-stage');
-  const ring = document.getElementById('ring');
-  const readout = document.getElementById('readout');
-
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(38, window.innerWidth/window.innerHeight, 0.1, 100);
-  camera.position.set(0,0,7.4);
-
-  const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  stage.appendChild(renderer.domElement);
-
-  // ---- procedural cartographic texture ----
-  function makeEarthTexture(){
-    const w=1024, h=512;
-    const c = document.createElement('canvas'); c.width=w; c.height=h;
-    const ctx = c.getContext('2d');
-
-    // ocean gradient — aged chart teal
-    const oceanGrad = ctx.createLinearGradient(0,0,0,h);
-    oceanGrad.addColorStop(0, '#0f2f38');
-    oceanGrad.addColorStop(0.5, '#173f47');
-    oceanGrad.addColorStop(1, '#0f2f38');
-    ctx.fillStyle = oceanGrad;
-    ctx.fillRect(0,0,w,h);
-
-    // continents — ink-wash blobs
-    function blob(cx, cy, r, col){
-      ctx.save();
-      ctx.translate(cx,cy);
-      ctx.beginPath();
-      const pts = 10;
-      for(let i=0;i<=pts;i++){
-        const a = (i/pts)*Math.PI*2;
-        const rad = r * (0.7 + Math.random()*0.55);
-        const x = Math.cos(a)*rad, y = Math.sin(a)*rad*0.62;
-        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-      }
-      ctx.closePath();
-      ctx.fillStyle = col;
-      ctx.filter = 'blur(3px)';
-      ctx.fill();
-      ctx.restore();
-    }
-    const landCol = '#8a7550';
-    const landCol2 = '#9c8760';
-    const clusters = [
-      [150,150,70],[190,190,50],[130,210,40],
-      [430,120,55],[470,160,42],[420,190,38],
-      [520,260,60],[560,300,44],[500,320,50],
-      [720,140,60],[770,120,45],[800,190,55],
-      [860,300,50],[900,260,38],
-      [260,330,45],[300,300,40],
-      [620,360,42],[660,340,36]
-    ];
-    clusters.forEach((p,i)=> blob(p[0],p[1],p[2], i%2? landCol: landCol2));
-
-    // polar ice
-    const iceTop = ctx.createLinearGradient(0,0,0,70);
-    iceTop.addColorStop(0,'rgba(230,228,220,0.85)');
-    iceTop.addColorStop(1,'rgba(230,228,220,0)');
-    ctx.filter='none';
-    ctx.fillStyle = iceTop; ctx.fillRect(0,0,w,70);
-    const iceBot = ctx.createLinearGradient(0,h-70,0,h);
-    iceBot.addColorStop(0,'rgba(230,228,220,0)');
-    iceBot.addColorStop(1,'rgba(230,228,220,0.85)');
-    ctx.fillStyle = iceBot; ctx.fillRect(0,h-70,w,70);
-
-    // graticule — brass cartographic lines
-    ctx.strokeStyle = 'rgba(201,160,99,0.35)';
-    ctx.lineWidth = 1;
-    for(let x=0;x<=w;x+=w/12){
-      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke();
-    }
-    for(let y=0;y<=h;y+=h/6){
-      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
-    }
-    ctx.strokeStyle = 'rgba(201,160,99,0.6)';
-    ctx.lineWidth = 1.4;
-    ctx.beginPath(); ctx.moveTo(0,h/2); ctx.lineTo(w,h/2); ctx.stroke();
-
-    const tex = new THREE.CanvasTexture(c);
-    tex.needsUpdate = true;
-    return tex;
-  }
-
-  const earthTex = makeEarthTexture();
-  const earthGeo = new THREE.SphereGeometry(2, 64, 64);
-  const earthMat = new THREE.MeshPhongMaterial({ map: earthTex, shininess: 6, specular: 0x223333 });
-  const earth = new THREE.Mesh(earthGeo, earthMat);
-  earth.rotation.z = 23.4 * Math.PI/180;
-  scene.add(earth);
-
-  // atmosphere glow — fresnel-ish rim shader
-  const atmoGeo = new THREE.SphereGeometry(2.09, 64, 64);
-  const atmoMat = new THREE.ShaderMaterial({
-    uniforms:{ glowColor:{ value: new THREE.Color(0x9b7bff) } },
-    vertexShader: `
-      varying float intensity;
-      void main(){
-        vec3 vNormal = normalize( normalMatrix * normal );
-        vec3 vNormel = normalize( normalMatrix * vec3(0.0,0.0,1.0) );
-        intensity = pow( 0.68 - dot(vNormal, vNormel), 2.4 );
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-      }`,
-    fragmentShader: `
-      varying float intensity;
-      uniform vec3 glowColor;
-      void main(){
-        gl_FragColor = vec4( glowColor, intensity );
-      }`,
-    side: THREE.BackSide,
-    blending: THREE.AdditiveBlending,
-    transparent:true
-  });
-  const atmo = new THREE.Mesh(atmoGeo, atmoMat);
-  scene.add(atmo);
-
-  // gold instrument ring
-  const ringGeo = new THREE.TorusGeometry(2.55, 0.012, 8, 128);
-  const ringMat = new THREE.MeshBasicMaterial({ color:0xe8c07d, transparent:true, opacity:0.55 });
-  const brassRing = new THREE.Mesh(ringGeo, ringMat);
-  brassRing.rotation.x = Math.PI/2.3;
-  scene.add(brassRing);
-
-  // starfield
-  const starGeo = new THREE.BufferGeometry();
-  const starCount = 900;
-  const positions = new Float32Array(starCount*3);
-  for(let i=0;i<starCount;i++){
-    const r = 20 + Math.random()*30;
-    const theta = Math.random()*Math.PI*2;
-    const phi = Math.acos((Math.random()*2)-1);
-    positions[i*3] = r*Math.sin(phi)*Math.cos(theta);
-    positions[i*3+1] = r*Math.sin(phi)*Math.sin(theta);
-    positions[i*3+2] = r*Math.cos(phi);
-  }
-  starGeo.setAttribute('position', new THREE.BufferAttribute(positions,3));
-  const starMat = new THREE.PointsMaterial({ color:0xf1eee6, size:0.045, transparent:true, opacity:0.7 });
-  const stars = new THREE.Points(starGeo, starMat);
-  scene.add(stars);
-
-  // light — the sun
-  const sun = new THREE.DirectionalLight(0xfff2d9, 1.55);
-  sun.position.set(5,2,4);
-  scene.add(sun);
-  scene.add(new THREE.AmbientLight(0x1a2030, 1.3));
-
-  let mouseX = 0, mouseY = 0;
-  window.addEventListener('mousemove', (e)=>{
-    mouseX = (e.clientX/window.innerWidth - 0.5);
-    mouseY = (e.clientY/window.innerHeight - 0.5);
-  });
-
-  function resize(){
-    camera.aspect = window.innerWidth/window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  }
-  window.addEventListener('resize', resize);
-
-  function animate(){
-    requestAnimationFrame(animate);
-    earth.rotation.y += 0.0016;
-    brassRing.rotation.z += 0.0006;
-    camera.position.x += (mouseX*1.1 - camera.position.x)*0.02;
-    camera.position.y += (-mouseY*0.7 - camera.position.y)*0.02;
-    camera.lookAt(0,0,0);
-    renderer.render(scene, camera);
-  }
-  animate();
-
   // ---- nav bar solid-on-scroll ----
   const siteNav = document.getElementById('siteNav');
   function onNavScroll(){
@@ -760,39 +543,6 @@
   }
   window.addEventListener('scroll', onNavScroll, { passive:true });
   onNavScroll();
-
-  // ---- scroll-driven instrument transformation ----
-  const heroH = window.innerHeight;
-  function onScroll(){
-    const y = window.scrollY;
-    const t = Math.min(Math.max(y/heroH, 0), 1);
-
-    const scale = 1 - t*0.78;
-    const tx = t * (window.innerWidth*0.5 - 92);
-    const ty = -t * (window.innerHeight*0.5 - 92);
-    stage.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
-    stage.style.transformOrigin = 'center center';
-
-    const ringSize = 118;
-    ring.style.width = ringSize+'px';
-    ring.style.height = ringSize+'px';
-    ring.style.left = (window.innerWidth - ringSize - 44) + 'px';
-    ring.style.top = (44) + 'px';
-    ring.style.opacity = t > 0.82 ? String((t-0.82)/0.18) : '0';
-
-    readout.style.opacity = t > 0.82 ? String((t-0.82)/0.18) : '0';
-    readout.style.left = (window.innerWidth - 210) + 'px';
-    readout.style.top = (170) + 'px';
-  }
-  window.addEventListener('scroll', onScroll, { passive:true });
-  onScroll();
-
-  function tickClock(){
-    const d = new Date();
-    document.getElementById('utc-time').textContent = d.toISOString().substr(11,8);
-  }
-  setInterval(tickClock, 1000);
-  tickClock();
 })();
 </script>
 
