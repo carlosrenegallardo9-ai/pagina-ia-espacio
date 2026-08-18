@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nébula · Tierra — Un atlas del cosmos cercano</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23FF6A3D'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='47' fill='%23c9a063'/%3E%3Ccircle cx='50' cy='50' r='39' fill='%230a0e1c'/%3E%3Cpath d='M50 8L55 46L50 50L45 46ZM50 92L55 54L50 50L45 54ZM8 50L46 45L50 50L46 55ZM92 50L54 45L50 50L54 55Z' fill='%23f3dfae'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
@@ -109,9 +109,8 @@
     font-family:'Unbounded', sans-serif; font-weight:700; font-size:1rem;
   }
   .nav-mark{
-    width:20px; height:20px; border-radius:50%;
-    background: radial-gradient(circle at 32% 30%, #ffd9a8, var(--ember) 55%, #7a2c12 100%);
-    box-shadow:0 0 14px -2px var(--ember);
+    width:22px; height:22px; flex-shrink:0; display:block;
+    filter: drop-shadow(0 0 6px rgba(232,192,125,0.55));
   }
   .nav-links{
     display:flex; align-items:center; gap:2.1rem;
@@ -451,7 +450,45 @@
 <body>
 
 <nav class="nav" id="siteNav">
-  <a href="#" class="nav-brand"><span class="nav-mark"></span>Nébula</a>
+  <a href="#" class="nav-brand">
+    <svg class="nav-mark" viewBox="0 0 100 100" aria-hidden="true">
+      <defs>
+        <linearGradient id="navMarkBezel" x1="15%" y1="0%" x2="85%" y2="100%">
+          <stop offset="0%" stop-color="#f3dfae"/>
+          <stop offset="45%" stop-color="#c9a063"/>
+          <stop offset="100%" stop-color="#6b4f28"/>
+        </linearGradient>
+        <radialGradient id="navMarkVoid" cx="50%" cy="45%" r="65%">
+          <stop offset="0%" stop-color="#101a33"/>
+          <stop offset="70%" stop-color="#070a16"/>
+          <stop offset="100%" stop-color="#03040a"/>
+        </radialGradient>
+        <radialGradient id="navMarkGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fff8e6"/>
+          <stop offset="35%" stop-color="#f6dba4" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#e8c07d" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill="url(#navMarkBezel)"/>
+      <circle cx="50" cy="50" r="41" fill="url(#navMarkVoid)"/>
+      <g stroke="rgba(160,180,215,0.3)" fill="none" stroke-width="0.7">
+        <circle cx="50" cy="50" r="34"/>
+        <circle cx="50" cy="50" r="26"/>
+        <path d="M20 34 A34 34 0 0 1 66 18"/>
+        <path d="M82 40 A34 34 0 0 1 76 76"/>
+        <path d="M30 80 A34 34 0 0 1 18 58"/>
+      </g>
+      <circle cx="50" cy="50" r="22" fill="url(#navMarkGlow)"/>
+      <g fill="url(#navMarkGlow)">
+        <path d="M50 8 L54 46 L50 50 L46 46 Z"/>
+        <path d="M50 92 L54 54 L50 50 L46 54 Z"/>
+        <path d="M8 50 L46 46 L50 50 L46 54 Z"/>
+        <path d="M92 50 L54 54 L50 50 L54 46 Z"/>
+      </g>
+      <circle cx="50" cy="50" r="4" fill="#fffaf0"/>
+    </svg>
+    Nébula
+  </a>
   <ul class="nav-links">
     <li><a href="#vitals">Datos vitales</a></li>
     <li><a href="#atmosphere">Atmósfera</a></li>
