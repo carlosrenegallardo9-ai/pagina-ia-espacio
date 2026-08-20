@@ -214,7 +214,7 @@
     background:radial-gradient(ellipse at 50% 20%, rgba(36,24,14,0.55), rgba(6,4,2,0.97) 70%);
     backdrop-filter:blur(10px);
     display:flex; align-items:center; justify-content:center;
-    opacity:0; pointer-events:none; transition:opacity .5s var(--ease);
+    opacity:0; pointer-events:none; transition:opacity .5s var(--ease), background .4s ease;
     padding:clamp(1rem,3vw,2.4rem);
   }
   .book.is-open{ opacity:1; pointer-events:auto; }
@@ -286,7 +286,8 @@
   .book-object{
     position:relative; width:100%; aspect-ratio:0.68; z-index:2;
     filter:drop-shadow(0 34px 46px rgba(0,0,0,0.62));
-    transition:transform .5s var(--ease);
+    transition:transform .5s var(--ease), background .3s ease;
+    border-radius:5px;
   }
   .book-cover:hover .book-object{ transform:translateY(-5px) scale(1.014); }
   .book-shadow{
@@ -424,7 +425,10 @@
   @keyframes bookHint{ 0%,100%{ opacity:0.45; } 50%{ opacity:0.95; } }
   @media (prefers-reduced-motion: reduce){ .book-motes span, .book-ribbon{ animation:none; } }
 
-  /* ---- video de apertura: sustituye la animación 3D nativa de la cubierta ---- */
+  /* ---- video de apertura: sustituye la animación 3D nativa de la cubierta ----
+     el video trae su propio fondo casi negro; para que no se note como un
+     recuadro pegado encima de la portada, se funde con un fondo igual de
+     oscuro detrás y se difumina en los bordes en vez de cortar en seco */
   .book-open-video{
     position:absolute; inset:0; width:100%; height:100%;
     object-fit:cover; object-position:center center;
@@ -432,8 +436,12 @@
     z-index:5;
     opacity:0; pointer-events:none; visibility:hidden;
     transition:opacity 0.15s ease;
+    mask-image:radial-gradient(ellipse 100% 100% at 50% 50%, #000 72%, transparent 100%);
+    -webkit-mask-image:radial-gradient(ellipse 100% 100% at 50% 50%, #000 72%, transparent 100%);
   }
   .book.is-playing-video .book-open-video{ opacity:1; visibility:visible; }
+  .book.is-playing-video .book-object{ background:#050302; border-radius:5px; }
+  .book.is-playing-video{ background:#050302; }
   .book.is-playing-video .book-face-content,
   .book.is-playing-video .book-spine-strip,
   .book.is-playing-video .book-page-edge,
